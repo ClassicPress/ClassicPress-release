@@ -37,7 +37,7 @@ require( ABSPATH . WPINC . '/functions.wp-styles.php' );
 /**
  * Returns a cache buster string for an enqueued script or stylesheet.
  *
- * @since 1.0.0-beta2
+ * @since 1.0.0
  *
  * @param string $type    The type of asset being enqueued ('script' or 'style').
  * @param string $handle  The handle of the asset being enqueued (or `null` to
@@ -53,13 +53,13 @@ function classicpress_asset_version( $type = 'script', $handle = null ) {
 	static $default_version;
 
 	if ( empty( $default_version ) ) {
-		$default_version = 'cp_cf5f3de4';
+		$default_version = 'cp_7f5d787c';
 	}
 
 	/**
 	 * Allows modifying the asset version for each script and style.
 	 *
-	 * @since 1.0.0-beta2
+	 * @since 1.0.0
 	 *
 	 * @param string $version The default version for this asset.
 	 * @param string $type    The type of asset being enqueued ('script' or 'style').
