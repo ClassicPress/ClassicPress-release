@@ -53,7 +53,7 @@ function classicpress_asset_version( $type = 'script', $handle = null ) {
 	static $default_version;
 
 	if ( empty( $default_version ) ) {
-		$default_version = 'cp_f4dc9001';
+		$default_version = 'cp_48d11e3e';
 	}
 
 	/**
@@ -940,6 +940,12 @@ function wp_default_scripts( &$scripts ) {
 		$scripts->add( 'media-gallery', "/wp-admin/js/media-gallery$suffix.js", array('jquery'), false, 1 );
 
 		$scripts->add( 'svg-painter', '/wp-admin/js/svg-painter.js', array( 'jquery' ), false, 1 );
+
+		$scripts->add( 'cp-options-general', admin_url( "/js/options-general$suffix.js" ), array( 'jquery' ), false, 1 );
+		did_action( 'init' ) && $scripts->localize( 'cp-options-general', 'cpOptionsGeneralStrings', array(
+			'selectAnImage' => __( 'Select an image' ),
+			'useThisImage'  => __( 'Use this image' ),
+		) );
 	}
 }
 
