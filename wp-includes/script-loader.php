@@ -53,7 +53,7 @@ function classicpress_asset_version( $type = 'script', $handle = null ) {
 	static $default_version;
 
 	if ( empty( $default_version ) ) {
-		$default_version = 'cp_48d11e3e';
+		$default_version = 'cp_ca570ce6';
 	}
 
 	/**
@@ -945,6 +945,7 @@ function wp_default_scripts( &$scripts ) {
 		did_action( 'init' ) && $scripts->localize( 'cp-options-general', 'cpOptionsGeneralStrings', array(
 			'selectAnImage' => __( 'Select an image' ),
 			'useThisImage'  => __( 'Use this image' ),
+			'chooseAnImage' => __( 'Please choose an image!' ),
 		) );
 	}
 }
