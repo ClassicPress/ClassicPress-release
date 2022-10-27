@@ -1001,7 +1001,7 @@ function post_custom( $key = '' ) {
  *
  * @since WP-1.2.0
  *
- * @deprecated WP-6.0.2 Use get_post_meta() to retrieve post meta and render manually.
+ * @deprecated 6.0.2 Use get_post_meta() to retrieve post meta and render manually.
  *
  */
 function the_meta() {
