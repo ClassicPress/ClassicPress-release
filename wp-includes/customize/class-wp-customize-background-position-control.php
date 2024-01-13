@@ -4,13 +4,13 @@
  *
  * @package ClassicPress
  * @subpackage Customize
- * @since WP-4.7.0
+ * @since 4.7.0
  */
 
 /**
  * Customize Background Position Control class.
  *
- * @since WP-4.7.0
+ * @since 4.7.0
  *
  * @see WP_Customize_Control
  */
@@ -19,7 +19,7 @@ class WP_Customize_Background_Position_Control extends WP_Customize_Control {
 	/**
 	 * Type.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 * @var string
 	 */
 	public $type = 'background_position';
@@ -27,14 +27,14 @@ class WP_Customize_Background_Position_Control extends WP_Customize_Control {
 	/**
 	 * Don't render the control content from PHP, as it's rendered via JS on load.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 */
 	public function render_content() {}
 
 	/**
 	 * Render a JS template for the content of the position control.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 */
 	public function content_template() {
 		$options = array(
@@ -90,13 +90,18 @@ class WP_Customize_Background_Position_Control extends WP_Customize_Control {
 		<# } #>
 		<div class="customize-control-content">
 			<fieldset>
-				<legend class="screen-reader-text"><span><?php _e( 'Image Position' ); ?></span></legend>
+				<legend class="screen-reader-text"><span>
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Image Position' );
+					?>
+				</span></legend>
 				<div class="background-position-control">
 				<?php foreach ( $options as $group ) : ?>
 					<div class="button-group">
 					<?php foreach ( $group as $value => $input ) : ?>
 						<label>
-							<input class="screen-reader-text" name="background-position" type="radio" value="<?php echo esc_attr( $value ); ?>">
+							<input class="ui-helper-hidden-accessible" name="background-position" type="radio" value="<?php echo esc_attr( $value ); ?>">
 							<span class="button display-options position"><span class="<?php echo esc_attr( $input['icon'] ); ?>" aria-hidden="true"></span></span>
 							<span class="screen-reader-text"><?php echo $input['label']; ?></span>
 						</label>

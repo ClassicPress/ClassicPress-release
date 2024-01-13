@@ -27,44 +27,43 @@
  *
  * @global string $cp_version
  */
-$cp_version = '1.7.1';
+$cp_version = '2.0.0-rc1';
 
 /**
- * The WordPress version string
+ * The WordPress version string.
  *
- * This is still used internally for various core and plugin functions, and to
- * keep compatibility checks working as intended.  The ClassicPress version is
- * stored separately.
+ * Holds the current version number for WordPress core. Used to bust caches
+ * and to enable development mode for scripts when running from the /src directory.
  *
  * @see classicpress_version()
  *
  * @global string $wp_version
  */
-$wp_version = '4.9.24';
+$wp_version = '6.2.3';
 
 /**
- * Holds the ClassicPress DB revision, increments when changes are made to the ClassicPress DB schema.
+ * Holds the WordPress DB revision, increments when changes are made to the WordPress DB schema.
  *
  * @global int $wp_db_version
  */
-$wp_db_version = 38590;
+$wp_db_version = 53496;
 
 /**
- * Holds the TinyMCE version
+ * Holds the TinyMCE version.
  *
  * @global string $tinymce_version
  */
 $tinymce_version = '49110-20201110';
 
 /**
- * Holds the required PHP version
+ * Holds the required PHP version.
  *
  * @global string $required_php_version
  */
-$required_php_version = '5.6.0';
+$required_php_version = '7.4.0';
 
 /**
- * Holds the required MySQL version
+ * Holds the required MySQL version.
  *
  * @global string $required_mysql_version
  */
@@ -76,7 +75,7 @@ $required_mysql_version = '5.0';
  * `function_exists( 'classicpress_version' )` is the recommended way for
  * plugins and themes to determine whether they are running under ClassicPress.
  *
- * @since 1.0.0
+ * @since CP-1.0.0
  *
  * @return string The ClassicPress version string.
  */
@@ -90,7 +89,7 @@ if ( ! function_exists( 'classicpress_version' ) ) {
 /**
  * Return the ClassicPress version number without any alpha/beta/etc suffixes.
  *
- * @since 1.0.0
+ * @since CP-1.0.0
  *
  * @return string The ClassicPress version number with no suffix.
  */
@@ -108,7 +107,7 @@ if ( ! function_exists( 'classicpress_version_short' ) ) {
  * This is mostly supported, but there are a few things that need to work
  * slightly differently or need to be disabled.
  *
- * @since 1.0.0
+ * @since CP-1.0.0
  *
  * @return bool Whether ClassicPress is running as a source install.
  */

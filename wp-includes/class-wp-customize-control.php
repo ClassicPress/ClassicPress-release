@@ -4,14 +4,15 @@
  *
  * @package ClassicPress
  * @subpackage Customize
- * @since WP-3.4.0
+ * @since 3.4.0
  */
 
 /**
  * Customize Control class.
  *
- * @since WP-3.4.0
+ * @since 3.4.0
  */
+#[AllowDynamicProperties]
 class WP_Customize_Control {
 
 	/**
@@ -19,9 +20,7 @@ class WP_Customize_Control {
 	 *
 	 * Used when sorting two instances whose priorities are equal.
 	 *
-	 * @since WP-4.1.0
-	 *
-	 * @static
+	 * @since 4.1.0
 	 * @var int
 	 */
 	protected static $instance_count = 0;
@@ -29,7 +28,7 @@ class WP_Customize_Control {
 	/**
 	 * Order in which this instance was created in relation to other instances.
 	 *
-	 * @since WP-4.1.0
+	 * @since 4.1.0
 	 * @var int
 	 */
 	public $instance_number;
@@ -37,7 +36,7 @@ class WP_Customize_Control {
 	/**
 	 * Customizer manager.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @var WP_Customize_Manager
 	 */
 	public $manager;
@@ -45,7 +44,7 @@ class WP_Customize_Control {
 	/**
 	 * Control ID.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @var string
 	 */
 	public $id;
@@ -53,7 +52,7 @@ class WP_Customize_Control {
 	/**
 	 * All settings tied to the control.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @var array
 	 */
 	public $settings;
@@ -61,8 +60,8 @@ class WP_Customize_Control {
 	/**
 	 * The primary setting for the control (if there is one).
 	 *
-	 * @since WP-3.4.0
-	 * @var string
+	 * @since 3.4.0
+	 * @var string|WP_Customize_Setting|null
 	 */
 	public $setting = 'default';
 
@@ -72,7 +71,7 @@ class WP_Customize_Control {
 	 * Normally this is empty and the capability is derived from the capabilities
 	 * of the associated `$settings`.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string
 	 */
 	public $capability;
@@ -80,7 +79,7 @@ class WP_Customize_Control {
 	/**
 	 * Order priority to load the control in Customizer.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @var int
 	 */
 	public $priority = 10;
@@ -88,7 +87,7 @@ class WP_Customize_Control {
 	/**
 	 * Section the control belongs to.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @var string
 	 */
 	public $section = '';
@@ -96,7 +95,7 @@ class WP_Customize_Control {
 	/**
 	 * Label for the control.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @var string
 	 */
 	public $label = '';
@@ -104,7 +103,7 @@ class WP_Customize_Control {
 	/**
 	 * Description for the control.
 	 *
-	 * @since WP-4.0.0
+	 * @since 4.0.0
 	 * @var string
 	 */
 	public $description = '';
@@ -112,7 +111,7 @@ class WP_Customize_Control {
 	/**
 	 * List of choices for 'radio' or 'select' type controls, where values are the keys, and labels are the values.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @var array
 	 */
 	public $choices = array();
@@ -122,7 +121,7 @@ class WP_Customize_Control {
 	 *
 	 * Not used for 'checkbox', 'radio', 'select', 'textarea', or 'dropdown-pages' control types.
 	 *
-	 * @since WP-4.0.0
+	 * @since 4.0.0
 	 * @var array
 	 */
 	public $input_attrs = array();
@@ -130,14 +129,14 @@ class WP_Customize_Control {
 	/**
 	 * Show UI for adding new content, currently only used for the dropdown-pages control.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 * @var bool
 	 */
 	public $allow_addition = false;
 
 	/**
 	 * @deprecated It is better to just call the json() method
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @var array
 	 */
 	public $json = array();
@@ -145,7 +144,7 @@ class WP_Customize_Control {
 	/**
 	 * Control's Type.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @var string
 	 */
 	public $type = 'text';
@@ -153,7 +152,7 @@ class WP_Customize_Control {
 	/**
 	 * Callback.
 	 *
-	 * @since WP-4.0.0
+	 * @since 4.0.0
 	 *
 	 * @see WP_Customize_Control::active()
 	 *
@@ -169,14 +168,14 @@ class WP_Customize_Control {
 	 *
 	 * Supplied `$args` override class property defaults.
 	 *
-	 * If `$args['settings']` is not defined, use the $id as the setting ID.
+	 * If `$args['settings']` is not defined, use the `$id` as the setting ID.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 *
 	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
 	 * @param string               $id      Control ID.
 	 * @param array                $args    {
-	 *     Optional. Arguments to override class property defaults.
+	 *     Optional. Array of properties for the new Control object. Default empty array.
 	 *
 	 *     @type int                  $instance_number Order in which this instance was created in relation
 	 *                                                 to other instances.
@@ -186,6 +185,8 @@ class WP_Customize_Control {
 	 *                                                 be used.
 	 *     @type string               $setting         The primary setting for the control (if there is one).
 	 *                                                 Default 'default'.
+	 *     @type string               $capability      Capability required to use this control. Normally this is empty
+	 *                                                 and the capability is derived from `$settings`.
 	 *     @type int                  $priority        Order priority to load the control. Default 10.
 	 *     @type string               $section         Section the control belongs to. Default empty.
 	 *     @type string               $label           Label for the control. Default empty.
@@ -197,11 +198,14 @@ class WP_Customize_Control {
 	 *                                                 attribute names are the keys and values are the values. Not
 	 *                                                 used for 'checkbox', 'radio', 'select', 'textarea', or
 	 *                                                 'dropdown-pages' control types. Default empty array.
+	 *     @type bool                 $allow_addition  Show UI for adding new content, currently only used for the
+	 *                                                 dropdown-pages control. Default false.
 	 *     @type array                $json            Deprecated. Use WP_Customize_Control::json() instead.
 	 *     @type string               $type            Control type. Core controls include 'text', 'checkbox',
 	 *                                                 'textarea', 'radio', 'select', and 'dropdown-pages'. Additional
 	 *                                                 input types such as 'email', 'url', 'number', 'hidden', and
 	 *                                                 'date' are supported implicitly. Default 'text'.
+	 *     @type callable             $active_callback Active callback.
 	 * }
 	 */
 	public function __construct( $manager, $id, $args = array() ) {
@@ -240,14 +244,14 @@ class WP_Customize_Control {
 	/**
 	 * Enqueue control related scripts/styles.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 */
 	public function enqueue() {}
 
 	/**
 	 * Check whether control is active to current Customizer preview.
 	 *
-	 * @since WP-4.0.0
+	 * @since 4.0.0
 	 *
 	 * @return bool Whether the control is active to the current preview.
 	 */
@@ -258,7 +262,7 @@ class WP_Customize_Control {
 		/**
 		 * Filters response of WP_Customize_Control::active().
 		 *
-		 * @since WP-4.0.0
+		 * @since 4.0.0
 		 *
 		 * @param bool                 $active  Whether the Customizer control is active.
 		 * @param WP_Customize_Control $control WP_Customize_Control instance.
@@ -274,7 +278,7 @@ class WP_Customize_Control {
 	 * Subclasses can override this with their specific logic, or they may
 	 * provide an 'active_callback' argument to the constructor.
 	 *
-	 * @since WP-4.0.0
+	 * @since 4.0.0
 	 *
 	 * @return true Always true.
 	 */
@@ -286,7 +290,7 @@ class WP_Customize_Control {
 	 * Fetch a setting's value.
 	 * Grabs the main setting by default.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 *
 	 * @param string $setting_key
 	 * @return mixed The requested setting's value, if the setting exists.
@@ -300,7 +304,7 @@ class WP_Customize_Control {
 	/**
 	 * Refresh the parameters passed to the JavaScript via JSON.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 */
 	public function to_json() {
 		$this->json['settings'] = array();
@@ -325,7 +329,7 @@ class WP_Customize_Control {
 	/**
 	 * Get the data to export to the client via JSON.
 	 *
-	 * @since WP-4.1.0
+	 * @since 4.1.0
 	 *
 	 * @return array Array of parameters passed to the JavaScript.
 	 */
@@ -342,7 +346,7 @@ class WP_Customize_Control {
 	 * the associated section does not exist or if its capability check returns
 	 * false.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 *
 	 * @return bool False if theme doesn't support the control or user doesn't have the required permissions, otherwise true.
 	 */
@@ -368,7 +372,7 @@ class WP_Customize_Control {
 	/**
 	 * Get the control's content for insertion into the Customizer pane.
 	 *
-	 * @since WP-4.1.0
+	 * @since 4.1.0
 	 *
 	 * @return string Contents of the control.
 	 */
@@ -381,7 +385,7 @@ class WP_Customize_Control {
 	/**
 	 * Check capabilities and render the control.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @uses WP_Customize_Control::render()
 	 */
 	final public function maybe_render() {
@@ -392,9 +396,9 @@ class WP_Customize_Control {
 		/**
 		 * Fires just before the current Customizer control is rendered.
 		 *
-		 * @since WP-3.4.0
+		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Control $this WP_Customize_Control instance.
+		 * @param WP_Customize_Control $control WP_Customize_Control instance.
 		 */
 		do_action( 'customize_render_control', $this );
 
@@ -404,9 +408,9 @@ class WP_Customize_Control {
 		 * The dynamic portion of the hook name, `$this->id`, refers to
 		 * the control ID.
 		 *
-		 * @since WP-3.4.0
+		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Control $this WP_Customize_Control instance.
+		 * @param WP_Customize_Control $control WP_Customize_Control instance.
 		 */
 		do_action( "customize_render_control_{$this->id}", $this );
 
@@ -416,7 +420,7 @@ class WP_Customize_Control {
 	/**
 	 * Renders the control wrapper and calls $this->render_content() for the internals.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 */
 	protected function render() {
 		$id    = 'customize-control-' . str_replace( array( '[', ']' ), array( '-', '' ), $this->id );
@@ -430,8 +434,8 @@ class WP_Customize_Control {
 	/**
 	 * Get the data link attribute for a setting.
 	 *
-	 * @since WP-3.4.0
-	 * @since WP-4.9.0 Return a `data-customize-setting-key-link` attribute if a setting is not registered for the supplied setting key.
+	 * @since 3.4.0
+	 * @since 4.9.0 Return a `data-customize-setting-key-link` attribute if a setting is not registered for the supplied setting key.
 	 *
 	 * @param string $setting_key
 	 * @return string Data link parameter, a `data-customize-setting-link` attribute if the `$setting_key` refers to a pre-registered setting,
@@ -448,7 +452,7 @@ class WP_Customize_Control {
 	/**
 	 * Render the data link attribute for the control's input element.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @uses WP_Customize_Control::get_link()
 	 *
 	 * @param string $setting_key
@@ -460,7 +464,7 @@ class WP_Customize_Control {
 	/**
 	 * Render the custom attributes for the control's input element.
 	 *
-	 * @since WP-4.0.0
+	 * @since 4.0.0
 	 */
 	public function input_attrs() {
 		foreach ( $this->input_attrs as $attr => $value ) {
@@ -478,7 +482,7 @@ class WP_Customize_Control {
 	 *
 	 * Control content can alternately be rendered in JS. See WP_Customize_Control::print_template().
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 */
 	protected function render_content() {
 		$input_id         = '_customize-input-' . $this->id;
@@ -495,7 +499,7 @@ class WP_Customize_Control {
 						value="<?php echo esc_attr( $this->value() ); ?>"
 						<?php $this->link(); ?>
 						<?php checked( $this->value() ); ?>
-					/>
+					>
 					<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo esc_html( $this->label ); ?></label>
 					<?php if ( ! empty( $this->description ) ) : ?>
 						<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo $this->description; ?></span>
@@ -527,7 +531,7 @@ class WP_Customize_Control {
 							name="<?php echo esc_attr( $name ); ?>"
 							<?php $this->link(); ?>
 							<?php checked( $this->value(), $value ); ?>
-							/>
+							>
 						<label for="<?php echo esc_attr( $input_id . '-radio-' . $value ); ?>"><?php echo esc_html( $label ); ?></label>
 					</span>
 				<?php endforeach; ?>
@@ -624,13 +628,18 @@ class WP_Customize_Control {
 				<?php if ( $this->allow_addition && current_user_can( 'publish_pages' ) && current_user_can( 'edit_theme_options' ) ) : // Currently tied to menus functionality. ?>
 					<button type="button" class="button-link add-new-toggle">
 						<?php
-						/* translators: %s: add new page label */
+						/* translators: %s: Add New Page label. */
 						printf( __( '+ %s' ), get_post_type_object( 'page' )->labels->add_new_item );
 						?>
 					</button>
 					<div class="new-content-item">
-						<label for="create-input-<?php echo $this->id; ?>"><span class="screen-reader-text"><?php _e( 'New page title' ); ?></span></label>
-						<input type="text" id="create-input-<?php echo $this->id; ?>" class="create-item-input" placeholder="<?php esc_attr_e( 'New page title&hellip;' ); ?>">
+						<label for="create-input-<?php echo esc_attr( $this->id ); ?>"><span class="screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'New page title' );
+							?>
+						</span></label>
+						<input type="text" id="create-input-<?php echo esc_attr( $this->id ); ?>" class="create-item-input" placeholder="<?php esc_attr_e( 'New page title&hellip;' ); ?>">
 						<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
 					</div>
 				<?php endif; ?>
@@ -653,7 +662,7 @@ class WP_Customize_Control {
 						value="<?php echo esc_attr( $this->value() ); ?>"
 					<?php endif; ?>
 					<?php $this->link(); ?>
-					/>
+					>
 				<?php
 				break;
 		}
@@ -668,11 +677,11 @@ class WP_Customize_Control {
 	 * In the future, this will also print the template for the control's container
 	 * element and be override-able.
 	 *
-	 * @since WP-4.1.0
+	 * @since 4.1.0
 	 */
 	final public function print_template() {
 		?>
-		<script type="text/html" id="tmpl-customize-control-<?php echo $this->type; ?>-content">
+		<script type="text/html" id="tmpl-customize-control-<?php echo esc_attr( $this->type ); ?>-content">
 			<?php $this->content_template(); ?>
 		</script>
 		<?php
@@ -686,10 +695,9 @@ class WP_Customize_Control {
 	 *
 	 * @see WP_Customize_Control::print_template()
 	 *
-	 * @since WP-4.1.0
+	 * @since 4.1.0
 	 */
 	protected function content_template() {}
-
 }
 
 /**
@@ -771,10 +779,10 @@ require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-location-
  * WP_Customize_Nav_Menu_Name_Control class.
  *
  * As this file is deprecated, it will trigger a deprecation notice if instantiated. In a subsequent
- * release, the require_once() here will be removed and _deprecated_file() will be called if file is
+ * release, the require_once here will be removed and _deprecated_file() will be called if file is
  * required at all.
  *
- * @deprecated WP-4.9.0 This file is no longer used due to new menu creation UX.
+ * @deprecated 4.9.0 This file is no longer used due to new menu creation UX.
  */
 require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-name-control.php';
 

@@ -4,7 +4,7 @@
  *
  * @package ClassicPress
  * @subpackage Multisite
- * @since WP-3.0.0
+ * @since 3.0.0
  */
 
 /**
@@ -13,7 +13,7 @@
  * Exists for backward compatibility with legacy file-serving through
  * wp-includes/ms-files.php (wp-content/blogs.php in MU).
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  */
 function ms_upload_constants() {
 	// This filter is attached in ms-default-filters.php but that file is not included during SHORTINIT.
@@ -23,7 +23,7 @@ function ms_upload_constants() {
 		return;
 	}
 
-	// Base uploads dir relative to ABSPATH
+	// Base uploads dir relative to ABSPATH.
 	if ( ! defined( 'UPLOADBLOGSDIR' ) ) {
 		define( 'UPLOADBLOGSDIR', 'wp-content/blogs.dir' );
 	}
@@ -45,30 +45,31 @@ function ms_upload_constants() {
 /**
  * Defines Multisite cookie constants.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  */
 function ms_cookie_constants() {
 	$current_network = get_network();
 
 	/**
-	 * @since WP-1.2.0
+	 * @since 1.2.0
 	 */
 	if ( ! defined( 'COOKIEPATH' ) ) {
 		define( 'COOKIEPATH', $current_network->path );
 	}
 
 	/**
-	 * @since WP-1.5.0
+	 * @since 1.5.0
 	 */
 	if ( ! defined( 'SITECOOKIEPATH' ) ) {
 		define( 'SITECOOKIEPATH', $current_network->path );
 	}
 
 	/**
-	 * @since WP-2.6.0
+	 * @since 2.6.0
 	 */
 	if ( ! defined( 'ADMIN_COOKIE_PATH' ) ) {
-		if ( ! is_subdomain_install() || trim( parse_url( get_option( 'siteurl' ), PHP_URL_PATH ), '/' ) ) {
+		$site_path = parse_url( get_option( 'siteurl' ), PHP_URL_PATH );
+		if ( ! is_subdomain_install() || is_string( $site_path ) && trim( $site_path, '/' ) ) {
 			define( 'ADMIN_COOKIE_PATH', SITECOOKIEPATH );
 		} else {
 			define( 'ADMIN_COOKIE_PATH', SITECOOKIEPATH . 'wp-admin' );
@@ -76,7 +77,7 @@ function ms_cookie_constants() {
 	}
 
 	/**
-	 * @since WP-2.0.0
+	 * @since 2.0.0
 	 */
 	if ( ! defined( 'COOKIE_DOMAIN' ) && is_subdomain_install() ) {
 		if ( ! empty( $current_network->cookie_domain ) ) {
@@ -93,12 +94,13 @@ function ms_cookie_constants() {
  * Exists for backward compatibility with legacy file-serving through
  * wp-includes/ms-files.php (wp-content/blogs.php in MU).
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  */
 function ms_file_constants() {
 	/**
 	 * Optional support for X-Sendfile header
-	 * @since WP-3.0.0
+	 *
+	 * @since 3.0.0
 	 */
 	if ( ! defined( 'WPMU_SENDFILE' ) ) {
 		define( 'WPMU_SENDFILE', false );
@@ -106,7 +108,8 @@ function ms_file_constants() {
 
 	/**
 	 * Optional support for X-Accel-Redirect header
-	 * @since WP-3.0.0
+	 *
+	 * @since 3.0.0
 	 */
 	if ( ! defined( 'WPMU_ACCEL_REDIRECT' ) ) {
 		define( 'WPMU_ACCEL_REDIRECT', false );
@@ -121,10 +124,7 @@ function ms_file_constants() {
  * On first call, the constants are checked and defined. On second call,
  * we will have translations loaded and can trigger warnings easily.
  *
- * @since WP-3.0.0
- *
- * @staticvar bool $subdomain_error
- * @staticvar bool $subdomain_error_warn
+ * @since 3.0.0
  */
 function ms_subdomain_constants() {
 	static $subdomain_error      = null;
@@ -143,11 +143,21 @@ function ms_subdomain_constants() {
 			'<code>wp-config.php</code>',
 			'<code>is_subdomain_install()</code>'
 		);
+
 		if ( $subdomain_error_warn ) {
-			trigger_error( __( '<strong>Conflicting values for the constants VHOST and SUBDOMAIN_INSTALL.</strong> The value of SUBDOMAIN_INSTALL will be assumed to be your subdomain configuration setting.' ) . ' ' . $vhost_deprecated, E_USER_WARNING );
+			trigger_error(
+				sprintf(
+					/* translators: 1: VHOST, 2: SUBDOMAIN_INSTALL */
+					__( '<strong>Conflicting values for the constants %1$s and %2$s.</strong> The value of %2$s will be assumed to be your subdomain configuration setting.' ),
+					'<code>VHOST</code>',
+					'<code>SUBDOMAIN_INSTALL</code>'
+				) . ' ' . $vhost_deprecated,
+				E_USER_WARNING
+			);
 		} else {
-			_deprecated_argument( 'define()', 'WP-3.0.0', $vhost_deprecated );
+			_deprecated_argument( 'define()', '3.0.0', $vhost_deprecated );
 		}
+
 		return;
 	}
 

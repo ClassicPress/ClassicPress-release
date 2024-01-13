@@ -12,7 +12,7 @@
  */
 define( 'XMLRPC_REQUEST', true );
 
-// Some browser-embedded clients send cookies. We don't want them.
+// Discard unneeded cookies sent by some browser-embedded clients.
 $_COOKIE = array();
 
 // $HTTP_RAW_POST_DATA was deprecated in PHP 5.6 and removed in PHP 7.0.
@@ -28,34 +28,34 @@ if ( isset( $HTTP_RAW_POST_DATA ) ) {
 // phpcs:enable
 
 /** Include the bootstrap for setting up ClassicPress environment */
-require dirname( __FILE__ ) . '/wp-load.php';
+require_once __DIR__ . '/wp-load.php';
 
 if ( isset( $_GET['rsd'] ) ) { // http://cyber.law.harvard.edu/blogs/gems/tech/rsd.html
 	header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), true );
 	echo '<?xml version="1.0" encoding="' . get_option( 'blog_charset' ) . '"?' . '>';
 	?>
 <rsd version="1.0" xmlns="http://archipelago.phrasewise.com/rsd">
-  <service>
-	<engineName>ClassicPress</engineName>
-	<engineLink>https://www.classicpress.net</engineLink>
-	<homePageLink><?php bloginfo_rss( 'url' ); ?></homePageLink>
-	<apis>
-	  <api name="WordPress" blogID="1" preferred="true" apiLink="<?php echo site_url( 'xmlrpc.php', 'rpc' ); ?>" />
-	  <api name="Movable Type" blogID="1" preferred="false" apiLink="<?php echo site_url( 'xmlrpc.php', 'rpc' ); ?>" />
-	  <api name="MetaWeblog" blogID="1" preferred="false" apiLink="<?php echo site_url( 'xmlrpc.php', 'rpc' ); ?>" />
-	  <api name="Blogger" blogID="1" preferred="false" apiLink="<?php echo site_url( 'xmlrpc.php', 'rpc' ); ?>" />
-	  <?php
-		/**
-		 * Add additional APIs to the Really Simple Discovery (RSD) endpoint.
-		 *
-		 * @link http://cyber.law.harvard.edu/blogs/gems/tech/rsd.html
-		 *
-		 * @since WP-3.5.0
-		 */
-		do_action( 'xmlrpc_rsd_apis' );
-		?>
-	</apis>
-  </service>
+	<service>
+		<engineName>ClassicPress</engineName>
+		<engineLink>https://www.classicpress.net</engineLink>
+		<homePageLink><?php bloginfo_rss( 'url' ); ?></homePageLink>
+		<apis>
+			<api name="WordPress" blogID="1" preferred="true" apiLink="<?php echo site_url( 'xmlrpc.php', 'rpc' ); ?>" />
+			<api name="Movable Type" blogID="1" preferred="false" apiLink="<?php echo site_url( 'xmlrpc.php', 'rpc' ); ?>" />
+			<api name="MetaWeblog" blogID="1" preferred="false" apiLink="<?php echo site_url( 'xmlrpc.php', 'rpc' ); ?>" />
+			<api name="Blogger" blogID="1" preferred="false" apiLink="<?php echo site_url( 'xmlrpc.php', 'rpc' ); ?>" />
+			<?php
+			/**
+			 * Add additional APIs to the Really Simple Discovery (RSD) endpoint.
+			 *
+			 * @link http://cyber.law.harvard.edu/blogs/gems/tech/rsd.html
+			 *
+			 * @since 3.5.0
+			 */
+			do_action( 'xmlrpc_rsd_apis' );
+			?>
+		</apis>
+	</service>
 </rsd>
 	<?php
 	exit;
@@ -67,6 +67,7 @@ require_once ABSPATH . WPINC . '/class-wp-xmlrpc-server.php';
 
 /**
  * Posts submitted via the XML-RPC interface get that title
+ *
  * @name post_default_title
  * @var string
  */
@@ -75,14 +76,14 @@ $post_default_title = '';
 /**
  * Filters the class used for handling XML-RPC requests.
  *
- * @since WP-3.1.0
+ * @since 3.1.0
  *
  * @param string $class The name of the XML-RPC server class.
  */
 $wp_xmlrpc_server_class = apply_filters( 'wp_xmlrpc_server_class', 'wp_xmlrpc_server' );
-$wp_xmlrpc_server       = new $wp_xmlrpc_server_class;
+$wp_xmlrpc_server       = new $wp_xmlrpc_server_class();
 
-// Fire off the request
+// Fire off the request.
 $wp_xmlrpc_server->serve_request();
 
 exit;
@@ -90,14 +91,14 @@ exit;
 /**
  * logIO() - Writes logging info to a file.
  *
- * @deprecated WP-3.4.0 Use error_log()
+ * @deprecated 3.4.0 Use error_log()
  * @see error_log()
  *
  * @param string $io Whether input or output
  * @param string $msg Information describing logging reason.
  */
 function logIO( $io, $msg ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	_deprecated_function( __FUNCTION__, 'WP-3.4.0', 'error_log()' );
+	_deprecated_function( __FUNCTION__, '3.4.0', 'error_log()' );
 	if ( ! empty( $GLOBALS['xmlrpc_logging'] ) ) {
 		error_log( $io . ' - ' . $msg );
 	}
