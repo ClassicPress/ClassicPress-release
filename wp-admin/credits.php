@@ -7,11 +7,15 @@
  */
 
 /** ClassicPress Administration Bootstrap */
-require_once dirname( __FILE__ ) . '/admin.php';
+require_once __DIR__ . '/admin.php';
 
+// Used in the HTML title tag.
 $title = __( 'Credits' );
 
-require ABSPATH . 'wp-admin/admin-header.php';
+list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
+
+require_once ABSPATH . 'wp-admin/admin-header.php';
+
 ?>
 <div class="wrap about-wrap full-width-layout">
 
@@ -24,7 +28,7 @@ require ABSPATH . 'wp-admin/admin-header.php';
 <p class="about-text">
 	<?php
 	printf(
-		/* translators: link to "business-focused CMS" article */
+		/* translators: link to ClassicPress website */
 		__( 'Thank you for using ClassicPress, the <a href="%s">CMS for Creators</a>.' ),
 		'https://link.classicpress.net/the-cms-for-creators'
 	);

@@ -4,7 +4,7 @@
  *
  * @package ClassicPress
  * @subpackage HTTP
- * @since WP-4.4.0
+ * @since 4.4.0
  */
 
 /**
@@ -13,17 +13,19 @@
  * Returned cookies are represented using this class, and when cookies are set, if they are not
  * already a WP_Http_Cookie() object, then they are turned into one.
  *
- * @todo The ClassicPress convention is to use underscores instead of camelCase for function and method
+ * @todo The WordPress convention is to use underscores instead of camelCase for function and method
  * names. Need to switch to use underscores instead for the methods.
  *
- * @since WP-2.8.0
+ * @since 2.8.0
  */
+#[AllowDynamicProperties]
 class WP_Http_Cookie {
 
 	/**
 	 * Cookie name.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $name;
@@ -31,23 +33,26 @@ class WP_Http_Cookie {
 	/**
 	 * Cookie value.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $value;
 
 	/**
-	 * When the cookie expires.
+	 * When the cookie expires. Unix timestamp or formatted date.
 	 *
-	 * @since WP-2.8.0
-	 * @var string
+	 * @since 2.8.0
+	 *
+	 * @var string|int|null
 	 */
 	public $expires;
 
 	/**
 	 * Cookie URL path.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $path;
@@ -55,10 +60,29 @@ class WP_Http_Cookie {
 	/**
 	 * Cookie Domain.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
+	 *
 	 * @var string
 	 */
 	public $domain;
+
+	/**
+	 * Cookie port or comma-separated list of ports.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @var int|string
+	 */
+	public $port;
+
+	/**
+	 * host-only flag.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @var bool
+	 */
+	public $host_only;
 
 	/**
 	 * Sets up this cookie object.
@@ -66,29 +90,31 @@ class WP_Http_Cookie {
 	 * The parameter $data should be either an associative array containing the indices names below
 	 * or a header string detailing it.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
+	 * @since 5.2.0 Added `host_only` to the `$data` parameter.
 	 *
 	 * @param string|array $data {
 	 *     Raw cookie data as header string or data array.
 	 *
-	 *     @type string     $name    Cookie name.
-	 *     @type mixed      $value   Value. Should NOT already be urlencoded.
-	 *     @type string|int $expires Optional. Unix timestamp or formatted date. Default null.
-	 *     @type string     $path    Optional. Path. Default '/'.
-	 *     @type string     $domain  Optional. Domain. Default host of parsed $requested_url.
-	 *     @type int        $port    Optional. Port. Default null.
+	 *     @type string          $name      Cookie name.
+	 *     @type mixed           $value     Value. Should NOT already be urlencoded.
+	 *     @type string|int|null $expires   Optional. Unix timestamp or formatted date. Default null.
+	 *     @type string          $path      Optional. Path. Default '/'.
+	 *     @type string          $domain    Optional. Domain. Default host of parsed $requested_url.
+	 *     @type int|string      $port      Optional. Port or comma-separated list of ports. Default null.
+	 *     @type bool            $host_only Optional. host-only storage flag. Default true.
 	 * }
 	 * @param string       $requested_url The URL which the cookie was set on, used for default $domain
 	 *                                    and $port values.
 	 */
 	public function __construct( $data, $requested_url = '' ) {
 		if ( $requested_url ) {
-			$arrURL = @parse_url( $requested_url );
+			$parsed_url = parse_url( $requested_url );
 		}
-		if ( isset( $arrURL['host'] ) ) {
-			$this->domain = $arrURL['host'];
+		if ( isset( $parsed_url['host'] ) ) {
+			$this->domain = $parsed_url['host'];
 		}
-		$this->path = isset( $arrURL['path'] ) ? $arrURL['path'] : '/';
+		$this->path = isset( $parsed_url['path'] ) ? $parsed_url['path'] : '/';
 		if ( '/' !== substr( $this->path, -1 ) ) {
 			$this->path = dirname( $this->path ) . '/';
 		}
@@ -128,7 +154,7 @@ class WP_Http_Cookie {
 			}
 
 			// Set properties based directly on parameters.
-			foreach ( array( 'name', 'value', 'path', 'domain', 'port' ) as $field ) {
+			foreach ( array( 'name', 'value', 'path', 'domain', 'port', 'host_only' ) as $field ) {
 				if ( isset( $data[ $field ] ) ) {
 					$this->$field = $data[ $field ];
 				}
@@ -147,7 +173,7 @@ class WP_Http_Cookie {
 	 *
 	 * Decision is based on RFC 2109/2965, so look there for details on validity.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param string $url URL you intend to send this cookie to
 	 * @return bool true if allowed, false otherwise.
@@ -177,7 +203,7 @@ class WP_Http_Cookie {
 
 		// Host - very basic check that the request URL ends with the domain restriction (minus leading dot).
 		$domain = ( '.' === substr( $domain, 0, 1 ) ) ? substr( $domain, 1 ) : $domain;
-		if ( substr( $url['host'], -strlen( $domain ) ) != $domain ) {
+		if ( substr( $url['host'], -strlen( $domain ) ) !== $domain ) {
 			return false;
 		}
 
@@ -187,7 +213,7 @@ class WP_Http_Cookie {
 		}
 
 		// Path - request path must start with path restriction.
-		if ( substr( $url['path'], 0, strlen( $path ) ) != $path ) {
+		if ( substr( $url['path'], 0, strlen( $path ) ) !== $path ) {
 			return false;
 		}
 
@@ -197,7 +223,7 @@ class WP_Http_Cookie {
 	/**
 	 * Convert cookie name and value back to header string.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @return string Header encoded cookie name and value.
 	 */
@@ -209,7 +235,7 @@ class WP_Http_Cookie {
 		/**
 		 * Filters the header-encoded cookie value.
 		 *
-		 * @since WP-3.4.0
+		 * @since 3.4.0
 		 *
 		 * @param string $value The cookie value.
 		 * @param string $name  The cookie name.
@@ -218,9 +244,9 @@ class WP_Http_Cookie {
 	}
 
 	/**
-	 * Retrieve cookie header for usage in the rest of the ClassicPress HTTP API.
+	 * Retrieve cookie header for usage in the rest of the WordPress HTTP API.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @return string
 	 */
@@ -231,14 +257,14 @@ class WP_Http_Cookie {
 	/**
 	 * Retrieves cookie attributes.
 	 *
-	 * @since WP-4.6.0
+	 * @since 4.6.0
 	 *
 	 * @return array {
-	 *    List of attributes.
+	 *     List of attributes.
 	 *
-	 *    @type string $expires When the cookie expires.
-	 *    @type string $path    Cookie URL path.
-	 *    @type string $domain  Cookie domain.
+	 *     @type string|int|null $expires When the cookie expires. Unix timestamp or formatted date.
+	 *     @type string          $path    Cookie URL path.
+	 *     @type string          $domain  Cookie domain.
 	 * }
 	 */
 	public function get_attributes() {

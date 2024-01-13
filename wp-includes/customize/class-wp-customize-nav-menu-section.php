@@ -4,7 +4,7 @@
  *
  * @package ClassicPress
  * @subpackage Customize
- * @since WP-4.4.0
+ * @since 4.4.0
  */
 
 /**
@@ -12,7 +12,7 @@
  *
  * Custom section only needed in JS.
  *
- * @since WP-4.3.0
+ * @since 4.3.0
  *
  * @see WP_Customize_Section
  */
@@ -21,7 +21,7 @@ class WP_Customize_Nav_Menu_Section extends WP_Customize_Section {
 	/**
 	 * Control type.
 	 *
-	 * @since WP-4.3.0
+	 * @since 4.3.0
 	 * @var string
 	 */
 	public $type = 'nav_menu';
@@ -29,12 +29,12 @@ class WP_Customize_Nav_Menu_Section extends WP_Customize_Section {
 	/**
 	 * Get section parameters for JS.
 	 *
-	 * @since WP-4.3.0
+	 * @since 4.3.0
 	 * @return array Exported parameters.
 	 */
 	public function json() {
 		$exported            = parent::json();
-		$exported['menu_id'] = intval( preg_replace( '/^nav_menu\[(-?\d+)\]/', '$1', $this->id ) );
+		$exported['menu_id'] = (int) preg_replace( '/^nav_menu\[(-?\d+)\]/', '$1', $this->id );
 
 		return $exported;
 	}

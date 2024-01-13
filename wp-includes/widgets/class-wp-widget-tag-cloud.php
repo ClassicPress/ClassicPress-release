@@ -4,13 +4,13 @@
  *
  * @package ClassicPress
  * @subpackage Widgets
- * @since WP-4.4.0
+ * @since 4.4.0
  */
 
 /**
  * Core class used to implement a Tag cloud widget.
  *
- * @since WP-2.8.0
+ * @since 2.8.0
  *
  * @see WP_Widget
  */
@@ -19,12 +19,13 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	/**
 	 * Sets up a new Tag Cloud widget instance.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 */
 	public function __construct() {
 		$widget_ops = array(
 			'description'                 => __( 'A cloud of your most used tags.' ),
 			'customize_selective_refresh' => true,
+			'show_instance_in_rest'       => true,
 		);
 		parent::__construct( 'tag_cloud', __( 'Tag Cloud' ), $widget_ops );
 	}
@@ -32,7 +33,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	/**
 	 * Outputs the content for the current Tag Cloud widget instance.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
@@ -52,21 +53,23 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 			}
 		}
 
+		$default_title = $title;
+
 		$show_count = ! empty( $instance['count'] );
 
-		/**
-		 * Filters the taxonomy used in the Tag Cloud widget.
-		 *
-		 * @since WP-2.8.0
-		 * @since WP-3.0.0 Added taxonomy drop-down.
-		 * @since WP-4.9.0 Added the `$instance` parameter.
-		 *
-		 * @see wp_tag_cloud()
-		 *
-		 * @param array $args     Args used for the tag cloud widget.
-		 * @param array $instance Array of settings for the current widget.
-		 */
 		$tag_cloud = wp_tag_cloud(
+			/**
+			 * Filters the taxonomy used in the Tag Cloud widget.
+			 *
+			 * @since 2.8.0
+			 * @since 3.0.0 Added taxonomy drop-down.
+			 * @since 4.9.0 Added the `$instance` parameter.
+			 *
+			 * @see wp_tag_cloud()
+			 *
+			 * @param array $args     Args used for the tag cloud widget.
+			 * @param array $instance Array of settings for the current widget.
+			 */
 			apply_filters(
 				'widget_tag_cloud_args',
 				array(
@@ -90,18 +93,26 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 
+		// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+		$title      = trim( strip_tags( $title ) );
+		$aria_label = $title ? $title : $default_title;
+		echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
+
 		echo '<div class="tagcloud">';
 
 		echo $tag_cloud;
 
 		echo "</div>\n";
+
+		echo '</nav>';
+
 		echo $args['after_widget'];
 	}
 
 	/**
 	 * Handles updating settings for the current Tag Cloud widget instance.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param array $new_instance New settings for this instance as input by the user via
 	 *                            WP_Widget::form().
@@ -119,28 +130,28 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	/**
 	 * Outputs the Tag Cloud widget settings form.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param array $instance Current settings.
 	 */
 	public function form( $instance ) {
 		$title = ! empty( $instance['title'] ) ? $instance['title'] : '';
-		$count             = isset( $instance['count'] ) ? (bool) $instance['count'] : false;
+		$count = isset( $instance['count'] ) ? (bool) $instance['count'] : false;
 		?>
 		<p>
 			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
-			<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>" />
+			<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>">
 		</p>
 		<?php
-		$taxonomies = get_taxonomies( array( 'show_tagcloud' => true ), 'object' );
+		$taxonomies       = get_taxonomies( array( 'show_tagcloud' => true ), 'object' );
 		$current_taxonomy = $this->_get_current_taxonomy( $instance );
 
 		switch ( count( $taxonomies ) ) {
 
-			// No tag cloud supporting taxonomies found, display error message
+			// No tag cloud supporting taxonomies found, display error message.
 			case 0:
 				?>
-				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="" />
+				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="">
 				<p>
 					<?php _e( 'The tag cloud will not be displayed since there are no taxonomies that support the tag cloud widget.' ); ?>
 				</p>
@@ -152,7 +163,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 				$keys     = array_keys( $taxonomies );
 				$taxonomy = reset( $keys );
 				?>
-				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="<?php echo esc_attr( $taxonomy ); ?>" />
+				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="<?php echo esc_attr( $taxonomy ); ?>">
 				<?php
 				break;
 
@@ -175,7 +186,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 		if ( count( $taxonomies ) > 0 ) {
 			?>
 			<p>
-				<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>" <?php checked( $count, true ); ?> />
+				<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>" <?php checked( $count, true ); ?>>
 				<label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show tag counts' ); ?></label>
 			</p>
 			<?php
@@ -185,7 +196,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	/**
 	 * Retrieves the taxonomy for the current Tag cloud widget instance.
 	 *
-	 * @since WP-4.4.0
+	 * @since 4.4.0
 	 *
 	 * @param array $instance Current settings.
 	 * @return string Name of the current taxonomy if set, otherwise 'post_tag'.

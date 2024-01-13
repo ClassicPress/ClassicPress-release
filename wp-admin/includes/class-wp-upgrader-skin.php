@@ -4,33 +4,72 @@
  *
  * @package ClassicPress
  * @subpackage Upgrader
- * @since WP-4.6.0
+ * @since 4.6.0
  */
 
 /**
- * Generic Skin for the ClassicPress Upgrader classes. This skin is designed to be extended for specific purposes.
+ * Generic Skin for the WordPress Upgrader classes. This skin is designed to be extended for specific purposes.
  *
- * @since WP-2.8.0
- * @since WP-4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader-skins.php.
+ * @since 2.8.0
+ * @since 4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader-skins.php.
  */
+#[AllowDynamicProperties]
 class WP_Upgrader_Skin {
 
+	/**
+	 * Holds the upgrader data.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @var WP_Upgrader
+	 */
 	public $upgrader;
+
+	/**
+	 * Whether header is done.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @var bool
+	 */
 	public $done_header = false;
+
+	/**
+	 * Whether footer is done.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @var bool
+	 */
 	public $done_footer = false;
 
 	/**
 	 * Holds the result of an upgrade.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
+	 *
 	 * @var string|bool|WP_Error
 	 */
-	public $result  = false;
+	public $result = false;
+
+	/**
+	 * Holds the options of an upgrade.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @var array
+	 */
 	public $options = array();
 
 	/**
+	 * Constructor.
 	 *
-	 * @param array $args
+	 * Sets up the generic skin for the WordPress Upgrader classes.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @param array $args Optional. The WordPress upgrader skin arguments to
+	 *                    override default options. Default empty array.
 	 */
 	public function __construct( $args = array() ) {
 		$defaults      = array(
@@ -43,6 +82,7 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 2.8.0
 	 *
 	 * @param WP_Upgrader $upgrader
 	 */
@@ -54,6 +94,7 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 3.0.0
 	 */
 	public function add_strings() {
 	}
@@ -61,7 +102,7 @@ class WP_Upgrader_Skin {
 	/**
 	 * Sets the result of an upgrade.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param string|bool|WP_Error $result The result of an upgrade.
 	 */
@@ -73,17 +114,17 @@ class WP_Upgrader_Skin {
 	 * Displays a form to the user to request for their FTP/SSH details in order
 	 * to connect to the filesystem.
 	 *
-	 * @since WP-2.8.0
-	 * @since WP-4.6.0 The `$context` parameter default changed from `false` to an empty string.
+	 * @since 2.8.0
+	 * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
 	 *
 	 * @see request_filesystem_credentials()
 	 *
-	 * @param bool   $error                        Optional. Whether the current request has failed to connect.
-	 *                                             Default false.
-	 * @param string $context                      Optional. Full path to the directory that is tested
-	 *                                             for being writable. Default empty.
-	 * @param bool   $allow_relaxed_file_ownership Optional. Whether to allow Group/World writable. Default false.
-	 * @return bool False on failure, true on success.
+	 * @param bool|WP_Error $error                        Optional. Whether the current request has failed to connect,
+	 *                                                    or an error object. Default false.
+	 * @param string        $context                      Optional. Full path to the directory that is tested
+	 *                                                    for being writable. Default empty.
+	 * @param bool          $allow_relaxed_file_ownership Optional. Whether to allow Group/World writable. Default false.
+	 * @return bool True on success, false on failure.
 	 */
 	public function request_filesystem_credentials( $error = false, $context = '', $allow_relaxed_file_ownership = false ) {
 		$url = $this->options['url'];
@@ -100,6 +141,7 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 2.8.0
 	 */
 	public function header() {
 		if ( $this->done_header ) {
@@ -111,6 +153,7 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 2.8.0
 	 */
 	public function footer() {
 		if ( $this->done_footer ) {
@@ -121,8 +164,9 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 2.8.0
 	 *
-	 * @param string|WP_Error $errors
+	 * @param string|WP_Error $errors Errors.
 	 */
 	public function error( $errors ) {
 		if ( ! $this->done_header ) {
@@ -130,7 +174,7 @@ class WP_Upgrader_Skin {
 		}
 		if ( is_string( $errors ) ) {
 			$this->feedback( $errors );
-		} elseif ( is_wp_error( $errors ) && $errors->get_error_code() ) {
+		} elseif ( is_wp_error( $errors ) && $errors->has_errors() ) {
 			foreach ( $errors->get_error_messages() as $message ) {
 				if ( $errors->get_error_data() && is_string( $errors->get_error_data() ) ) {
 					$this->feedback( $message . ' ' . esc_html( strip_tags( $errors->get_error_data() ) ) );
@@ -142,40 +186,48 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 2.8.0
+	 * @since 5.9.0 Renamed `$string` (a PHP reserved keyword) to `$feedback` for PHP 8 named parameter support.
 	 *
-	 * @param string $string
-	 * @param mixed  ...$args Optional text replacements.
+	 * @param string $feedback Message data.
+	 * @param mixed  ...$args  Optional text replacements.
 	 */
-	public function feedback( $string, ...$args ) {
-		if ( isset( $this->upgrader->strings[ $string ] ) ) {
-			$string = $this->upgrader->strings[ $string ];
+	public function feedback( $feedback, ...$args ) {
+		if ( isset( $this->upgrader->strings[ $feedback ] ) ) {
+			$feedback = $this->upgrader->strings[ $feedback ];
 		}
 
-		if ( strpos( $string, '%' ) !== false ) {
+		if ( strpos( $feedback, '%' ) !== false ) {
 			if ( $args ) {
-				$args   = array_map( 'strip_tags', $args );
-				$args   = array_map( 'esc_html', $args );
-				$string = vsprintf( $string, $args );
+				$args     = array_map( 'strip_tags', $args );
+				$args     = array_map( 'esc_html', $args );
+				$feedback = vsprintf( $feedback, $args );
 			}
 		}
-		if ( empty( $string ) ) {
+		if ( empty( $feedback ) ) {
 			return;
 		}
-		show_message( $string );
+		show_message( $feedback );
 	}
 
 	/**
+	 * Action to perform before an update.
+	 *
+	 * @since 2.8.0
 	 */
 	public function before() {}
 
 	/**
+	 * Action to perform following an update.
+	 *
+	 * @since 2.8.0
 	 */
 	public function after() {}
 
 	/**
 	 * Output JavaScript that calls function to decrement the update counts.
 	 *
-	 * @since WP-3.9.0
+	 * @since 3.9.0
 	 *
 	 * @param string $type Type of update count to decrement. Likely values include 'plugin',
 	 *                     'theme', 'translation', etc.
@@ -186,15 +238,15 @@ class WP_Upgrader_Skin {
 		}
 
 		if ( defined( 'IFRAME_REQUEST' ) ) {
-			echo '<script type="text/javascript">
+			echo '<script>
 					if ( window.postMessage && JSON ) {
 						window.parent.postMessage( JSON.stringify( { action: "decrementUpdateCount", upgradeType: "' . $type . '" } ), window.location.protocol + "//" + window.location.hostname );
 					}
 				</script>';
 		} else {
-			echo '<script type="text/javascript">
+			echo '<script>
 					(function( wp ) {
-						if ( wp && wp.updates.decrementCount ) {
+						if ( wp && wp.updates && wp.updates.decrementCount ) {
 							wp.updates.decrementCount( "' . $type . '" );
 						}
 					})( window.wp );
@@ -203,19 +255,21 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 3.0.0
 	 */
 	public function bulk_header() {}
 
 	/**
+	 * @since 3.0.0
 	 */
 	public function bulk_footer() {}
 
 	/**
 	 * Hides the `process_failed` error message when updating by uploading a zip file.
 	 *
-	 * @since WP-5.5.0
+	 * @since 5.5.0
 	 *
-	 * @param $wp_error WP_Error
+	 * @param WP_Error $wp_error WP_Error object.
 	 * @return bool
 	 */
 	public function hide_process_failed( $wp_error ) {

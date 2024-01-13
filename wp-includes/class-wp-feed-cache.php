@@ -4,13 +4,13 @@
  *
  * @package ClassicPress
  * @subpackage Feed
- * @since WP-4.7.0
- * @deprecated WP-5.6.0
+ * @since 4.7.0
+ * @deprecated 5.6.0
  */
 
 _deprecated_file(
 	basename( __FILE__ ),
-	'WP-5.6.0',
+	'5.6.0',
 	'',
 	__( 'This file is only loaded for backward compatibility with SimplePie 1.2.x. Please consider switching to a recent SimplePie version.' )
 );
@@ -18,16 +18,17 @@ _deprecated_file(
 /**
  * Core class used to implement a feed cache.
  *
- * @since WP-2.8.0
+ * @since 2.8.0
  *
  * @see SimplePie_Cache
  */
+#[AllowDynamicProperties]
 class WP_Feed_Cache extends SimplePie_Cache {
 
 	/**
 	 * Creates a new SimplePie_Cache object.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param string $location  URL location (scheme is used to determine handler).
 	 * @param string $filename  Unique identifier for cache object.

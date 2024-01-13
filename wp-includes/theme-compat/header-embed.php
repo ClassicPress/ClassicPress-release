@@ -7,7 +7,7 @@
  *
  * @package ClassicPress
  * @subpackage Theme_Compat
- * @since WP-4.5.0
+ * @since 4.5.0
  */
 
 if ( ! headers_sent() ) {
@@ -22,9 +22,9 @@ if ( ! headers_sent() ) {
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<?php
 	/**
-	 * Prints scripts or data in the embed template <head> tag.
+	 * Prints scripts or data in the embed template head tag.
 	 *
-	 * @since WP-4.4.0
+	 * @since 4.4.0
 	 */
 	do_action( 'embed_head' );
 	?>
