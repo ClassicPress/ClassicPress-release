@@ -4,7 +4,7 @@
  *
  * @package ClassicPress
  * @subpackage Upgrader
- * @since WP-4.6.0
+ * @since 4.6.0
  */
 
 /**
@@ -13,15 +13,16 @@
  * This class handles the upload process and passes it as if it's a local file
  * to the Upgrade/Installer functions.
  *
- * @since WP-2.8.0
- * @since WP-4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader.php.
+ * @since 2.8.0
+ * @since 4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader.php.
  */
+#[AllowDynamicProperties]
 class File_Upload_Upgrader {
 
 	/**
 	 * The full path to the file package.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 * @var string $package
 	 */
 	public $package;
@@ -29,7 +30,7 @@ class File_Upload_Upgrader {
 	/**
 	 * The name of the file.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 * @var string $filename
 	 */
 	public $filename;
@@ -37,7 +38,7 @@ class File_Upload_Upgrader {
 	/**
 	 * The ID of the attachment post for this file.
 	 *
-	 * @since WP-3.3.0
+	 * @since 3.3.0
 	 * @var int $id
 	 */
 	public $id = 0;
@@ -45,7 +46,7 @@ class File_Upload_Upgrader {
 	/**
 	 * Construct the upgrader for a form.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param string $form      The name of the form the file was uploaded from.
 	 * @param string $urlholder The name of the `GET` parameter that holds the filename.
@@ -56,7 +57,7 @@ class File_Upload_Upgrader {
 			wp_die( __( 'Please select a file' ) );
 		}
 
-		//Handle a newly uploaded file, Else assume it's already been uploaded
+		// Handle a newly uploaded file. Else, assume it's already been uploaded.
 		if ( ! empty( $_FILES ) ) {
 			$overrides = array(
 				'test_form' => false,
@@ -71,8 +72,8 @@ class File_Upload_Upgrader {
 			$this->filename = $_FILES[ $form ]['name'];
 			$this->package  = $file['file'];
 
-			// Construct the object array
-			$object = array(
+			// Construct the attachment array.
+			$attachment = array(
 				'post_title'     => $this->filename,
 				'post_content'   => $file['url'],
 				'post_mime_type' => $file['type'],
@@ -82,7 +83,7 @@ class File_Upload_Upgrader {
 			);
 
 			// Save the data.
-			$this->id = wp_insert_attachment( $object, $file['file'] );
+			$this->id = wp_insert_attachment( $attachment, $file['file'] );
 
 			// Schedule a cleanup for 2 hours from now in case of failed installation.
 			wp_schedule_single_event( time() + 2 * HOUR_IN_SECONDS, 'upgrader_scheduled_cleanup', array( $this->id ) );
@@ -116,7 +117,7 @@ class File_Upload_Upgrader {
 	/**
 	 * Delete the attachment/uploaded file.
 	 *
-	 * @since WP-3.2.2
+	 * @since 3.2.2
 	 *
 	 * @return bool Whether the cleanup was successful.
 	 */
