@@ -4,11 +4,11 @@
  *
  * @package ClassicPress
  * @subpackage Multisite
- * @since 3.0.0
+ * @since WP-3.0.0
  */
 
 /** Load ClassicPress Administration Bootstrap */
-require_once __DIR__ . '/admin.php';
+require_once dirname( __FILE__ ) . '/admin.php';
 
 /** ClassicPress Translation Installation API */
 require_once ABSPATH . 'wp-admin/includes/translation-install.php';
@@ -17,11 +17,10 @@ if ( ! current_user_can( 'manage_network_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to access this page.' ), 403 );
 }
 
-// Used in the HTML title tag.
 $title       = __( 'Network Settings' );
 $parent_file = 'settings.php';
 
-// Handle network admin email change requests.
+// Handle network admin email change requests
 if ( ! empty( $_GET['network_admin_hash'] ) ) {
 	$new_admin_details = get_site_option( 'network_admin_hash' );
 	$redirect          = 'settings.php?updated=false';
@@ -61,8 +60,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/network-admin-settings-screen/">Documentation on Network Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://codex.wordpress.org/Network_Admin_Settings_Screen">Documentation on Network Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://forums.classicpress.net/c/support">Support Forums</a>' ) . '</p>'
 );
 
 if ( $_POST ) {
@@ -100,6 +99,7 @@ if ( $_POST ) {
 		'welcome_email',
 		'welcome_user_email',
 		'fileupload_maxk',
+		'global_terms_enabled',
 		'illegal_names',
 		'limited_email_domains',
 		'banned_email_domains',
@@ -127,7 +127,7 @@ if ( $_POST ) {
 	/**
 	 * Fires after the network options are updated.
 	 *
-	 * @since MU (3.0.0)
+	 * @since WP-MU (3.0.0)
 	 */
 	do_action( 'update_wpmu_options' );
 
@@ -135,43 +135,43 @@ if ( $_POST ) {
 	exit;
 }
 
-require_once ABSPATH . 'wp-admin/admin-header.php';
+require ABSPATH . 'wp-admin/admin-header.php';
 
 if ( isset( $_GET['updated'] ) ) {
-	?><div id="message" class="notice notice-success is-dismissible"><p><?php _e( 'Settings saved.' ); ?></p></div>
+	?><div id="message" class="updated notice is-dismissible"><p><?php _e( 'Settings saved.' ); ?></p></div>
 	<?php
 }
 ?>
 
 <div class="wrap">
 	<h1><?php echo esc_html( $title ); ?></h1>
-	<form method="post" action="settings.php">
+	<form method="post" action="settings.php" novalidate="novalidate">
 		<?php wp_nonce_field( 'siteoptions' ); ?>
 		<h2><?php _e( 'Operational Settings' ); ?></h2>
-		<table class="form-table" role="presentation">
+		<table class="form-table">
 			<tr>
 				<th scope="row"><label for="site_name"><?php _e( 'Network Title' ); ?></label></th>
 				<td>
-					<input name="site_name" type="text" id="site_name" class="regular-text" value="<?php echo esc_attr( get_network()->site_name ); ?>">
+					<input name="site_name" type="text" id="site_name" class="regular-text" value="<?php echo esc_attr( get_network()->site_name ); ?>" />
 				</td>
 			</tr>
 
 			<tr>
 				<th scope="row"><label for="admin_email"><?php _e( 'Network Admin Email' ); ?></label></th>
 				<td>
-					<input name="new_admin_email" type="email" id="admin_email" aria-describedby="admin-email-desc" class="regular-text" value="<?php echo esc_attr( get_site_option( 'admin_email' ) ); ?>">
+					<input name="new_admin_email" type="email" id="admin_email" aria-describedby="admin-email-desc" class="regular-text" value="<?php echo esc_attr( get_site_option( 'admin_email' ) ); ?>" />
 					<p class="description" id="admin-email-desc">
-						<?php _e( 'This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
+						<?php _e( 'This address is used for admin purposes. If you change this we will send you an email at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
 					</p>
 					<?php
 					$new_admin_email = get_site_option( 'new_admin_email' );
 					if ( $new_admin_email && get_site_option( 'admin_email' ) !== $new_admin_email ) :
 						?>
-						<div class="notice notice-warning is-dismissible inline">
+						<div class="updated inline">
 						<p>
 						<?php
 							printf(
-								/* translators: %s: New network admin email. */
+								/* translators: %s: new network admin email */
 								__( 'There is a pending change of the network admin email to %s.' ),
 								'<code>' . esc_html( $new_admin_email ) . '</code>'
 							);
@@ -188,7 +188,7 @@ if ( isset( $_GET['updated'] ) ) {
 			</tr>
 		</table>
 		<h2><?php _e( 'Registration Settings' ); ?></h2>
-		<table class="form-table" role="presentation">
+		<table class="form-table">
 			<tr>
 				<th scope="row"><?php _e( 'Allow new registrations' ); ?></th>
 				<?php
@@ -199,21 +199,16 @@ if ( isset( $_GET['updated'] ) ) {
 				?>
 				<td>
 					<fieldset>
-					<legend class="screen-reader-text">
-						<?php
-						/* translators: Hidden accessibility text. */
-						_e( 'New registrations settings' );
-						?>
-					</legend>
-					<label><input name="registration" type="radio" id="registration1" value="none"<?php checked( $reg, 'none' ); ?>> <?php _e( 'Registration is disabled' ); ?></label><br>
-					<label><input name="registration" type="radio" id="registration2" value="user"<?php checked( $reg, 'user' ); ?>> <?php _e( 'User accounts may be registered' ); ?></label><br>
-					<label><input name="registration" type="radio" id="registration3" value="blog"<?php checked( $reg, 'blog' ); ?>> <?php _e( 'Logged in users may register new sites' ); ?></label><br>
-					<label><input name="registration" type="radio" id="registration4" value="all"<?php checked( $reg, 'all' ); ?>> <?php _e( 'Both sites and user accounts can be registered' ); ?></label>
+					<legend class="screen-reader-text"><?php _e( 'New registrations settings' ); ?></legend>
+					<label><input name="registration" type="radio" id="registration1" value="none"<?php checked( $reg, 'none' ); ?> /> <?php _e( 'Registration is disabled' ); ?></label><br />
+					<label><input name="registration" type="radio" id="registration2" value="user"<?php checked( $reg, 'user' ); ?> /> <?php _e( 'User accounts may be registered' ); ?></label><br />
+					<label><input name="registration" type="radio" id="registration3" value="blog"<?php checked( $reg, 'blog' ); ?> /> <?php _e( 'Logged in users may register new sites' ); ?></label><br />
+					<label><input name="registration" type="radio" id="registration4" value="all"<?php checked( $reg, 'all' ); ?> /> <?php _e( 'Both sites and user accounts can be registered' ); ?></label>
 					<?php
 					if ( is_subdomain_install() ) {
 						echo '<p class="description">';
+						/* translators: 1: NOBLOGREDIRECT 2: wp-config.php */
 						printf(
-							/* translators: 1: NOBLOGREDIRECT, 2: wp-config.php */
 							__( 'If registration is disabled, please set %1$s in %2$s to a URL you will redirect visitors to if they visit a non-existent site.' ),
 							'<code>NOBLOGREDIRECT</code>',
 							'<code>wp-config.php</code>'
@@ -233,30 +228,21 @@ if ( isset( $_GET['updated'] ) ) {
 				}
 				?>
 				<td>
-					<label><input name="registrationnotification" type="checkbox" id="registrationnotification" value="yes"<?php checked( get_site_option( 'registrationnotification' ), 'yes' ); ?>> <?php _e( 'Send the network admin an email notification every time someone registers a site or user account' ); ?></label>
+					<label><input name="registrationnotification" type="checkbox" id="registrationnotification" value="yes"<?php checked( get_site_option( 'registrationnotification' ), 'yes' ); ?> /> <?php _e( 'Send the network admin an email notification every time someone registers a site or user account' ); ?></label>
 				</td>
 			</tr>
 
 			<tr id="addnewusers">
 				<th scope="row"><?php _e( 'Add New Users' ); ?></th>
 				<td>
-					<label><input name="add_new_users" type="checkbox" id="add_new_users" value="1"<?php checked( get_site_option( 'add_new_users' ) ); ?>> <?php _e( 'Allow site administrators to add new users to their site via the "Users &rarr; Add New" page' ); ?></label>
+					<label><input name="add_new_users" type="checkbox" id="add_new_users" value="1"<?php checked( get_site_option( 'add_new_users' ) ); ?> /> <?php _e( 'Allow site administrators to add new users to their site via the "Users &rarr; Add New" page' ); ?></label>
 				</td>
 			</tr>
 
 			<tr>
 				<th scope="row"><label for="illegal_names"><?php _e( 'Banned Names' ); ?></label></th>
 				<td>
-					<?php
-					$illegal_names = get_site_option( 'illegal_names' );
-
-					if ( empty( $illegal_names ) ) {
-						$illegal_names = '';
-					} elseif ( is_array( $illegal_names ) ) {
-						$illegal_names = implode( ' ', $illegal_names );
-					}
-					?>
-					<input name="illegal_names" type="text" id="illegal_names" aria-describedby="illegal-names-desc" class="large-text" value="<?php echo esc_attr( $illegal_names ); ?>" size="45">
+					<input name="illegal_names" type="text" id="illegal_names" aria-describedby="illegal-names-desc" class="large-text" value="<?php echo esc_attr( implode( ' ', (array) get_site_option( 'illegal_names' ) ) ); ?>" size="45" />
 					<p class="description" id="illegal-names-desc">
 						<?php _e( 'Users are not allowed to register these sites. Separate names by spaces.' ); ?>
 					</p>
@@ -268,16 +254,10 @@ if ( isset( $_GET['updated'] ) ) {
 				<td>
 					<?php
 					$limited_email_domains = get_site_option( 'limited_email_domains' );
+					$limited_email_domains = str_replace( ' ', "\n", $limited_email_domains );
 
-					if ( empty( $limited_email_domains ) ) {
-						$limited_email_domains = '';
-					} else {
-						// Convert from an input field. Back-compat for WPMU < 1.0.
-						$limited_email_domains = str_replace( ' ', "\n", $limited_email_domains );
-
-						if ( is_array( $limited_email_domains ) ) {
-							$limited_email_domains = implode( "\n", $limited_email_domains );
-						}
+					if ( $limited_email_domains ) {
+						$limited_email_domains = implode( "\n", (array) $limited_email_domains );
 					}
 					?>
 					<textarea name="limited_email_domains" id="limited_email_domains" aria-describedby="limited-email-domains-desc" cols="45" rows="5">
@@ -294,10 +274,8 @@ if ( isset( $_GET['updated'] ) ) {
 					<?php
 					$banned_email_domains = get_site_option( 'banned_email_domains' );
 
-					if ( empty( $banned_email_domains ) ) {
-						$banned_email_domains = '';
-					} elseif ( is_array( $banned_email_domains ) ) {
-						$banned_email_domains = implode( "\n", $banned_email_domains );
+					if ( $banned_email_domains ) {
+						$banned_email_domains = implode( "\n", (array) $banned_email_domains );
 					}
 					?>
 					<textarea name="banned_email_domains" id="banned_email_domains" aria-describedby="banned-email-domains-desc" cols="45" rows="5">
@@ -310,7 +288,7 @@ if ( isset( $_GET['updated'] ) ) {
 
 		</table>
 		<h2><?php _e( 'New Site Settings' ); ?></h2>
-		<table class="form-table" role="presentation">
+		<table class="form-table">
 
 			<tr>
 				<th scope="row"><label for="welcome_email"><?php _e( 'Welcome Email' ); ?></label></th>
@@ -365,7 +343,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="first_comment_author"><?php _e( 'First Comment Author' ); ?></label></th>
 				<td>
-					<input type="text" size="40" name="first_comment_author" id="first_comment_author" aria-describedby="first-comment-author-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_author' ) ); ?>">
+					<input type="text" size="40" name="first_comment_author" id="first_comment_author" aria-describedby="first-comment-author-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_author' ) ); ?>" />
 					<p class="description" id="first-comment-author-desc">
 						<?php _e( 'The author of the first comment on a new site.' ); ?>
 					</p>
@@ -374,7 +352,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="first_comment_email"><?php _e( 'First Comment Email' ); ?></label></th>
 				<td>
-					<input type="text" size="40" name="first_comment_email" id="first_comment_email" aria-describedby="first-comment-email-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_email' ) ); ?>">
+					<input type="text" size="40" name="first_comment_email" id="first_comment_email" aria-describedby="first-comment-email-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_email' ) ); ?>" />
 					<p class="description" id="first-comment-email-desc">
 						<?php _e( 'The email address of the first comment author on a new site.' ); ?>
 					</p>
@@ -383,7 +361,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="first_comment_url"><?php _e( 'First Comment URL' ); ?></label></th>
 				<td>
-					<input type="text" size="40" name="first_comment_url" id="first_comment_url" aria-describedby="first-comment-url-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_url' ) ); ?>">
+					<input type="text" size="40" name="first_comment_url" id="first_comment_url" aria-describedby="first-comment-url-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_url' ) ); ?>" />
 					<p class="description" id="first-comment-url-desc">
 						<?php _e( 'The URL for the first comment on a new site.' ); ?>
 					</p>
@@ -391,24 +369,13 @@ if ( isset( $_GET['updated'] ) ) {
 			</tr>
 		</table>
 		<h2><?php _e( 'Upload Settings' ); ?></h2>
-		<table class="form-table" role="presentation">
+		<table class="form-table">
 			<tr>
 				<th scope="row"><?php _e( 'Site upload space' ); ?></th>
 				<td>
-					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?>>
-						<?php
-						printf(
-							/* translators: %s: Number of megabytes to limit uploads to. */
-							__( 'Limit total size of files uploaded to %s MB' ),
-							'</label><label><input name="blog_upload_space" type="number" min="0" style="width: 100px" id="blog_upload_space" aria-describedby="blog-upload-space-desc" value="' . esc_attr( get_site_option( 'blog_upload_space', 100 ) ) . '">'
-						);
-						?>
-					</label><br>
+					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?>/> <?php printf( __( 'Limit total size of files uploaded to %s MB' ), '</label><label><input name="blog_upload_space" type="number" min="0" style="width: 100px" id="blog_upload_space" aria-describedby="blog-upload-space-desc" value="' . esc_attr( get_site_option( 'blog_upload_space', 100 ) ) . '" />' ); ?></label><br />
 					<p class="screen-reader-text" id="blog-upload-space-desc">
-						<?php
-						/* translators: Hidden accessibility text. */
-						_e( 'Size in megabytes' );
-						?>
+						<?php _e( 'Size in megabytes' ); ?>
 					</p>
 				</td>
 			</tr>
@@ -416,7 +383,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="upload_filetypes"><?php _e( 'Upload file types' ); ?></label></th>
 				<td>
-					<input name="upload_filetypes" type="text" id="upload_filetypes" aria-describedby="upload-filetypes-desc" class="large-text" value="<?php echo esc_attr( get_site_option( 'upload_filetypes', 'jpg jpeg png gif' ) ); ?>" size="45">
+					<input name="upload_filetypes" type="text" id="upload_filetypes" aria-describedby="upload-filetypes-desc" class="large-text" value="<?php echo esc_attr( get_site_option( 'upload_filetypes', 'jpg jpeg png gif' ) ); ?>" size="45" />
 					<p class="description" id="upload-filetypes-desc">
 						<?php _e( 'Allowed file types. Separate types by spaces.' ); ?>
 					</p>
@@ -428,16 +395,13 @@ if ( isset( $_GET['updated'] ) ) {
 				<td>
 					<?php
 						printf(
-							/* translators: %s: File size in kilobytes. */
+							/* translators: %s: File size in kilobytes */
 							__( '%s KB' ),
-							'<input name="fileupload_maxk" type="number" min="0" style="width: 100px" id="fileupload_maxk" aria-describedby="fileupload-maxk-desc" value="' . esc_attr( get_site_option( 'fileupload_maxk', 300 ) ) . '">'
+							'<input name="fileupload_maxk" type="number" min="0" style="width: 100px" id="fileupload_maxk" aria-describedby="fileupload-maxk-desc" value="' . esc_attr( get_site_option( 'fileupload_maxk', 300 ) ) . '" />'
 						);
 						?>
 					<p class="screen-reader-text" id="fileupload-maxk-desc">
-						<?php
-						/* translators: Hidden accessibility text. */
-						_e( 'Size in kilobytes' );
-						?>
+						<?php _e( 'Size in kilobytes' ); ?>
 					</p>
 				</td>
 			</tr>
@@ -449,9 +413,9 @@ if ( isset( $_GET['updated'] ) ) {
 		if ( ! empty( $languages ) || ! empty( $translations ) ) {
 			?>
 			<h2><?php _e( 'Language Settings' ); ?></h2>
-			<table class="form-table" role="presentation">
+			<table class="form-table">
 				<tr>
-					<th><label for="WPLANG"><?php _e( 'Default Language' ); ?><span class="dashicons dashicons-translation" aria-hidden="true"></span></label></th>
+					<th><label for="WPLANG"><?php _e( 'Default Language' ); ?></label></th>
 					<td>
 						<?php
 						$lang = get_site_option( 'WPLANG' );
@@ -477,56 +441,48 @@ if ( isset( $_GET['updated'] ) ) {
 		}
 		?>
 
-		<?php
-		$menu_perms = get_site_option( 'menu_items' );
-		/**
-		 * Filters available network-wide administration menu options.
-		 *
-		 * Options returned to this filter are output as individual checkboxes that, when selected,
-		 * enable site administrator access to the specified administration menu in certain contexts.
-		 *
-		 * Adding options for specific menus here hinges on the appropriate checks and capabilities
-		 * being in place in the site dashboard on the other side. For instance, when the single
-		 * default option, 'plugins' is enabled, site administrators are granted access to the Plugins
-		 * screen in their individual sites' dashboards.
-		 *
-		 * @since MU (3.0.0)
-		 *
-		 * @param string[] $admin_menus Associative array of the menu items available.
-		 */
-		$menu_items = apply_filters( 'mu_menu_items', array( 'plugins' => __( 'Plugins' ) ) );
-
-		if ( $menu_items ) :
-			?>
-			<h2><?php _e( 'Menu Settings' ); ?></h2>
-			<table id="menu" class="form-table">
-				<tr>
-					<th scope="row"><?php _e( 'Enable administration menus' ); ?></th>
-					<td>
-						<?php
-						echo '<fieldset><legend class="screen-reader-text">' .
-							/* translators: Hidden accessibility text. */
-							__( 'Enable menus' ) .
-						'</legend>';
-
-						foreach ( (array) $menu_items as $key => $val ) {
-							echo "<label><input type='checkbox' name='menu_items[" . $key . "]' value='1'" . ( isset( $menu_perms[ $key ] ) ? checked( $menu_perms[ $key ], '1', false ) : '' ) . '> ' . esc_html( $val ) . '</label><br>';
-						}
-
-						echo '</fieldset>';
-						?>
-					</td>
-				</tr>
-			</table>
+		<h2><?php _e( 'Menu Settings' ); ?></h2>
+		<table id="menu" class="form-table">
+			<tr>
+				<th scope="row"><?php _e( 'Enable administration menus' ); ?></th>
+				<td>
 			<?php
-		endif;
-		?>
+			$menu_perms = get_site_option( 'menu_items' );
+			/**
+			 * Filters available network-wide administration menu options.
+			 *
+			 * Options returned to this filter are output as individual checkboxes that, when selected,
+			 * enable site administrator access to the specified administration menu in certain contexts.
+			 *
+			 * Adding options for specific menus here hinges on the appropriate checks and capabilities
+			 * being in place in the site dashboard on the other side. For instance, when the single
+			 * default option, 'plugins' is enabled, site administrators are granted access to the Plugins
+			 * screen in their individual sites' dashboards.
+			 *
+			 * @since WP-MU (3.0.0)
+			 *
+			 * @param array $admin_menus The menu items available.
+			 */
+			$menu_items   = apply_filters( 'mu_menu_items', array( 'plugins' => __( 'Plugins' ) ) );
+			$fieldset_end = '';
+			if ( count( (array) $menu_items ) > 1 ) {
+				echo '<fieldset><legend class="screen-reader-text">' . __( 'Enable menus' ) . '</legend>';
+				$fieldset_end = '</fieldset>';
+			}
+			foreach ( (array) $menu_items as $key => $val ) {
+				echo "<label><input type='checkbox' name='menu_items[" . $key . "]' value='1'" . ( isset( $menu_perms[ $key ] ) ? checked( $menu_perms[ $key ], '1', false ) : '' ) . ' /> ' . esc_html( $val ) . '</label><br/>';
+			}
+			echo $fieldset_end;
+			?>
+				</td>
+			</tr>
+		</table>
 
 		<?php
 		/**
 		 * Fires at the end of the Network Settings form, before the submit button.
 		 *
-		 * @since MU (3.0.0)
+		 * @since WP-MU (3.0.0)
 		 */
 		do_action( 'wpmu_options' );
 		?>
@@ -534,4 +490,4 @@ if ( isset( $_GET['updated'] ) ) {
 	</form>
 </div>
 
-<?php require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>
+<?php require ABSPATH . 'wp-admin/admin-footer.php'; ?>

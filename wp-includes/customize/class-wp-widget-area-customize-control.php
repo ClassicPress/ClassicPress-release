@@ -4,13 +4,13 @@
  *
  * @package ClassicPress
  * @subpackage Customize
- * @since 4.4.0
+ * @since WP-3.4.0
  */
 
 /**
  * Widget Area Customize Control class.
  *
- * @since 3.9.0
+ * @since WP-3.9.0
  *
  * @see WP_Customize_Control
  */
@@ -19,7 +19,7 @@ class WP_Widget_Area_Customize_Control extends WP_Customize_Control {
 	/**
 	 * Customize control type.
 	 *
-	 * @since 3.9.0
+	 * @since WP-3.9.0
 	 * @var string
 	 */
 	public $type = 'sidebar_widgets';
@@ -27,7 +27,7 @@ class WP_Widget_Area_Customize_Control extends WP_Customize_Control {
 	/**
 	 * Sidebar ID.
 	 *
-	 * @since 3.9.0
+	 * @since WP-3.9.0
 	 * @var int|string
 	 */
 	public $sidebar_id;
@@ -35,7 +35,7 @@ class WP_Widget_Area_Customize_Control extends WP_Customize_Control {
 	/**
 	 * Refreshes the parameters passed to the JavaScript via JSON.
 	 *
-	 * @since 3.9.0
+	 * @since WP-3.9.0
 	 */
 	public function to_json() {
 		parent::to_json();
@@ -48,7 +48,7 @@ class WP_Widget_Area_Customize_Control extends WP_Customize_Control {
 	/**
 	 * Renders the control's content.
 	 *
-	 * @since 3.9.0
+	 * @since WP-3.9.0
 	 */
 	public function render_content() {
 		$id = 'reorder-widgets-desc-' . str_replace( array( '[', ']' ), array( '-', '' ), $this->id );
@@ -60,12 +60,7 @@ class WP_Widget_Area_Customize_Control extends WP_Customize_Control {
 			<span class="reorder"><?php _e( 'Reorder' ); ?></span>
 			<span class="reorder-done"><?php _e( 'Done' ); ?></span>
 		</button>
-		<p class="screen-reader-text" id="<?php echo esc_attr( $id ); ?>">
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'When in reorder mode, additional controls to reorder widgets will be available in the widgets list above.' );
-			?>
-		</p>
+		<p class="screen-reader-text" id="<?php echo esc_attr( $id ); ?>"><?php _e( 'When in reorder mode, additional controls to reorder widgets will be available in the widgets list above.' ); ?></p>
 		<?php
 	}
 }

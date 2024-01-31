@@ -4,14 +4,14 @@
 }
 
 #customize-theme-controls #accordion-section-menu_locations > .accordion-section-title {
-	border-bottom-color: #dcdcde;
+	border-bottom-color: #ddd;
 	margin-top: 15px;
 }
 
 #customize-theme-controls .customize-section-title-nav_menus-heading,
 #customize-theme-controls .customize-section-title-menu_locations-heading,
 #customize-theme-controls .customize-section-title-menu_locations-description {
-	padding: 0 12px;
+	padding: 0 12px 0 12px;
 }
 
 #customize-theme-controls .customize-control-description.customize-section-title-menu_locations-description {
@@ -29,7 +29,7 @@
 #customize-controls .theme-location-set,
 #customize-controls .control-section .accordion-section-title:focus .menu-in-location,
 #customize-controls .control-section .accordion-section-title:hover .menu-in-location {
-	color: #50575e;
+	color: #555;
 }
 
 /* The `edit-menu` and `create-menu` buttons also use the `button-link` class. */
@@ -37,7 +37,7 @@
 .customize-control-nav_menu_location .create-menu {
 	margin-right: 6px;
 	vertical-align: middle;
-	line-height: 2.2;
+	line-height: 28px;
 }
 
 #customize-controls .customize-control-nav_menu_name {
@@ -65,7 +65,6 @@
 
 .wp-customizer .menu-item-bar .menu-item-handle {
 	width: 100%;
-	max-width: 100%;
 	background: #fff;
 }
 
@@ -84,7 +83,7 @@
 }
 
 .customize-control-nav_menu_item.has-notifications .menu-item-handle {
-	border-right: 4px solid #72aee6;
+	border-right: 4px solid #00a0d2;
 }
 
 .wp-customizer .menu-item-settings {
@@ -92,15 +91,15 @@
 	overflow: hidden;
 	z-index: 8;
 	padding: 10px;
-	background: #f0f0f1;
-	border: 1px solid #8c8f94;
+	background: #eee;
+	border: 1px solid #999;
 	border-top: none;
 }
 
 .wp-customizer .menu-item-settings .description-thin {
 	width: 100%;
 	height: auto;
-	margin: 0 0 8px;
+	margin: 0 0 8px 0;
 }
 
 .wp-customizer .menu-item-settings input[type="text"] {
@@ -185,7 +184,7 @@
 }
 
 .wp-customizer .menu-settings dl {
-	margin: 12px 0 0;
+	margin: 12px 0 0 0;
 	padding: 0;
 }
 
@@ -194,7 +193,7 @@
 }
 
 .wp-customizer .menu-settings .menu-theme-locations {
-	border-top: 1px solid #c3c4c7;
+	border-top: 1px solid #ccc;
 }
 
 .wp-customizer .menu-settings {
@@ -209,7 +208,7 @@
 
 .wp-customizer .control-section-nav_menu .menu-location-settings {
 	margin-top: 24px;
-	border-top: 1px solid #dcdcde;
+	border-top: 1px solid #ddd;
 }
 
 .wp-customizer .control-section-nav_menu .menu-location-settings,
@@ -234,14 +233,14 @@
 }
 
 #customize-controls .customize-info.open.active-menu-screen-options .customize-help-toggle {
-	color: #50575e;
+	color: #555;
 }
 
 /* Screen Options */
 .customize-screen-options-toggle {
 	background: none;
 	border: none;
-	color: #50575e;
+	color: #555;
 	cursor: pointer;
 	margin: 0;
 	padding: 20px;
@@ -265,13 +264,12 @@
 #customize-controls .customize-info.open.active-menu-screen-options .customize-help-toggle:hover,
 #customize-controls .customize-info.open.active-menu-screen-options .customize-help-toggle:active,
 #customize-controls .customize-info.open.active-menu-screen-options .customize-help-toggle:focus {
-	color: #2271b1;
+	color: #0073aa;
 }
 
 .customize-screen-options-toggle:focus,
 #customize-controls .customize-info .customize-help-toggle:focus {
-	/* Only visible in Windows High Contrast mode */
-	outline: 1px solid transparent;
+	outline: none;
 }
 
 .customize-screen-options-toggle:before {
@@ -297,7 +295,7 @@
 .wp-customizer #screen-options-wrap {
 	display: none;
 	background: #fff;
-	border-top: 1px solid #dcdcde;
+	border-top: 1px solid #ddd;
 	padding: 4px 15px 15px;
 }
 
@@ -307,7 +305,7 @@
 	line-height: 30px;
 }
 
-/* rework the arrow indicator implementation for NVDA bug same as #32715 */
+/* rework the arrow indicator implementation for NVDA bug same as https://core.trac.wordpress.org/ticket/32715 */
 .wp-customizer .toggle-indicator {
 	display: inline-block;
 	font-size: 20px;
@@ -322,10 +320,10 @@
 #available-menu-items .accordion-section-title .toggle-indicator:before {
 	content: "\f140";
 	display: block;
-	padding: 1px 0 1px 2px;
-	speak: never;
+	padding: 1px 0px 1px 2px;
+	speak: none;
 	border-radius: 50%;
-	color: #787c82;
+	color: #72777c;
 	font: normal 20px/1 dashicons;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -431,7 +429,7 @@
 	max-width: calc(100% - 2px);
 	float: right;
 	display: list-item;
-	border-color: #a7aaad;
+	border-color: #a0a5aa;
 }
 
 .menu-item-transport li.customize-control {
@@ -456,7 +454,7 @@
 }
 
 .menu-item-bar .item-delete {
-	color: #d63638;
+	color: #a00;
 	position: absolute;
 	top: 2px;
 	left: -19px;
@@ -477,11 +475,15 @@
 	-moz-osx-font-smoothing: grayscale;
 }
 
+.ie8 .menu-item-bar .item-delete:before {
+	top: -10px;
+}
+
 .menu-item-bar .item-delete:hover,
 .menu-item-bar .item-delete:focus {
 	box-shadow: none;
 	outline: none;
-	color: #d63638;
+	color: #dc3232;
 }
 
 .adding-menu-items .menu-item-bar .item-edit {
@@ -510,7 +512,7 @@
 	border-left: none;
 	background: #fff;
 	transition: background-color 0.15s;
-	/* Reset the value inherited from the base .accordion-section-title style. Ticket #37589. */
+	/* Reset the value inherited from the base .accordion-section-title style. See https://core.trac.wordpress.org/ticket/37589. */
 	-webkit-user-select: auto;
 	-moz-user-select: auto;
 	user-select: auto;
@@ -518,10 +520,10 @@
 
 #available-menu-items .open .accordion-section-title,
 #available-menu-items #available-menu-items-search .accordion-section-title {
-	background: #f0f0f1;
+	background: #eee;
 }
 
-/* rework the arrow indicator implementation for NVDA bug see #32715 */
+/* rework the arrow indicator implementation for NVDA bug. See https://core.trac.wordpress.org/ticket/32715 */
 #available-menu-items .accordion-section-title:after {
 	content: none !important;
 }
@@ -529,12 +531,12 @@
 #available-menu-items .accordion-section-title:hover .toggle-indicator:before,
 #available-menu-items .button-link:hover .toggle-indicator:before,
 #available-menu-items .button-link:focus .toggle-indicator:before {
-	color: #1d2327;
+	color: #23282d;
 }
 
 #available-menu-items .open .accordion-section-title .toggle-indicator:before {
 	content: "\f142";
-	color: #1d2327;
+	color: #23282d;
 }
 
 #available-menu-items .available-menu-items-list {
@@ -568,7 +570,7 @@
 
 #available-menu-items .cannot-expand .accordion-section-title .no-items {
 	float: left;
-	color: #50575e;
+	color: #555d66;
 	font-weight: 400;
 	margin-right: 5px;
 }
@@ -582,8 +584,8 @@
 }
 
 #available-menu-items .accordion-section-content .available-menu-items-list {
-	margin: 0 0 45px;
-	padding: 1px 15px 15px;
+	margin: 0 0 45px 0;
+	padding: 1px 15px 15px 15px;
 }
 
 #available-menu-items .accordion-section-content .available-menu-items-list:only-child { /* Types that do not support new items for the current user */
@@ -591,7 +593,7 @@
 }
 
 #new-custom-menu-item .accordion-section-content {
-	padding: 0 15px 15px;
+	padding: 0 15px 15px 15px;
 }
 
 #available-menu-items .menu-item-tpl {
@@ -605,7 +607,7 @@
 .menu-name-field.invalid:focus,
 #available-menu-items .new-content-item .create-item-input.invalid,
 #available-menu-items .new-content-item .create-item-input.invalid:focus {
-	border: 1px solid #d63638;
+	border: 1px solid #dc3232;
 }
 
 #available-menu-items .menu-item-handle .item-type {
@@ -638,7 +640,7 @@
 	position: absolute;
 	top: 1px;
 	right: 1px;
-	color: #8c8f94;
+	color: #82878c;
 	width: 30px;
 	height: 38px;
 	box-shadow: none;
@@ -648,7 +650,7 @@
 }
 
 #available-menu-items .menu-item-handle .item-add:focus {
-	color: #1d2327;
+	color: #23282d;
 }
 
 #available-menu-items .item-add:before {
@@ -666,7 +668,7 @@
 #available-menu-items .menu-item-handle.item-added .item-title,
 #available-menu-items .menu-item-handle.item-added:hover .item-add,
 #available-menu-items .menu-item-handle.item-added .item-add:focus {
-	color: #8c8f94;
+	color: #82878c;
 }
 
 #available-menu-items .menu-item-handle.item-added .item-add:before {
@@ -691,7 +693,7 @@
 	position: absolute;
 	right: 0;
 	top: 60px; /* below title div / search input */
-	bottom: 0; /* 100% height that still triggers lazy load */
+	bottom: 0px; /* 100% height that still triggers lazy load */
 	max-height: none;
 	width: 100%;
 	padding: 1px 15px 15px;
@@ -761,7 +763,7 @@ body.adding-menu-items #customize-preview iframe {
 	cursor: default;
 	opacity: .5;
 	background: #fff;
-	color: #787c82;
+	color: #727773;
 }
 
 .added-menu-item .menu-item-handle {
@@ -773,7 +775,7 @@ body.adding-menu-items #customize-preview iframe {
 /* Add/delete Menus */
 
 #customize-theme-controls .control-panel-content .control-section-nav_menu:nth-last-child(2) .accordion-section-title {
-	border-bottom-color: #dcdcde;
+	border-bottom-color: #ddd;
 }
 
 /* @todo update selector */
@@ -791,12 +793,12 @@ body.adding-menu-items #customize-preview iframe {
 }
 
 #accordion-section-add_menu .customize-add-menu-button {
-	font-weight: 400;
+	font-weight: normal;
 }
 
 #create-new-menu-submit {
 	float: left;
-	margin: 0 0 12px;
+	margin: 0 0 12px 0;
 }
 
 .menu-delete-item {
@@ -806,7 +808,7 @@ body.adding-menu-items #customize-preview iframe {
 }
 
 .assigned-menu-locations-title p {
-	margin: 0 0 8px;
+	margin: 0 0 8px 0;
 }
 
 li.assigned-to-menu-location .menu-delete-item {
@@ -827,17 +829,17 @@ li.assigned-to-menu-location .add-new-menu-item {
 .menu-item-handle:hover {
 	position: relative;
 	z-index: 10;
-	color: #2271b1;
+	color: #0073aa;
 }
 
 .menu-item-handle:hover .item-type,
 .menu-item-handle:hover .item-edit,
 #available-menu-items .menu-item-handle:hover .item-add {
-	color: #2271b1;
+	color: #0073aa;
 }
 
 .menu-item-edit-active .menu-item-handle {
-	border-color: #8c8f94;
+	border-color: #999;
 	border-bottom: none;
 }
 
@@ -866,18 +868,18 @@ li.assigned-to-menu-location .add-new-menu-item {
 .menu-item-bar .item-delete:focus:before,
 #available-menu-items .item-add:focus:before {
 	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+		0 0 0 1px #5b9dd9,
+		0 0 2px 1px rgba(30, 140, 190, .8);
 }
 
 
-@media screen and (max-width: 782px) {
+@media screen and ( max-width: 782px ) {
 	#available-menu-items #available-menu-items-search .accordion-section-content {
 		top: 63px;
 	}
 }
 
-@media screen and (max-width: 640px) {
+@media screen and ( max-width: 640px ) {
 	#available-menu-items #available-menu-items-search .accordion-section-content {
 		top: 130px;
 	}

@@ -1,7 +1,4 @@
-/**
- * @output wp-admin/js/color-picker.js
- */
-
+/* global wpColorPickerL10n */
 ( function( $, undef ) {
 
 	var ColorPicker,
@@ -10,17 +7,16 @@
 		_wrap = '<div class="wp-picker-container" />',
 		_button = '<input type="button" class="button button-small" />',
 		_wrappingLabel = '<label></label>',
-		_wrappingLabelText = '<span class="screen-reader-text"></span>',
-		__ = wp.i18n.__;
+		_wrappingLabelText = '<span class="screen-reader-text"></span>';
 
 	/**
+	 * @summary Creates a jQuery UI color picker.
+	 *
 	 * Creates a jQuery UI color picker that is used in the theme customizer.
 	 *
-	 * @class $.widget.wp.wpColorPicker
-	 *
-	 * @since 3.5.0
+	 * @since WP-3.5.0
 	 */
-	ColorPicker = /** @lends $.widget.wp.wpColorPicker.prototype */{
+	ColorPicker = {
 		options: {
 			defaultColor: false,
 			change: false,
@@ -33,12 +29,13 @@
 			slider: 'horizontal'
 		},
 		/**
-		 * Creates a color picker that only allows you to adjust the hue.
+		 * @summary Creates a color picker that only allows you to adjust the hue.
 		 *
-		 * @since 3.5.0
+		 * @since WP-3.5.0
+		 *
 		 * @access private
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		_createHueOnly: function() {
 			var self = this,
@@ -57,17 +54,15 @@
 				hide: false,
 				color: color,
 				/**
-				 * Handles the onChange event if one has been defined in the options.
-				 *
-				 * @ignore
+				 * @summary Handles the onChange event if one has been defined in the options.
 				 *
 				 * @param {Event} event    The event that's being called.
 				 * @param {HTMLElement} ui The HTMLElement containing the color picker.
 				 *
-				 * @return {void}
+				 * @returns {void}
 				 */
 				change: function( event, ui ) {
-					if ( typeof self.options.change === 'function' ) {
+					if ( $.isFunction( self.options.change ) ) {
 						self.options.change.call( this, event, ui );
 					}
 				},
@@ -76,12 +71,15 @@
 			} );
 		},
 		/**
+		 * @summary Creates the color picker.
+		 *
 		 * Creates the color picker, sets default values, css classes and wraps it all in HTML.
 		 *
-		 * @since 3.5.0
+		 * @since WP-3.5.0
+		 *
 		 * @access private
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		_create: function() {
 			// Return early if Iris support is missing.
@@ -101,7 +99,7 @@
 			}
 
 			// Bind the close event.
-			self.close = self.close.bind( self );
+			self.close = $.proxy( self.close, self );
 
 			self.initialValue = el.val();
 
@@ -118,7 +116,7 @@
 				// Insert the default label text.
 				self.wrappingLabelText = $( _wrappingLabelText )
 					.insertBefore( el )
-					.text( __( 'Color value' ) );
+					.text( wpColorPickerL10n.defaultLabel );
 			}
 
 			/*
@@ -136,7 +134,7 @@
 				.insertBefore( self.wrappingLabel )
 				.css( { backgroundColor: self.initialValue } );
 			// Set the toggle button span element text.
-			self.toggler.find( '.wp-color-result-text' ).text( __( 'Select Color' ) );
+			self.toggler.find( '.wp-color-result-text' ).text( wpColorPickerL10n.pick );
 			// Set up the Iris container and insert it after the wrapping label.
 			self.pickerContainer = $( _after ).insertAfter( self.wrappingLabel );
 			// Store a reference to the Clear/Default button.
@@ -146,13 +144,13 @@
 			if ( self.options.defaultColor ) {
 				self.button
 					.addClass( 'wp-picker-default' )
-					.val( __( 'Default' ) )
-					.attr( 'aria-label', __( 'Select default color' ) );
+					.val( wpColorPickerL10n.defaultString )
+					.attr( 'aria-label', wpColorPickerL10n.defaultAriaLabel );
 			} else {
 				self.button
 					.addClass( 'wp-picker-clear' )
-					.val( __( 'Clear' ) )
-					.attr( 'aria-label', __( 'Clear color' ) );
+					.val( wpColorPickerL10n.clear )
+					.attr( 'aria-label', wpColorPickerL10n.clearAriaLabel );
 			}
 
 			// Wrap the wrapping label in its wrapper and append the Clear/Default button.
@@ -174,22 +172,22 @@
 				mode: self.options.mode,
 				palettes: self.options.palettes,
 				/**
+				 * @summary Handles the onChange event if one has been defined in the options.
+				 *
 				 * Handles the onChange event if one has been defined in the options and additionally
 				 * sets the background color for the toggler element.
 				 *
-				 * @since 3.5.0
-				 *
-				 * @ignore
+				 * @since WP-3.5.0
 				 *
 				 * @param {Event} event    The event that's being called.
 				 * @param {HTMLElement} ui The HTMLElement containing the color picker.
 				 *
-				 * @return {void}
+				 * @returns {void}
 				 */
 				change: function( event, ui ) {
 					self.toggler.css( { backgroundColor: ui.color.toString() } );
 
-					if ( typeof self.options.change === 'function' ) {
+					if ( $.isFunction( self.options.change ) ) {
 						self.options.change.call( this, event, ui );
 					}
 				}
@@ -204,35 +202,36 @@
 			}
 		},
 		/**
-		 * Binds event listeners to the color picker.
+		 * @summary Binds event listeners to the color picker.
 		 *
-		 * @since 3.5.0
+		 * @since WP-3.5.0
+		 *
 		 * @access private
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		_addListeners: function() {
 			var self = this;
 
 			/**
-			 * Prevent any clicks inside this widget from leaking to the top and closing it.
+			 * @summary Prevent any clicks inside this widget from leaking to the top and closing it.
 			 *
-			 * @since 3.5.0
+			 * @since WP-3.5.0
 			 *
 			 * @param {Event} event The event that's being called.
 			 *
-			 * @return {void}
+			 * @returs {void}
 			 */
 			self.wrap.on( 'click.wpcolorpicker', function( event ) {
 				event.stopPropagation();
 			});
 
 			/**
-			 * Open or close the color picker depending on the class.
+			 * @summary Open or close the color picker depending on the class.
 			 *
-			 * @since 3.5.0
+			 * @since WP-3.5
 			 */
-			self.toggler.on( 'click', function(){
+			self.toggler.click( function(){
 				if ( self.toggler.hasClass( 'wp-picker-open' ) ) {
 					self.close();
 				} else {
@@ -241,43 +240,47 @@
 			});
 
 			/**
+			 * @summary Checks if value is empty when changing the color in the color picker.
+			 *
 			 * Checks if value is empty when changing the color in the color picker.
 			 * If so, the background color is cleared.
 			 *
-			 * @since 3.5.0
+			 * @since WP-3.5.0
 			 *
 			 * @param {Event} event The event that's being called.
 			 *
-			 * @return {void}
+			 * @returns {void}
 			 */
-			self.element.on( 'change', function( event ) {
+			self.element.change( function( event ) {
 				var me = $( this ),
 					val = me.val();
 
 				if ( val === '' || val === '#' ) {
 					self.toggler.css( 'backgroundColor', '' );
 					// Fire clear callback if we have one.
-					if ( typeof self.options.clear === 'function' ) {
+					if ( $.isFunction( self.options.clear ) ) {
 						self.options.clear.call( this, event );
 					}
 				}
 			});
 
 			/**
+			 * @summary Enables the user to clear or revert the color in the color picker.
+			 *
 			 * Enables the user to either clear the color in the color picker or revert back to the default color.
 			 *
-			 * @since 3.5.0
+			 * @since WP-3.5.0
 			 *
 			 * @param {Event} event The event that's being called.
 			 *
-			 * @return {void}
+			 * @returns {void}
 			 */
-			self.button.on( 'click', function( event ) {
+			self.button.click( function( event ) {
 				var me = $( this );
 				if ( me.hasClass( 'wp-picker-clear' ) ) {
 					self.element.val( '' );
 					self.toggler.css( 'backgroundColor', '' );
-					if ( typeof self.options.clear === 'function' ) {
+					if ( $.isFunction( self.options.clear ) ) {
 						self.options.clear.call( this, event );
 					}
 				} else if ( me.hasClass( 'wp-picker-default' ) ) {
@@ -286,11 +289,11 @@
 			});
 		},
 		/**
-		 * Opens the color picker dialog.
+		 * @summary Opens the color picker dialog.
 		 *
-		 * @since 3.5.0
+		 * @since WP-3.5.0
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		open: function() {
 			this.element.iris( 'toggle' );
@@ -302,11 +305,11 @@
 			$( 'body' ).trigger( 'click.wpcolorpicker' ).on( 'click.wpcolorpicker', this.close );
 		},
 		/**
-		 * Closes the color picker dialog.
+		 * @summary Closes the color picker dialog.
 		 *
-		 * @since 3.5.0
+		 * @since WP-3.5.0
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		close: function() {
 			this.element.iris( 'toggle' );
@@ -318,13 +321,15 @@
 			$( 'body' ).off( 'click.wpcolorpicker', this.close );
 		},
 		/**
+		 * @summary Returns iris object or sets new color.
+		 *
 		 * Returns the iris object if no new color is provided. If a new color is provided, it sets the new color.
 		 *
 		 * @param newColor {string|*} The new color to use. Can be undefined.
 		 *
-		 * @since 3.5.0
+		 * @since WP-3.5.0
 		 *
-		 * @return {string} The element's color.
+		 * @returns {string} The element's color
 		 */
 		color: function( newColor ) {
 			if ( newColor === undef ) {
@@ -333,14 +338,16 @@
 			this.element.iris( 'option', 'color', newColor );
 		},
 		/**
+		 * @summary Returns iris object or sets new default color.
+		 *
 		 * Returns the iris object if no new default color is provided.
 		 * If a new default color is provided, it sets the new default color.
 		 *
 		 * @param newDefaultColor {string|*} The new default color to use. Can be undefined.
 		 *
-		 * @since 3.5.0
+		 * @since WP-3.5.0
 		 *
-		 * @return {boolean|string} The element's color.
+		 * @returns {boolean|string} The element's color.
 		 */
 		defaultColor: function( newDefaultColor ) {
 			if ( newDefaultColor === undef ) {
