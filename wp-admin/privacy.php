@@ -1,13 +1,13 @@
 <?php
 /**
- * Privacy administration panel.
+ * Privacy Settings Screen.
  *
  * @package ClassicPress
  * @subpackage Administration
  */
 
 /** ClassicPress Administration Bootstrap */
-require_once __DIR__ . '/admin.php';
+require_once dirname( __FILE__ ) . '/admin.php';
 
 if ( ! current_user_can( 'manage_privacy_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage privacy on this site.' ) );
@@ -212,7 +212,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<label for="page_for_privacy_policy">
 							<?php _e( 'Select an existing page:' ); ?>
 						</label>
-						<input type="hidden" name="action" value="set-privacy-page">
+						<input type="hidden" name="action" value="set-privacy-page" />
 						<?php
 						wp_dropdown_pages(
 							array(
@@ -232,7 +232,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<?php endif; ?>
 
 				<form class="wp-create-privacy-page" method="post" action="">
-					<input type="hidden" name="action" value="create-privacy-page">
+					<input type="hidden" name="action" value="create-privacy-page" />
 					<span>
 						<?php
 						if ( $has_pages ) {

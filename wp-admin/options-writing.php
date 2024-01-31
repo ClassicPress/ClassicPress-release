@@ -7,13 +7,12 @@
  */
 
 /** ClassicPress Administration Bootstrap */
-require_once __DIR__ . '/admin.php';
+require_once dirname( __FILE__ ) . '/admin.php';
 
 if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ) );
 }
 
-// Used in the HTML title tag.
 $title       = __( 'Writing Settings' );
 $parent_file = 'options-general.php';
 
@@ -50,11 +49,11 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/settings-writing-screen/">Documentation on Writing Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://codex.wordpress.org/Settings_Writing_Screen">Documentation on Writing Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://forums.classicpress.net/c/support">Support Forums</a>' ) . '</p>'
 );
 
-require_once ABSPATH . 'wp-admin/admin-header.php';
+require ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
 <div class="wrap">
@@ -63,20 +62,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <form method="post" action="options.php">
 <?php settings_fields( 'writing' ); ?>
 
-<table class="form-table" role="presentation">
+<table class="form-table">
 <?php if ( get_site_option( 'initial_db_version' ) < 32453 ) : ?>
 <tr>
 <th scope="row"><?php _e( 'Formatting' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span>
-	<?php
-	/* translators: Hidden accessibility text. */
-	_e( 'Formatting' );
-	?>
-</span></legend>
+<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Formatting' ); ?></span></legend>
 <label for="use_smilies">
-<input name="use_smilies" type="checkbox" id="use_smilies" value="1" <?php checked( '1', get_option( 'use_smilies' ) ); ?>>
-	<?php _e( 'Convert emoticons like <code>:-)</code> and <code>:-P</code> to graphics on display' ); ?></label><br>
-<label for="use_balanceTags"><input name="use_balanceTags" type="checkbox" id="use_balanceTags" value="1" <?php checked( '1', get_option( 'use_balanceTags' ) ); ?>> <?php _e( 'ClassicPress should correct invalidly nested XHTML automatically' ); ?></label>
+<input name="use_smilies" type="checkbox" id="use_smilies" value="1" <?php checked( '1', get_option( 'use_smilies' ) ); ?> />
+	<?php _e( 'Convert emoticons like <code>:-)</code> and <code>:-P</code> to graphics on display' ); ?></label><br />
+<label for="use_balanceTags"><input name="use_balanceTags" type="checkbox" id="use_balanceTags" value="1" <?php checked( '1', get_option( 'use_balanceTags' ) ); ?> /> <?php _e( 'ClassicPress should correct invalidly nested XHTML automatically' ); ?></label>
 </fieldset></td>
 </tr>
 <?php endif; ?>
@@ -147,31 +141,31 @@ if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
 <p>
 	<?php
 	printf(
-		/* translators: 1, 2, 3: Examples of random email addresses. */
-		__( 'To post to ClassicPress by email, you must set up a secret email account with POP3 access. Any mail received at this address will be posted, so it&#8217;s a good idea to keep this address very secret. Here are three random strings you could use: %1$s, %2$s, %3$s.' ),
+	/* translators: 1, 2, 3: examples of random email addresses */
+		__( 'To post to ClassicPress by email you must set up a secret email account with POP3 access. Any mail received at this address will be posted, so it&#8217;s a good idea to keep this address very secret. Here are three random strings you could use: %1$s, %2$s, %3$s.' ),
 		sprintf( '<kbd>%s</kbd>', wp_generate_password( 8, false ) ),
 		sprintf( '<kbd>%s</kbd>', wp_generate_password( 8, false ) ),
 		sprintf( '<kbd>%s</kbd>', wp_generate_password( 8, false ) )
 	);
 	?>
-</p>
+	</p>
 
-<table class="form-table" role="presentation">
+<table class="form-table">
 <tr>
 <th scope="row"><label for="mailserver_url"><?php _e( 'Mail Server' ); ?></label></th>
-<td><input name="mailserver_url" type="text" id="mailserver_url" value="<?php form_option( 'mailserver_url' ); ?>" class="regular-text code">
+<td><input name="mailserver_url" type="text" id="mailserver_url" value="<?php form_option( 'mailserver_url' ); ?>" class="regular-text code" />
 <label for="mailserver_port"><?php _e( 'Port' ); ?></label>
-<input name="mailserver_port" type="text" id="mailserver_port" value="<?php form_option( 'mailserver_port' ); ?>" class="small-text">
+<input name="mailserver_port" type="text" id="mailserver_port" value="<?php form_option( 'mailserver_port' ); ?>" class="small-text" />
 </td>
 </tr>
 <tr>
 <th scope="row"><label for="mailserver_login"><?php _e( 'Login Name' ); ?></label></th>
-<td><input name="mailserver_login" type="text" id="mailserver_login" value="<?php form_option( 'mailserver_login' ); ?>" class="regular-text ltr"></td>
+<td><input name="mailserver_login" type="text" id="mailserver_login" value="<?php form_option( 'mailserver_login' ); ?>" class="regular-text ltr" /></td>
 </tr>
 <tr>
 <th scope="row"><label for="mailserver_pass"><?php _e( 'Password' ); ?></label></th>
 <td>
-<input name="mailserver_pass" type="text" id="mailserver_pass" value="<?php form_option( 'mailserver_pass' ); ?>" class="regular-text ltr">
+<input name="mailserver_pass" type="text" id="mailserver_pass" value="<?php form_option( 'mailserver_pass' ); ?>" class="regular-text ltr" />
 </td>
 </tr>
 <tr>
@@ -198,7 +192,7 @@ if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
 /**
  * Filters whether to enable the Update Services section in the Writing settings screen.
  *
- * @since 3.0.0
+ * @since WP-3.0.0
  *
  * @param bool $enable Whether to enable the Update Services settings area. Default true.
  */
@@ -211,9 +205,9 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 	<p><label for="ping_sites">
 		<?php
 		printf(
-			/* translators: %s: Documentation URL. */
-			__( 'When you publish a new post, ClassicPress automatically notifies the following site update services. For more about this, see the <a href="%s">Update Services</a> documentation article. Separate multiple service URLs with line breaks.' ),
-			__( 'https://wordpress.org/documentation/article/update-services/' )
+			/* translators: %s: Codex URL */
+			__( 'When you publish a new post, ClassicPress automatically notifies the following site update services. For more about this, see <a href="%s">Update Services</a> on the Codex. Separate multiple service URLs with line breaks.' ),
+			__( 'https://codex.wordpress.org/Update_Services' )
 		);
 		?>
 	</label></p>
@@ -225,9 +219,9 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 	<p>
 		<?php
 		printf(
-			/* translators: 1: Documentation URL, 2: URL to Reading Settings screen. */
+			/* translators: 1: Codex URL, 2: Reading Settings URL */
 			__( 'ClassicPress is not notifying any <a href="%1$s">Update Services</a> because of your site&#8217;s <a href="%2$s">visibility settings</a>.' ),
-			__( 'https://wordpress.org/documentation/article/update-services/' ),
+			__( 'https://codex.wordpress.org/Update_Services' ),
 			'options-reading.php'
 		);
 		?>
@@ -242,4 +236,4 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 </form>
 </div>
 
-<?php require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>
+<?php require ABSPATH . 'wp-admin/admin-footer.php'; ?>

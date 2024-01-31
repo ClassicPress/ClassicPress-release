@@ -6,19 +6,17 @@
  * @subpackage Administration
  */
 
-// Don't load directly.
+// don't load directly
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
 if ( ! empty( $link_id ) ) {
-	/* translators: %s: URL to Links screen. */
 	$heading      = sprintf( __( '<a href="%s">Links</a> / Edit Link' ), 'link-manager.php' );
 	$submit_text  = __( 'Update Link' );
 	$form_name    = 'editlink';
 	$nonce_action = 'update-bookmark_' . $link_id;
 } else {
-	/* translators: %s: URL to Links screen. */
 	$heading      = sprintf( __( '<a href="%s">Links</a> / Add New Link' ), 'link-manager.php' );
 	$submit_text  = __( 'Add Link' );
 	$form_name    = 'addlink';
@@ -33,23 +31,23 @@ add_meta_box( 'linktargetdiv', __( 'Target' ), 'link_target_meta_box', null, 'no
 add_meta_box( 'linkxfndiv', __( 'Link Relationship (XFN)' ), 'link_xfn_meta_box', null, 'normal', 'core' );
 add_meta_box( 'linkadvanceddiv', __( 'Advanced' ), 'link_advanced_meta_box', null, 'normal', 'core' );
 
-/** This action is documented in wp-admin/includes/meta-boxes.php */
+/** This action is documented in wp-admin/edit-form-advanced.php */
 do_action( 'add_meta_boxes', 'link', $link );
 
 /**
  * Fires when link-specific meta boxes are added.
  *
- * @since 3.0.0
+ * @since WP-3.0.0
  *
  * @param object $link Link object.
  */
 do_action( 'add_meta_boxes_link', $link );
 
-/** This action is documented in wp-admin/includes/meta-boxes.php */
+/** This action is documented in wp-admin/edit-form-advanced.php */
 do_action( 'do_meta_boxes', 'link', 'normal', $link );
-/** This action is documented in wp-admin/includes/meta-boxes.php */
+/** This action is documented in wp-admin/edit-form-advanced.php */
 do_action( 'do_meta_boxes', 'link', 'advanced', $link );
-/** This action is documented in wp-admin/includes/meta-boxes.php */
+/** This action is documented in wp-admin/edit-form-advanced.php */
 do_action( 'do_meta_boxes', 'link', 'side', $link );
 
 add_screen_option(
@@ -66,15 +64,15 @@ get_current_screen()->add_help_tab(
 		'title'   => __( 'Overview' ),
 		'content' =>
 		'<p>' . __( 'You can add or edit links on this screen by entering information in each of the boxes. Only the link&#8217;s web address and name (the text you want to display on your site as the link) are required fields.' ) . '</p>' .
-		'<p>' . __( 'The boxes for link name, web address, and description have fixed positions, while the others may be repositioned using drag and drop. You can also hide boxes you do not use in the Screen Options tab, or minimize boxes by clicking on the title bar of the box.' ) . '</p>' .
-		'<p>' . __( 'XFN stands for <a href="https://gmpg.org/xfn/">XHTML Friends Network</a>, which is optional. ClassicPress allows the generation of XFN attributes to show how you are related to the authors/owners of the site to which you are linking.' ) . '</p>',
+		'<p>' . __( 'The boxes for link name, web address, and description have fixed positions, while the others may be repositioned using drag and drop. You can also hide boxes you don&#8217;t use in the Screen Options tab, or minimize boxes by clicking on the title bar of the box.' ) . '</p>' .
+		'<p>' . __( 'XFN stands for <a href="http://gmpg.org/xfn/">XHTML Friends Network</a>, which is optional. ClassicPress allows the generation of XFN attributes to show how you are related to the authors/owners of the site to which you are linking.' ) . '</p>',
 	)
 );
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://codex.wordpress.org/Links_Add_New_Screen">Documentation on Creating Links</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://forums.classicpress.net/c/support">Support Forums</a>' ) . '</p>'
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -108,28 +106,28 @@ wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false );
 
 <div id="poststuff">
 
-<div id="post-body" class="metabox-holder columns-<?php echo ( 1 === get_current_screen()->get_columns() ) ? '1' : '2'; ?>">
+<div id="post-body" class="metabox-holder columns-<?php echo 1 == get_current_screen()->get_columns() ? '1' : '2'; ?>">
 <div id="post-body-content">
-<div id="namediv" class="postbox">
-<h2 class="postbox-header"><label for="link_name"><?php _ex( 'Name', 'link name' ); ?></label></h2>
+<div id="namediv" class="stuffbox">
+<h2><label for="link_name"><?php _ex( 'Name', 'link name' ); ?></label></h2>
 <div class="inside">
-	<input type="text" name="link_name" size="30" maxlength="255" value="<?php echo esc_attr( $link->link_name ); ?>" id="link_name">
+	<input type="text" name="link_name" size="30" maxlength="255" value="<?php echo esc_attr( $link->link_name ); ?>" id="link_name" />
 	<p><?php _e( 'Example: Nifty blogging software' ); ?></p>
 </div>
 </div>
 
-<div id="addressdiv" class="postbox">
-<h2 class="postbox-header"><label for="link_url"><?php _e( 'Web Address' ); ?></label></h2>
+<div id="addressdiv" class="stuffbox">
+<h2><label for="link_url"><?php _e( 'Web Address' ); ?></label></h2>
 <div class="inside">
-	<input type="text" name="link_url" size="30" maxlength="255" class="code" value="<?php echo esc_attr( $link->link_url ); ?>" id="link_url">
-	<p><?php _e( 'Example: <code>https://www.classicpress.net</code> &#8212; do not forget the <code>https://</code>' ); ?></p>
+	<input type="text" name="link_url" size="30" maxlength="255" class="code" value="<?php echo esc_attr( $link->link_url ); ?>" id="link_url" />
+	<p><?php _e( 'Example: <code>https://www.classicpress.net</code> &#8212; don&#8217;t forget the <code>https://</code>' ); ?></p>
 </div>
 </div>
 
-<div id="descriptiondiv" class="postbox">
-<h2 class="postbox-header"><label for="link_description"><?php _e( 'Description' ); ?></label></h2>
+<div id="descriptiondiv" class="stuffbox">
+<h2><label for="link_description"><?php _e( 'Description' ); ?></label></h2>
 <div class="inside">
-	<input type="text" name="link_description" size="30" maxlength="255" value="<?php echo isset( $link->link_description ) ? esc_attr( $link->link_description ) : ''; ?>" id="link_description">
+	<input type="text" name="link_description" size="30" maxlength="255" value="<?php echo isset( $link->link_description ) ? esc_attr( $link->link_description ) : ''; ?>" id="link_description" />
 	<p><?php _e( 'This will be shown when someone hovers over the link in the blogroll, or optionally below the link.' ); ?></p>
 </div>
 </div>
@@ -157,11 +155,11 @@ do_meta_boxes( null, 'advanced', $link );
 
 if ( $link_id ) :
 	?>
-<input type="hidden" name="action" value="save">
-<input type="hidden" name="link_id" value="<?php echo (int) $link_id; ?>">
-<input type="hidden" name="cat_id" value="<?php echo (int) $cat_id; ?>">
+<input type="hidden" name="action" value="save" />
+<input type="hidden" name="link_id" value="<?php echo (int) $link_id; ?>" />
+<input type="hidden" name="cat_id" value="<?php echo (int) $cat_id; ?>" />
 <?php else : ?>
-<input type="hidden" name="action" value="add">
+<input type="hidden" name="action" value="add" />
 <?php endif; ?>
 
 </div>

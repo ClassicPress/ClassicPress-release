@@ -1,7 +1,3 @@
-/**
- * @output wp-includes/js/customize-views.js
- */
-
 (function( $, wp, _ ) {
 
 	if ( ! wp || ! wp.customize ) { return; }

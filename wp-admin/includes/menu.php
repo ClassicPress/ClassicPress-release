@@ -14,7 +14,7 @@ if ( is_network_admin() ) {
 	 * The hook fires before menus and sub-menus are removed based on user privileges.
 	 *
 	 * @private
-	 * @since 3.1.0
+	 * @since WP-3.1.0
 	 */
 	do_action( '_network_admin_menu' );
 } elseif ( is_user_admin() ) {
@@ -25,7 +25,7 @@ if ( is_network_admin() ) {
 	 * The hook fires before menus and sub-menus are removed based on user privileges.
 	 *
 	 * @private
-	 * @since 3.1.0
+	 * @since WP-3.1.0
 	 */
 	do_action( '_user_admin_menu' );
 } else {
@@ -36,7 +36,7 @@ if ( is_network_admin() ) {
 	 * The hook fires before menus and sub-menus are removed based on user privileges.
 	 *
 	 * @private
-	 * @since 2.2.0
+	 * @since WP-2.2.0
 	 */
 	do_action( '_admin_menu' );
 }
@@ -128,7 +128,7 @@ if ( is_network_admin() ) {
 	/**
 	 * Fires before the administration menu loads in the Network Admin.
 	 *
-	 * @since 3.1.0
+	 * @since WP-3.1.0
 	 *
 	 * @param string $context Empty context.
 	 */
@@ -138,7 +138,7 @@ if ( is_network_admin() ) {
 	/**
 	 * Fires before the administration menu loads in the User Admin.
 	 *
-	 * @since 3.1.0
+	 * @since WP-3.1.0
 	 *
 	 * @param string $context Empty context.
 	 */
@@ -148,7 +148,7 @@ if ( is_network_admin() ) {
 	/**
 	 * Fires before the administration menu loads in the admin.
 	 *
-	 * @since 1.5.0
+	 * @since WP-1.5.0
 	 *
 	 * @param string $context Empty context.
 	 */
@@ -187,86 +187,74 @@ foreach ( $menu as $id => $data ) {
 unset( $id, $data, $subs, $first_sub );
 
 /**
- * Adds a CSS class to a string.
  *
- * @since 2.7.0
- *
- * @param string $class_to_add The CSS class to add.
- * @param string $classes      The string to add the CSS class to.
- * @return string The string with the CSS class added.
+ * @param string $add
+ * @param string $class
+ * @return string
  */
-function add_cssclass( $class_to_add, $classes ) {
-	if ( empty( $classes ) ) {
-		return $class_to_add;
-	}
-
-	return $classes . ' ' . $class_to_add;
+function add_cssclass( $add, $class ) {
+	$class = empty( $class ) ? $add : $class .= ' ' . $add;
+	return $class;
 }
 
 /**
- * Adds CSS classes for top-level administration menu items.
  *
- * The list of added classes includes `.menu-top-first` and `.menu-top-last`.
- *
- * @since 2.7.0
- *
- * @param array $menu The array of administration menu items.
- * @return array The array of administration menu items with the CSS classes added.
+ * @param array $menu
+ * @return array
  */
 function add_menu_classes( $menu ) {
-	$first_item  = false;
-	$last_order  = false;
-	$items_count = count( $menu );
-	$i           = 0;
-
+	$first     = false;
+	$lastorder = false;
+	$i     = 0;
+	$mc    = count( $menu );
 	foreach ( $menu as $order => $top ) {
 		$i++;
 
-		if ( 0 == $order ) { // Dashboard is always shown/single.
+		if ( 0 == $order ) { // dashboard is always shown/single
 			$menu[0][4] = add_cssclass( 'menu-top-first', $top[4] );
-			$last_order = 0;
+			$lastorder  = 0;
 			continue;
 		}
 
-		if ( 0 === strpos( $top[2], 'separator' ) && false !== $last_order ) { // If separator.
-			$first_item             = true;
-			$classes                = $menu[ $last_order ][4];
-			$menu[ $last_order ][4] = add_cssclass( 'menu-top-last', $classes );
+		if ( 0 === strpos( $top[2], 'separator' ) && false !== $lastorder ) { // if separator
+			$first                 = true;
+			$c                     = $menu[ $lastorder ][4];
+			$menu[ $lastorder ][4] = add_cssclass( 'menu-top-last', $c );
 			continue;
 		}
 
-		if ( $first_item ) {
-			$classes           = $menu[ $order ][4];
-			$menu[ $order ][4] = add_cssclass( 'menu-top-first', $classes );
-			$first_item        = false;
+		if ( $first ) {
+			$c                 = $menu[ $order ][4];
+			$menu[ $order ][4] = add_cssclass( 'menu-top-first', $c );
+			$first             = false;
 		}
 
-		if ( $i == $items_count ) { // Last item.
-			$classes           = $menu[ $order ][4];
-			$menu[ $order ][4] = add_cssclass( 'menu-top-last', $classes );
+		if ( $mc == $i ) { // last item
+			$c                 = $menu[ $order ][4];
+			$menu[ $order ][4] = add_cssclass( 'menu-top-last', $c );
 		}
 
-		$last_order = $order;
+		$lastorder = $order;
 	}
 
 	/**
-	 * Filters administration menu array with classes added for top-level items.
+	 * Filters administration menus array with classes added for top-level items.
 	 *
-	 * @since 2.7.0
+	 * @since WP-2.7.0
 	 *
 	 * @param array $menu Associative array of administration menu items.
 	 */
 	return apply_filters( 'add_menu_classes', $menu );
 }
 
-uksort( $menu, 'strnatcasecmp' ); // Make it all pretty.
+uksort( $menu, 'strnatcasecmp' ); // make it all pretty
 
 /**
  * Filters whether to enable custom ordering of the administration menu.
  *
  * See the {@see 'menu_order'} filter for reordering menu items.
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  *
  * @param bool $custom Whether custom ordering is enabled. Default false.
  */
@@ -286,7 +274,7 @@ if ( apply_filters( 'custom_menu_order', false ) ) {
 	 *
 	 *     add_filter( 'custom_menu_order', '__return_true' );
 	 *
-	 * @since 2.8.0
+	 * @since WP-2.8.0
 	 *
 	 * @param array $menu_order An ordered array of menu items.
 	 */
@@ -295,6 +283,7 @@ if ( apply_filters( 'custom_menu_order', false ) ) {
 	$default_menu_order = array_flip( $default_menu_order );
 
 	/**
+	 *
 	 * @global array $menu_order
 	 * @global array $default_menu_order
 	 *
@@ -324,21 +313,21 @@ if ( apply_filters( 'custom_menu_order', false ) ) {
 	unset( $menu_order, $default_menu_order );
 }
 
-// Prevent adjacent separators.
+// Prevent adjacent separators
 $prev_menu_was_separator = false;
 foreach ( $menu as $id => $data ) {
 	if ( false === stristr( $data[4], 'wp-menu-separator' ) ) {
 
-		// This item is not a separator, so falsey the toggler and do nothing.
+		// This item is not a separator, so falsey the toggler and do nothing
 		$prev_menu_was_separator = false;
 	} else {
 
-		// The previous item was a separator, so unset this one.
+		// The previous item was a separator, so unset this one
 		if ( true === $prev_menu_was_separator ) {
 			unset( $menu[ $id ] );
 		}
 
-		// This item is a separator, so truthy the toggler and move on.
+		// This item is a separator, so truthy the toggler and move on
 		$prev_menu_was_separator = true;
 	}
 }
@@ -357,7 +346,7 @@ if ( ! user_can_access_admin_page() ) {
 	/**
 	 * Fires when access to an admin page is denied.
 	 *
-	 * @since 2.5.0
+	 * @since WP-2.5.0
 	 */
 	do_action( 'admin_page_access_denied' );
 
@@ -365,3 +354,19 @@ if ( ! user_can_access_admin_page() ) {
 }
 
 $menu = add_menu_classes( $menu );
+
+/**
+  * Remove the ClassicPress Security Page Menu when it is not used.
+  *
+  * The page itself is still accessible if calling the direct URL, or,
+  * if a plugin uses add_security_page()
+  *
+  * The way we unhook the menu is by checking if the $submenu global holds the key `security.php`,
+  * which is only the case if a plugin added another submenu with `add_security_page` on the `admin_menu` hook.
+  * Note that plugins COULD also add said menu on `init`, but that is `doing_it_wrong` and will actually produce an erroneus menu sequence, even if it "works"
+  *
+  * @since CP-1.6.0
+  */
+if ( ! isset( $submenu['security.php'] ) ) {
+	unset( $menu[85] );
+}

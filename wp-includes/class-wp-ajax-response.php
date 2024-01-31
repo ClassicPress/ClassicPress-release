@@ -3,14 +3,13 @@
  * Send XML response back to Ajax request.
  *
  * @package ClassicPress
- * @since 2.1.0
+ * @since WP-2.1.0
  */
-#[AllowDynamicProperties]
 class WP_Ajax_Response {
 	/**
 	 * Store XML responses to send.
 	 *
-	 * @since 2.1.0
+	 * @since WP-2.1.0
 	 * @var array
 	 */
 	public $responses = array();
@@ -18,8 +17,7 @@ class WP_Ajax_Response {
 	/**
 	 * Constructor - Passes args to WP_Ajax_Response::add().
 	 *
-	 * @since 2.1.0
-	 *
+	 * @since WP-2.1.0
 	 * @see WP_Ajax_Response::add()
 	 *
 	 * @param string|array $args Optional. Will be passed to add() method.
@@ -41,7 +39,7 @@ class WP_Ajax_Response {
 	 *      </$what>
 	 *     </response>
 	 *
-	 * @since 2.1.0
+	 * @since WP-2.1.0
 	 *
 	 * @param string|array $args {
 	 *     Optional. An array or string of XML response arguments.
@@ -56,7 +54,7 @@ class WP_Ajax_Response {
 	 *     @type int|false       $old_id       The previous response ID. Used as the value for the response type
 	 *                                         `old_id` attribute. False hides the attribute. Default false.
 	 *     @type string          $position     Value of the response type `position` attribute. Accepts 1 (bottom),
-	 *                                         -1 (top), HTML ID (after), or -HTML ID (before). Default 1 (bottom).
+	 *                                         -1 (top), html ID (after), or -html ID (before). Default 1 (bottom).
 	 *     @type string|WP_Error $data         The response content/message. Also accepts a WP_Error object if the
 	 *                                         ID does not exist. Default empty.
 	 *     @type array           $supplemental An array of extra strings that will be output within a `<supplemental>`
@@ -92,7 +90,7 @@ class WP_Ajax_Response {
 		$response = '';
 		if ( is_wp_error( $data ) ) {
 			foreach ( (array) $data->get_error_codes() as $code ) {
-				$response  .= "<wp_error code='$code'><![CDATA[" . $data->get_error_message( $code ) . ']]></wp_error>';
+				$response .= "<wp_error code='$code'><![CDATA[" . $data->get_error_message( $code ) . ']]></wp_error>';
 				$error_data = $data->get_error_data( $code );
 				if ( ! $error_data ) {
 					continue;
@@ -131,7 +129,7 @@ class WP_Ajax_Response {
 			$action = $_POST['action'];
 		}
 		$x  = '';
-		$x .= "<response action='{$action}_$id'>"; // The action attribute in the xml output is formatted like a nonce action.
+		$x .= "<response action='{$action}_$id'>"; // The action attribute in the xml output is formatted like a nonce action
 		$x .= "<$what id='$id' " . ( false === $old_id ? '' : "old_id='$old_id' " ) . "position='$position'>";
 		$x .= $response;
 		$x .= $s;
@@ -147,7 +145,7 @@ class WP_Ajax_Response {
 	 *
 	 * Sets the content type header to text/xml.
 	 *
-	 * @since 2.1.0
+	 * @since WP-2.1.0
 	 */
 	public function send() {
 		header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ) );

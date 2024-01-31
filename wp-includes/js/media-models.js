@@ -22,7 +22,7 @@
 		 * @param {wp.media.model.Attachment} model
 		 * @param {Object} [options={}]
 		 *
-		 * @return {Promise}
+		 * @returns {Promise}
 		 */
 		sync: function( method, model, options ) {
 			// If the attachment does not yet have an `id`, return an instantly
@@ -43,7 +43,7 @@
 
 			// Overload the `update` request so properties can be saved.
 			} else if ( 'update' === method ) {
-				// If we do not have the necessary nonce, fail immediately.
+				// If we do not have the necessary nonce, fail immeditately.
 				if ( ! this.get('nonces') || ! this.get('nonces').update ) {
 					return $.Deferred().rejectWith( this ).promise();
 				}
@@ -104,8 +104,8 @@
 		 * Convert date strings into Date objects.
 		 *
 		 * @param {Object} resp The raw response object, typically returned by fetch()
-		 * @return {Object} The modified response object, which is the attributes hash
-		 *                  to be set on the model.
+		 * @returns {Object} The modified response object, which is the attributes hash
+		 *    to be set on the model.
 		 */
 		parse: function( resp ) {
 			if ( ! resp ) {
@@ -122,12 +122,12 @@
 		 *
 		 * @this Backbone.Model
 		 *
-		 * @return {Promise}
+		 * @returns {Promise}
 		 */
 		saveCompat: function( data, options ) {
 			var model = this;
 
-			// If we do not have the necessary nonce, fail immediately.
+			// If we do not have the necessary nonce, fail immeditately.
 			if ( ! this.get('nonces') || ! this.get('nonces').update ) {
 				return $.Deferred().rejectWith( this ).promise();
 			}
@@ -147,7 +147,7 @@
 		 * @static
 		 *
 		 * @param {Object} attrs
-		 * @return {wp.media.model.Attachment}
+		 * @returns {wp.media.model.Attachment}
 		 */
 		create: function( attrs ) {
 			var Attachments = wp.media.model.Attachments;
@@ -162,7 +162,7 @@
 		 * @static
 		 * @param {string} id A string used to identify a model.
 		 * @param {Backbone.Model|undefined} attachment
-		 * @return {wp.media.model.Attachment}
+		 * @returns {wp.media.model.Attachment}
 		 */
 		get: _.memoize( function( id, attachment ) {
 			var Attachments = wp.media.model.Attachments;
@@ -265,7 +265,7 @@
 		 * @access private
 		 *
 		 * @param {Backbone.Model} model
-		 * @param {boolean} query
+		 * @param {Boolean} query
 		 */
 		_changeQuery: function( model, query ) {
 			if ( query ) {
@@ -311,8 +311,9 @@
 				return;
 			}
 
-			// If no `Attachments` model is provided to source the searches from,
-			// then automatically generate a source from the existing models.
+			// If no `Attachments` model is provided to source the searches
+			// from, then automatically generate a source from the existing
+			// models.
 			if ( ! this._source ) {
 				this._source = new Attachments( this.models );
 			}
@@ -325,9 +326,17 @@
 		 * Checks whether an attachment is valid.
 		 *
 		 * @param {wp.media.model.Attachment} attachment
-		 * @return {boolean}
+		 * @returns {Boolean}
 		 */
 		validator: function( attachment ) {
+
+			// Filter out contextually created attachments (e.g. headers, logos, etc.).
+			if (
+				! _.isUndefined( attachment.attributes.context ) &&
+				'' !== attachment.attributes.context
+			) {
+				return false;
+			}
 
 			if ( ! this.validateDestroyed && attachment.destroyed ) {
 				return false;
@@ -341,7 +350,7 @@
 		 *
 		 * @param {wp.media.model.Attachment} attachment
 		 * @param {Object} options
-		 * @return {wp.media.model.Attachments} Returns itself to allow chaining.
+		 * @returns {wp.media.model.Attachments} Returns itself to allow chaining
 		 */
 		validate: function( attachment, options ) {
 			var valid = this.validator( attachment ),
@@ -360,11 +369,11 @@
 		 * Add or remove all attachments from another collection depending on each one's validity.
 		 *
 		 * @param {wp.media.model.Attachments} attachments
-		 * @param {Object} [options={}]
+		 * @param {object} [options={}]
 		 *
 		 * @fires wp.media.model.Attachments#reset
 		 *
-		 * @return {wp.media.model.Attachments} Returns itself to allow chaining.
+		 * @returns {wp.media.model.Attachments} Returns itself to allow chaining
 		 */
 		validateAll: function( attachments, options ) {
 			options = options || {};
@@ -383,15 +392,13 @@
 		 * and replicate them on this collection.
 		 *
 		 * @param {wp.media.model.Attachments} The attachments collection to observe.
-		 * @return {wp.media.model.Attachments} Returns itself to allow chaining.
+		 * @returns {wp.media.model.Attachments} Returns itself to allow chaining.
 		 */
 		observe: function( attachments ) {
 			this.observers = this.observers || [];
 			this.observers.push( attachments );
 
 			attachments.on( 'add change remove', this._validateHandler, this );
-			attachments.on( 'add', this._addToTotalAttachments, this );
-			attachments.on( 'remove', this._removeFromTotalAttachments, this );
 			attachments.on( 'reset', this._validateAllHandler, this );
 			this.validateAll( attachments );
 			return this;
@@ -400,7 +407,7 @@
 		 * Stop replicating collection change events from another attachments collection.
 		 *
 		 * @param {wp.media.model.Attachments} The attachments collection to stop observing.
-		 * @return {wp.media.model.Attachments} Returns itself to allow chaining.
+		 * @returns {wp.media.model.Attachments} Returns itself to allow chaining
 		 */
 		unobserve: function( attachments ) {
 			if ( attachments ) {
@@ -417,37 +424,13 @@
 			return this;
 		},
 		/**
-		 * Update total attachment count when items are added to a collection.
-		 *
-		 * @access private
-		 *
-		 * @since 5.8.0
-		 */
-		_removeFromTotalAttachments: function() {
-			if ( this.mirroring ) {
-				this.mirroring.totalAttachments = this.mirroring.totalAttachments - 1;
-			}
-		},
-		/**
-		 * Update total attachment count when items are added to a collection.
-		 *
-		 * @access private
-		 *
-		 * @since 5.8.0
-		 */
-		_addToTotalAttachments: function() {
-			if ( this.mirroring ) {
-				this.mirroring.totalAttachments = this.mirroring.totalAttachments + 1;
-			}
-		},
-		/**
 		 * @access private
 		 *
 		 * @param {wp.media.model.Attachments} attachment
 		 * @param {wp.media.model.Attachments} attachments
 		 * @param {Object} options
 		 *
-		 * @return {wp.media.model.Attachments} Returns itself to allow chaining.
+		 * @returns {wp.media.model.Attachments} Returns itself to allow chaining
 		 */
 		_validateHandler: function( attachment, attachments, options ) {
 			// If we're not mirroring this `attachments` collection,
@@ -463,7 +446,7 @@
 		 *
 		 * @param {wp.media.model.Attachments} attachments
 		 * @param {Object} options
-		 * @return {wp.media.model.Attachments} Returns itself to allow chaining.
+		 * @returns {wp.media.model.Attachments} Returns itself to allow chaining
 		 */
 		_validateAllHandler: function( attachments, options ) {
 			return this.validateAll( attachments, options );
@@ -473,7 +456,7 @@
 		 * in the collection.
 		 *
 		 * @param {wp.media.model.Attachments} The attachments collection to mirror.
-		 * @return {wp.media.model.Attachments} Returns itself to allow chaining.
+		 * @returns {wp.media.model.Attachments} Returns itself to allow chaining
 		 */
 		mirror: function( attachments ) {
 			if ( this.mirroring && this.mirroring === attachments ) {
@@ -488,8 +471,6 @@
 			this.reset( [], { silent: true } );
 			this.observe( attachments );
 
-			// Used for the search results.
-			this.trigger( 'attachments:received', this );
 			return this;
 		},
 		/**
@@ -510,8 +491,8 @@
 		 * and forwards to its `more` method. This collection class doesn't have
 		 * server persistence by itself.
 		 *
-		 * @param {Object} options
-		 * @return {Promise}
+		 * @param {object} options
+		 * @returns {Promise}
 		 */
 		more: function( options ) {
 			var deferred = jQuery.Deferred(),
@@ -521,19 +502,14 @@
 			if ( ! mirroring || ! mirroring.more ) {
 				return deferred.resolveWith( this ).promise();
 			}
-			/*
-			 * If we're mirroring another collection, forward `more` to
-			 * the mirrored collection. Account for a race condition by
-			 * checking if we're still mirroring that collection when
-			 * the request resolves.
-			 */
+			// If we're mirroring another collection, forward `more` to
+			// the mirrored collection. Account for a race condition by
+			// checking if we're still mirroring that collection when
+			// the request resolves.
 			mirroring.more( options ).done( function() {
 				if ( this === attachments.mirroring ) {
 					deferred.resolveWith( this );
 				}
-
-				// Used for the search results.
-				attachments.trigger( 'attachments:received', this );
 			});
 
 			return deferred.promise();
@@ -546,48 +522,26 @@
 		 * and forwards to its `hasMore` method. This collection class doesn't have
 		 * server persistence by itself.
 		 *
-		 * @return {boolean}
+		 * @returns {boolean}
 		 */
 		hasMore: function() {
 			return this.mirroring ? this.mirroring.hasMore() : false;
 		},
 		/**
-		 * Holds the total number of attachments.
+		 * A custom AJAX-response parser.
 		 *
-		 * @since 5.8.0
-		 */
-		totalAttachments: 0,
-
-		/**
-		 * Gets the total number of attachments.
+		 * See https://core.trac.wordpress.org/ticket/24753
 		 *
-		 * @since 5.8.0
-		 *
-		 * @return {number} The total number of attachments.
-		 */
-		getTotalAttachments: function() {
-			return this.mirroring ? this.mirroring.totalAttachments : 0;
-		},
-
-		/**
-		 * A custom Ajax-response parser.
-		 *
-		 * See trac ticket #24753.
-		 *
-		 * Called automatically by Backbone whenever a collection's models are returned
-		 * by the server, in fetch. The default implementation is a no-op, simply
-		 * passing through the JSON response. We override this to add attributes to
-		 * the collection items.
-		 *
-		 * @param {Object|Array} response The raw response Object/Array.
+		 * @param {Object|Array} resp The raw response Object/Array.
 		 * @param {Object} xhr
-		 * @return {Array} The array of model attributes to be added to the collection
+		 * @returns {Array} The array of model attributes to be added to the collection
 		 */
-		parse: function( response, xhr ) {
-			if ( ! _.isArray( response ) ) {
-				  response = [response];
+		parse: function( resp, xhr ) {
+			if ( ! _.isArray( resp ) ) {
+				resp = [resp];
 			}
-			return _.map( response, function( attrs ) {
+
+			return _.map( resp, function( attrs ) {
 				var id, attachment, newAttributes;
 
 				if ( attrs instanceof Backbone.Model ) {
@@ -607,17 +561,16 @@
 				return attachment;
 			});
 		},
-
 		/**
 		 * If the collection is a query, create and mirror an Attachments Query collection.
 		 *
 		 * @access private
-		 * @param {Boolean} refresh Deprecated, refresh parameter no longer used.
 		 */
-		_requery: function() {
+		_requery: function( refresh ) {
 			var props;
 			if ( this.props.get('query') ) {
 				props = this.props.toJSON();
+				props.cache = ( true !== refresh );
 				this.mirror( wp.media.model.Query.get( props ) );
 			}
 		},
@@ -625,18 +578,16 @@
 		 * If this collection is sorted by `menuOrder`, recalculates and saves
 		 * the menu order to the database.
 		 *
-		 * @return {undefined|Promise}
+		 * @returns {undefined|Promise}
 		 */
 		saveMenuOrder: function() {
 			if ( 'menuOrder' !== this.props.get('orderby') ) {
 				return;
 			}
 
-			/*
-			 * Removes any uploading attachments, updates each attachment's
-			 * menu order, and returns an object with an { id: menuOrder }
-			 * mapping to pass to the request.
-			 */
+			// Removes any uploading attachments, updates each attachment's
+			// menu order, and returns an object with an { id: menuOrder }
+			// mapping to pass to the request.
 			var attachments = this.chain().filter( function( attachment ) {
 				return ! _.isUndefined( attachment.id );
 			}).map( function( attachment, index ) {
@@ -666,9 +617,9 @@
 		 * @param {Backbone.Model} a
 		 * @param {Backbone.Model} b
 		 * @param {Object} options
-		 * @return {number} -1 if the first model should come before the second,
-		 *                   0 if they are of the same rank and
-		 *                   1 if the first model should come after.
+		 * @returns {Number} -1 if the first model should come before the second,
+		 *    0 if they are of the same rank and
+		 *    1 if the first model should come after.
 		 */
 		comparator: function( a, b, options ) {
 			var key   = this.props.get('orderby'),
@@ -702,7 +653,7 @@
 			 *
 			 * @this wp.media.model.Attachments
 			 *
-			 * @return {Boolean}
+			 * @returns {Boolean}
 			 */
 			search: function( attachment ) {
 				if ( ! this.props.get('search') ) {
@@ -720,7 +671,7 @@
 			 *
 			 * @this wp.media.model.Attachments
 			 *
-			 * @return {boolean}
+			 * @returns {Boolean}
 			 */
 			type: function( attachment ) {
 				var type = this.props.get('type'), atts = attachment.toJSON(), mime, found;
@@ -747,7 +698,7 @@
 			 *
 			 * @this wp.media.model.Attachments
 			 *
-			 * @return {boolean}
+			 * @returns {Boolean}
 			 */
 			uploadedTo: function( attachment ) {
 				var uploadedTo = this.props.get('uploadedTo');
@@ -763,7 +714,7 @@
 			 *
 			 * @this wp.media.model.Attachments
 			 *
-			 * @return {boolean}
+			 * @returns {Boolean}
 			 */
 			status: function( attachment ) {
 				var status = this.props.get('status');
@@ -806,8 +757,8 @@
 	 */
 	Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 		/**
-		 * @param {Array}  [models=[]]  Array of initial models to populate the collection.
-		 * @param {Object} [options={}]
+		 * @param {array}  [models=[]]  Array of initial models to populate the collection.
+		 * @param {object} [options={}]
 		 */
 		initialize: function( models, options ) {
 			var allowed;
@@ -827,19 +778,15 @@
 					return true;
 				}
 
-				/*
-				 * We want any items that can be placed before the last
-				 * item in the set. If we add any items after the last
-				 * item, then we can't guarantee the set is complete.
-				 */
+				// We want any items that can be placed before the last
+				// item in the set. If we add any items after the last
+				// item, then we can't guarantee the set is complete.
 				if ( this.length ) {
 					return 1 !== this.comparator( attachment, this.last(), { ties: true });
 
-				/*
-				 * Handle the case where there are no items yet and
-				 * we're sorting for recent items. In that case, we want
-				 * changes that occurred after we created the query.
-				 */
+				// Handle the case where there are no items yet and
+				// we're sorting for recent items. In that case, we want
+				// changes that occurred after we created the query.
 				} else if ( 'DESC' === order && ( 'date' === orderby || 'modified' === orderby ) ) {
 					return attachment.get( orderby ) >= this.created;
 
@@ -853,14 +800,12 @@
 				return false;
 			};
 
-			/*
-			 * Observe the central `wp.Uploader.queue` collection to watch for
-			 * new matches for the query.
-			 *
-			 * Only observe when a limited number of query args are set. There
-			 * are no filters for other properties, so observing will result in
-			 * false positives in those queries.
-			 */
+			// Observe the central `wp.Uploader.queue` collection to watch for
+			// new matches for the query.
+			//
+			// Only observe when a limited number of query args are set. There
+			// are no filters for other properties, so observing will result in
+			// false positives in those queries.
 			allowed = [ 's', 'order', 'orderby', 'posts_per_page', 'post_mime_type', 'post_parent', 'author' ];
 			if ( wp.Uploader && _( this.args ).chain().keys().difference( allowed ).isEmpty().value() ) {
 				this.observe( wp.Uploader.queue );
@@ -870,7 +815,7 @@
 		 * Whether there are more attachments that haven't been sync'd from the server
 		 * that match the collection's query.
 		 *
-		 * @return {boolean}
+		 * @returns {boolean}
 		 */
 		hasMore: function() {
 			return this._hasMore;
@@ -878,8 +823,8 @@
 		/**
 		 * Fetch more attachments from the server for the collection.
 		 *
-		 * @param {Object} [options={}]
-		 * @return {Promise}
+		 * @param   {object}  [options={}]
+		 * @returns {Promise}
 		 */
 		more: function( options ) {
 			var query = this;
@@ -896,8 +841,8 @@
 			options = options || {};
 			options.remove = false;
 
-			return this._more = this.fetch( options ).done( function( response ) {
-				if ( _.isEmpty( response ) || -1 === query.args.posts_per_page || response.length < query.args.posts_per_page ) {
+			return this._more = this.fetch( options ).done( function( resp ) {
+				if ( _.isEmpty( resp ) || -1 === this.args.posts_per_page || resp.length < this.args.posts_per_page ) {
 					query._hasMore = false;
 				}
 			});
@@ -906,10 +851,10 @@
 		 * Overrides Backbone.Collection.sync
 		 * Overrides wp.media.model.Attachments.sync
 		 *
-		 * @param {string} method
+		 * @param {String} method
 		 * @param {Backbone.Model} model
 		 * @param {Object} [options={}]
-		 * @return {Promise}
+		 * @returns {Promise}
 		 */
 		sync: function( method, model, options ) {
 			var args, fallback;
@@ -934,7 +879,7 @@
 				options.data.query = args;
 				return wp.media.ajax( options );
 
-			// Otherwise, fall back to `Backbone.sync()`.
+			// Otherwise, fall back to Backbone.sync()
 			} else {
 				/**
 				 * Call wp.media.model.Attachments.sync or Backbone.sync
@@ -955,7 +900,7 @@
 		 * @readonly
 		 */
 		defaultArgs: {
-			posts_per_page: 80
+			posts_per_page: 40
 		},
 		/**
 		 * @readonly
@@ -997,6 +942,7 @@
 		 * @method
 		 *
 		 * @param {object} [props]
+		 * @param {Object} [props.cache=true]   Whether to use the query cache or not.
 		 * @param {Object} [props.order]
 		 * @param {Object} [props.orderby]
 		 * @param {Object} [props.include]
@@ -1010,7 +956,7 @@
 		 * @param {Object} [props.author]
 		 * @param {Object} [options]
 		 *
-		 * @return {wp.media.model.Query} A new Attachments Query collection.
+		 * @returns {wp.media.model.Query} A new Attachments Query collection.
 		 */
 		get: (function(){
 			/**
@@ -1020,17 +966,19 @@
 			var queries = [];
 
 			/**
-			 * @return {Query}
+			 * @returns {Query}
 			 */
 			return function( props, options ) {
 				var args     = {},
 					orderby  = Query.orderby,
 					defaults = Query.defaultProps,
-					query;
+					query,
+					cache    = !! props.cache || _.isUndefined( props.cache );
 
 				// Remove the `query` property. This isn't linked to a query,
 				// this *is* the query.
 				delete props.query;
+				delete props.cache;
 
 				// Fill default args.
 				_.defaults( props, defaults );
@@ -1069,7 +1017,14 @@
 				// Substitute exceptions specified in orderby.keymap.
 				args.orderby = orderby.valuemap[ props.orderby ] || props.orderby;
 
-				queries = [];
+				// Search the query cache for a matching query.
+				if ( cache ) {
+					query = _.find( queries, function( query ) {
+						return _.isEqual( query.args, args );
+					});
+				} else {
+					queries = [];
+				}
 
 				// Otherwise, create a new query and add it to the cache.
 				if ( ! query ) {
@@ -1123,7 +1078,7 @@
 				this.bindAttachmentListeners();
 			}
 
-			// Keep URL in sync with changes to the type of link.
+			// keep url in sync with changes to the type of link
 			this.on( 'change:link', this.updateLinkUrl, this );
 			this.on( 'change:size', this.updateSize, this );
 
@@ -1163,7 +1118,7 @@
 				return;
 			}
 
-			// Default to custom if there is a linkUrl.
+			// default to custom if there is a linkUrl
 			type = 'custom';
 
 			if ( this.attachment ) {
@@ -1289,7 +1244,7 @@
 		 *
 		 * @param {Array} models
 		 * @param {Object} options
-		 * @return {wp.media.model.Attachment[]}
+		 * @returns {wp.media.model.Attachment[]}
 		 */
 		add: function( models, options ) {
 			if ( ! this.multiple ) {
@@ -1309,7 +1264,7 @@
 		 * @fires wp.media.model.Selection#selection:single
 		 * @fires wp.media.model.Selection#selection:unsingle
 		 *
-		 * @return {Backbone.Model}
+		 * @returns {Backbone.Model}
 		 */
 		single: function( model ) {
 			var previous = this._single;

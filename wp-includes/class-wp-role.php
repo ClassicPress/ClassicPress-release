@@ -4,20 +4,19 @@
  *
  * @package ClassicPress
  * @subpackage Users
- * @since 4.4.0
+ * @since WP-4.4.0
  */
 
 /**
  * Core class used to extend the user roles API.
  *
- * @since 2.0.0
+ * @since WP-2.0.0
  */
-#[AllowDynamicProperties]
 class WP_Role {
 	/**
 	 * Role name.
 	 *
-	 * @since 2.0.0
+	 * @since WP-2.0.0
 	 * @var string
 	 */
 	public $name;
@@ -25,23 +24,21 @@ class WP_Role {
 	/**
 	 * List of capabilities the role contains.
 	 *
-	 * @since 2.0.0
-	 * @var bool[] Array of key/value pairs where keys represent a capability name and boolean values
-	 *             represent whether the role has that capability.
+	 * @since WP-2.0.0
+	 * @var array
 	 */
 	public $capabilities;
 
 	/**
 	 * Constructor - Set up object properties.
 	 *
-	 * The list of capabilities must have the key as the name of the capability
+	 * The list of capabilities, must have the key as the name of the capability
 	 * and the value a boolean of whether it is granted to the role.
 	 *
-	 * @since 2.0.0
+	 * @since WP-2.0.0
 	 *
-	 * @param string $role         Role name.
-	 * @param bool[] $capabilities Array of key/value pairs where keys represent a capability name and boolean values
-	 *                             represent whether the role has that capability.
+	 * @param string $role Role name.
+	 * @param array $capabilities List of capabilities.
 	 */
 	public function __construct( $role, $capabilities ) {
 		$this->name         = $role;
@@ -51,10 +48,10 @@ class WP_Role {
 	/**
 	 * Assign role a capability.
 	 *
-	 * @since 2.0.0
+	 * @since WP-2.0.0
 	 *
-	 * @param string $cap   Capability name.
-	 * @param bool   $grant Whether role has capability privilege.
+	 * @param string $cap Capability name.
+	 * @param bool $grant Whether role has capability privilege.
 	 */
 	public function add_cap( $cap, $grant = true ) {
 		$this->capabilities[ $cap ] = $grant;
@@ -64,7 +61,12 @@ class WP_Role {
 	/**
 	 * Removes a capability from a role.
 	 *
-	 * @since 2.0.0
+	 * This is a container for WP_Roles::remove_cap() to remove the
+	 * capability from the role. That is to say, that WP_Roles::remove_cap()
+	 * implements the functionality, but it also makes sense to use this class,
+	 * because you don't need to enter the role name.
+	 *
+	 * @since WP-2.0.0
 	 *
 	 * @param string $cap Capability name.
 	 */
@@ -76,19 +78,23 @@ class WP_Role {
 	/**
 	 * Determines whether the role has the given capability.
 	 *
-	 * @since 2.0.0
+	 * The capabilities is passed through the {@see 'role_has_cap'} filter.
+	 * The first parameter for the hook is the list of capabilities the class
+	 * has assigned. The second parameter is the capability name to look for.
+	 * The third and final parameter for the hook is the role name.
+	 *
+	 * @since WP-2.0.0
 	 *
 	 * @param string $cap Capability name.
-	 * @return bool Whether the role has the given capability.
+	 * @return bool True if the role has the given capability. False otherwise.
 	 */
 	public function has_cap( $cap ) {
 		/**
 		 * Filters which capabilities a role has.
 		 *
-		 * @since 2.0.0
+		 * @since WP-2.0.0
 		 *
-		 * @param bool[] $capabilities Array of key/value pairs where keys represent a capability name and boolean values
-		 *                             represent whether the role has that capability.
+		 * @param array  $capabilities Array of role capabilities.
 		 * @param string $cap          Capability name.
 		 * @param string $name         Role name.
 		 */
@@ -100,4 +106,5 @@ class WP_Role {
 			return false;
 		}
 	}
+
 }

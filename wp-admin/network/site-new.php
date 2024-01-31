@@ -4,13 +4,13 @@
  *
  * @package ClassicPress
  * @subpackage Multisite
- * @since 3.1.0
+ * @since WP-3.1.0
  */
 
 /** Load ClassicPress Administration Bootstrap */
-require_once __DIR__ . '/admin.php';
+require_once dirname( __FILE__ ) . '/admin.php';
 
-/** WordPress Translation Installation API */
+/** ClassicPress Translation Installation API */
 require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 
 if ( ! current_user_can( 'create_sites' ) ) {
@@ -29,34 +29,32 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/network-admin-sites-screen/">Documentation on Site Management</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://codex.wordpress.org/Network_Admin_Sites_Screen">Documentation on Site Management</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://docs.classicpress.net/faq-support/">Support</a>' ) . '</p>'
 );
 
 if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 	check_admin_referer( 'add-blog', '_wpnonce_add-blog' );
 
 	if ( ! is_array( $_POST['blog'] ) ) {
-		wp_die( __( 'Cannot create an empty site.' ) );
+		wp_die( __( 'Can&#8217;t create an empty site.' ) );
 	}
 
 	$blog   = $_POST['blog'];
 	$domain = '';
-
-	$blog['domain'] = trim( $blog['domain'] );
 	if ( preg_match( '|^([a-zA-Z0-9-])+$|', $blog['domain'] ) ) {
 		$domain = strtolower( $blog['domain'] );
 	}
 
-	// If not a subdomain installation, make sure the domain isn't a reserved word.
+	// If not a subdomain installation, make sure the domain isn't a reserved word
 	if ( ! is_subdomain_install() ) {
 		$subdirectory_reserved_names = get_subdirectory_reserved_names();
 
 		if ( in_array( $domain, $subdirectory_reserved_names, true ) ) {
 			wp_die(
+				/* translators: %s: reserved names list */
 				sprintf(
-					/* translators: %s: Reserved names list. */
-					__( 'The following words are reserved for use by ClassicPress functions and cannot be used as site names: %s' ),
+					__( 'The following words are reserved for use by ClassicPress functions and cannot be used as blog names: %s' ),
 					'<code>' . implode( '</code>, <code>', $subdirectory_reserved_names ) . '</code>'
 				)
 			);
@@ -106,11 +104,11 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 
 	$password = 'N/A';
 	$user_id  = email_exists( $email );
-	if ( ! $user_id ) { // Create a new user with a random password.
+	if ( ! $user_id ) { // Create a new user with a random password
 		/**
 		 * Fires immediately before a new user is created via the network site-new.php page.
 		 *
-		 * @since 4.5.0
+		 * @since WP-4.5.0
 		 *
 		 * @param string $email Email of the non-existent user.
 		 */
@@ -127,12 +125,12 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 		}
 
 		/**
-		 * Fires after a new user has been created via the network site-new.php page.
-		 *
-		 * @since 4.4.0
-		 *
-		 * @param int $user_id ID of the newly created user.
-		 */
+		  * Fires after a new user has been created via the network site-new.php page.
+		  *
+		  * @since WP-4.4.0
+		  *
+		  * @param int $user_id ID of the newly created user.
+		  */
 		do_action( 'network_site_new_created_user', $user_id );
 	}
 
@@ -145,7 +143,31 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 			update_user_option( $user_id, 'primary_blog', $id, true );
 		}
 
-		wpmu_new_site_admin_notification( $id, $user_id );
+		wp_mail(
+			get_site_option( 'admin_email' ),
+			sprintf(
+				/* translators: %s: network name */
+				__( '[%s] New Site Created' ),
+				get_network()->site_name
+			),
+			sprintf(
+				/* translators: 1: user login, 2: site url, 3: site name/title */
+				__(
+					'New site created by %1$s
+
+Address: %2$s
+Name: %3$s'
+				),
+				$current_user->user_login,
+				get_site_url( $id ),
+				wp_unslash( $title )
+			),
+			sprintf(
+				'From: "%1$s" <%2$s>',
+				_x( 'Site Admin', 'email "From" field' ),
+				get_site_option( 'admin_email' )
+			)
+		);
 		wpmu_welcome_notification( $id, $user_id, $password, $title, array( 'public' => 1 ) );
 		wp_redirect(
 			add_query_arg(
@@ -166,7 +188,7 @@ if ( isset( $_GET['update'] ) ) {
 	$messages = array();
 	if ( 'added' === $_GET['update'] ) {
 		$messages[] = sprintf(
-			/* translators: 1: Dashboard URL, 2: Network admin edit URL. */
+			/* translators: 1: dashboard url, 2: network admin edit url */
 			__( 'Site added. <a href="%1$s">Visit Dashboard</a> or <a href="%2$s">Edit Site</a>' ),
 			esc_url( get_admin_url( absint( $_GET['id'] ) ) ),
 			network_admin_url( 'site-info.php?id=' . absint( $_GET['id'] ) )
@@ -174,13 +196,12 @@ if ( isset( $_GET['update'] ) ) {
 	}
 }
 
-// Used in the HTML title tag.
 $title       = __( 'Add New Site' );
 $parent_file = 'sites.php';
 
 wp_enqueue_script( 'user-suggest' );
 
-require_once ABSPATH . 'wp-admin/admin-header.php';
+require ABSPATH . 'wp-admin/admin-header.php';
 
 ?>
 
@@ -189,31 +210,32 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php
 if ( ! empty( $messages ) ) {
 	foreach ( $messages as $msg ) {
-		echo '<div id="message" class="notice notice-success is-dismissible"><p>' . $msg . '</p></div>';
+		echo '<div id="message" class="updated notice is-dismissible"><p>' . $msg . '</p></div>';
 	}
 }
 ?>
-<p><?php echo wp_required_field_message(); ?></p>
-<form method="post" action="<?php echo esc_url( network_admin_url( 'site-new.php?action=add-site' ) ); ?>">
+<p>
+<?php
+printf(
+	/* translators: %s: asterisk to mark required form fields. */
+	__( 'Required fields are marked %s' ),
+	'<span class="required">*</span>'
+);
+?>
+</p>
+<form method="post" action="<?php echo network_admin_url( 'site-new.php?action=add-site' ); ?>" novalidate="novalidate">
 <?php wp_nonce_field( 'add-blog', '_wpnonce_add-blog' ); ?>
-	<table class="form-table" role="presentation">
+	<table class="form-table">
 		<tr class="form-field form-required">
-			<th scope="row">
-				<label for="site-address">
-					<?php
-					_e( 'Site Address (URL)' );
-					echo ' ' . wp_required_field_indicator();
-					?>
-				</label>
-			</th>
+			<th scope="row"><label for="site-address"><?php _e( 'Site Address (URL)' ); ?> <span class="required">*</span></label></th>
 			<td>
 			<?php if ( is_subdomain_install() ) { ?>
-				<input name="blog[domain]" type="text" class="regular-text ltr" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required><span class="no-break">.<?php echo preg_replace( '|^www\.|', '', get_network()->domain ); ?></span>
+				<input name="blog[domain]" type="text" class="regular-text" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required /><span class="no-break">.<?php echo preg_replace( '|^www\.|', '', get_network()->domain ); ?></span>
 				<?php
 			} else {
 				echo get_network()->domain . get_network()->path
 				?>
-				<input name="blog[domain]" type="text" class="regular-text ltr" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required>
+				<input name="blog[domain]" type="text" class="regular-text" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required />
 				<?php
 			}
 			echo '<p class="description" id="site-address-desc">' . __( 'Only lowercase letters (a-z), numbers, and hyphens are allowed.' ) . '</p>';
@@ -221,15 +243,8 @@ if ( ! empty( $messages ) ) {
 			</td>
 		</tr>
 		<tr class="form-field form-required">
-			<th scope="row">
-				<label for="site-title">
-					<?php
-					_e( 'Site Title' );
-					echo ' ' . wp_required_field_indicator();
-					?>
-				</label>
-			</th>
-			<td><input name="blog[title]" type="text" class="regular-text" id="site-title" required></td>
+			<th scope="row"><label for="site-title"><?php _e( 'Site Title' ); ?> <span class="required">*</span></label></th>
+			<td><input name="blog[title]" type="text" class="regular-text" id="site-title" required /></td>
 		</tr>
 		<?php
 		$languages    = get_available_languages();
@@ -263,18 +278,11 @@ if ( ! empty( $messages ) ) {
 			</tr>
 		<?php endif; // Languages. ?>
 		<tr class="form-field form-required">
-			<th scope="row">
-				<label for="admin-email">
-					<?php
-					_e( 'Admin Email' );
-					echo ' ' . wp_required_field_indicator();
-					?>
-				</label>
-			</th>
-			<td><input name="blog[email]" type="email" class="regular-text wp-suggest-user" id="admin-email" data-autocomplete-type="search" data-autocomplete-field="user_email" aria-describedby="site-admin-email" required></td>
+			<th scope="row"><label for="admin-email"><?php _e( 'Admin Email' ); ?> <span class="required">*</span></label></th>
+			<td><input name="blog[email]" type="email" class="regular-text wp-suggest-user" id="admin-email" data-autocomplete-type="search" data-autocomplete-field="user_email" aria-describedby="site-admin-email" required /></td>
 		</tr>
 		<tr class="form-field">
-			<td colspan="2" class="td-full"><p id="site-admin-email"><?php _e( 'A new user will be created if the above email address is not in the database.' ); ?><br><?php _e( 'The username and a link to set the password will be mailed to this email address.' ); ?></p></td>
+			<td colspan="2"><p id="site-admin-email"><?php _e( 'A new user will be created if the above email address is not in the database.' ); ?><br /><?php _e( 'The username and a link to set the password will be mailed to this email address.' ); ?></p></td>
 		</tr>
 	</table>
 
@@ -282,7 +290,7 @@ if ( ! empty( $messages ) ) {
 	/**
 	 * Fires at the end of the new site form in network admin.
 	 *
-	 * @since 4.5.0
+	 * @since WP-4.5.0
 	 */
 	do_action( 'network_site_new_form' );
 
@@ -291,4 +299,4 @@ if ( ! empty( $messages ) ) {
 	</form>
 </div>
 <?php
-require_once ABSPATH . 'wp-admin/admin-footer.php';
+require ABSPATH . 'wp-admin/admin-footer.php';
