@@ -9,19 +9,22 @@
 /**
  * Get the column headers for a screen
  *
- * @since 2.7.0
+ * @since WP-2.7.0
+ *
+ * @staticvar array $column_headers
  *
  * @param string|WP_Screen $screen The screen you want the headers for
- * @return string[] The column header labels keyed by column ID.
+ * @return array Containing the headers in the format id => UI String
  */
 function get_column_headers( $screen ) {
-	static $column_headers = array();
-
 	if ( is_string( $screen ) ) {
 		$screen = convert_to_screen( $screen );
 	}
 
+	static $column_headers = array();
+
 	if ( ! isset( $column_headers[ $screen->id ] ) ) {
+
 		/**
 		 * Filters the column headers for a list table on a specific screen.
 		 *
@@ -30,9 +33,9 @@ function get_column_headers( $screen ) {
 		 * list table is edit-post, so the filter for that screen would be
 		 * manage_edit-post_columns.
 		 *
-		 * @since 3.0.0
+		 * @since WP-3.0.0
 		 *
-		 * @param string[] $columns The column header labels keyed by column ID.
+		 * @param array $columns An array of column headers. Default empty.
 		 */
 		$column_headers[ $screen->id ] = apply_filters( "manage_{$screen->id}_columns", array() );
 	}
@@ -43,10 +46,10 @@ function get_column_headers( $screen ) {
 /**
  * Get a list of hidden columns.
  *
- * @since 2.7.0
+ * @since WP-2.7.0
  *
  * @param string|WP_Screen $screen The screen you want the hidden columns for
- * @return string[] Array of IDs of hidden columns.
+ * @return array
  */
 function get_hidden_columns( $screen ) {
 	if ( is_string( $screen ) ) {
@@ -58,14 +61,14 @@ function get_hidden_columns( $screen ) {
 	$use_defaults = ! is_array( $hidden );
 
 	if ( $use_defaults ) {
-		$hidden = array();
+		$hidden = array( 'ID' );
 
 		/**
 		 * Filters the default list of hidden columns.
 		 *
-		 * @since 4.4.0
+		 * @since WP-4.4.0
 		 *
-		 * @param string[]  $hidden Array of IDs of columns hidden by default.
+		 * @param array     $hidden An array of columns hidden by default.
 		 * @param WP_Screen $screen WP_Screen object of the current screen.
 		 */
 		$hidden = apply_filters( 'default_hidden_columns', $hidden, $screen );
@@ -74,11 +77,11 @@ function get_hidden_columns( $screen ) {
 	/**
 	 * Filters the list of hidden columns.
 	 *
-	 * @since 4.4.0
-	 * @since 4.4.1 Added the `use_defaults` parameter.
+	 * @since WP-4.4.0
+	 * @since WP-4.4.1 Added the `use_defaults` parameter.
 	 *
-	 * @param string[]  $hidden       Array of IDs of hidden columns.
-	 * @param WP_Screen $screen       WP_Screen object of the current screen.
+	 * @param array     $hidden An array of hidden columns.
+	 * @param WP_Screen $screen WP_Screen object of the current screen.
 	 * @param bool      $use_defaults Whether to show the default columns.
 	 */
 	return apply_filters( 'hidden_columns', $hidden, $screen, $use_defaults );
@@ -87,7 +90,7 @@ function get_hidden_columns( $screen ) {
 /**
  * Prints the meta box preferences for screen meta.
  *
- * @since 2.7.0
+ * @since WP-2.7.0
  *
  * @global array $wp_meta_boxes
  *
@@ -111,12 +114,10 @@ function meta_box_prefs( $screen ) {
 			if ( ! isset( $wp_meta_boxes[ $screen->id ][ $context ][ $priority ] ) ) {
 				continue;
 			}
-
 			foreach ( $wp_meta_boxes[ $screen->id ][ $context ][ $priority ] as $box ) {
-				if ( false === $box || ! $box['title'] ) {
+				if ( false == $box || ! $box['title'] ) {
 					continue;
 				}
-
 				// Submit box cannot be hidden.
 				if ( 'submitdiv' === $box['id'] || 'linksubmitdiv' === $box['id'] ) {
 					continue;
@@ -131,7 +132,7 @@ function meta_box_prefs( $screen ) {
 				$is_hidden = in_array( $box['id'], $hidden, true );
 
 				printf(
-					'<label for="%1$s-hide"><input class="hide-postbox-tog" name="%1$s-hide" type="checkbox" id="%1$s-hide" value="%1$s" %2$s>%3$s</label>',
+					'<label for="%1$s-hide"><input class="hide-postbox-tog" name="%1$s-hide" type="checkbox" id="%1$s-hide" value="%1$s" %2$s />%3$s</label>',
 					esc_attr( $box['id'] ),
 					checked( $is_hidden, false, false ),
 					$widget_title
@@ -142,12 +143,12 @@ function meta_box_prefs( $screen ) {
 }
 
 /**
- * Gets an array of IDs of hidden meta boxes.
+ * Get Hidden Meta Boxes
  *
- * @since 2.7.0
+ * @since WP-2.7.0
  *
  * @param string|WP_Screen $screen Screen identifier
- * @return string[] IDs of hidden meta boxes.
+ * @return array Hidden Meta Boxes
  */
 function get_hidden_meta_boxes( $screen ) {
 	if ( is_string( $screen ) ) {
@@ -158,10 +159,9 @@ function get_hidden_meta_boxes( $screen ) {
 
 	$use_defaults = ! is_array( $hidden );
 
-	// Hide slug boxes by default.
+	// Hide slug boxes by default
 	if ( $use_defaults ) {
 		$hidden = array();
-
 		if ( 'post' === $screen->base ) {
 			if ( in_array( $screen->post_type, array( 'post', 'page', 'attachment' ), true ) ) {
 				$hidden = array( 'slugdiv', 'trackbacksdiv', 'postcustom', 'postexcerpt', 'commentstatusdiv', 'commentsdiv', 'authordiv', 'revisionsdiv' );
@@ -173,9 +173,9 @@ function get_hidden_meta_boxes( $screen ) {
 		/**
 		 * Filters the default list of hidden meta boxes.
 		 *
-		 * @since 3.1.0
+		 * @since WP-3.1.0
 		 *
-		 * @param string[]  $hidden An array of IDs of meta boxes hidden by default.
+		 * @param array     $hidden An array of meta boxes hidden by default.
 		 * @param WP_Screen $screen WP_Screen object of the current screen.
 		 */
 		$hidden = apply_filters( 'default_hidden_meta_boxes', $hidden, $screen );
@@ -184,9 +184,9 @@ function get_hidden_meta_boxes( $screen ) {
 	/**
 	 * Filters the list of hidden meta boxes.
 	 *
-	 * @since 3.3.0
+	 * @since WP-3.3.0
 	 *
-	 * @param string[]  $hidden       An array of IDs of hidden meta boxes.
+	 * @param array     $hidden       An array of hidden meta boxes.
 	 * @param WP_Screen $screen       WP_Screen object of the current screen.
 	 * @param bool      $use_defaults Whether to show the default meta boxes.
 	 *                                Default true.
@@ -197,10 +197,10 @@ function get_hidden_meta_boxes( $screen ) {
 /**
  * Register and configure an admin screen option
  *
- * @since 3.1.0
+ * @since WP-3.1.0
  *
  * @param string $option An option name.
- * @param mixed  $args   Option-dependent arguments.
+ * @param mixed $args Option-dependent arguments.
  */
 function add_screen_option( $option, $args = array() ) {
 	$current_screen = get_current_screen();
@@ -215,9 +215,9 @@ function add_screen_option( $option, $args = array() ) {
 /**
  * Get the current screen object
  *
- * @since 3.1.0
+ * @since WP-3.1.0
  *
- * @global WP_Screen $current_screen WordPress current screen object.
+ * @global WP_Screen $current_screen
  *
  * @return WP_Screen|null Current screen object or null when screen not defined.
  */
@@ -234,10 +234,10 @@ function get_current_screen() {
 /**
  * Set the current screen object
  *
- * @since 3.0.0
+ * @since WP-3.0.0
  *
- * @param string|WP_Screen $hook_name Optional. The hook name (also known as the hook suffix) used to determine the screen,
- *                                    or an existing screen object.
+ * @param mixed $hook_name Optional. The hook name (also known as the hook suffix) used to determine the screen,
+ *                         or an existing screen object.
  */
 function set_current_screen( $hook_name = '' ) {
 	WP_Screen::get( $hook_name )->set_current_screen();

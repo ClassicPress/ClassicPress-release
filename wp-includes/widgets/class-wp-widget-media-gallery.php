@@ -4,15 +4,14 @@
  *
  * @package ClassicPress
  * @subpackage Widgets
- * @since 4.9.0
+ * @since WP-4.9.0
  */
 
 /**
  * Core class that implements a gallery widget.
  *
- * @since 4.9.0
+ * @since WP-4.9.0
  *
- * @see WP_Widget_Media
  * @see WP_Widget
  */
 class WP_Widget_Media_Gallery extends WP_Widget_Media {
@@ -20,7 +19,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	/**
 	 * Constructor.
 	 *
-	 * @since 4.9.0
+	 * @since WP-4.9.0
 	 */
 	public function __construct() {
 		parent::__construct(
@@ -46,12 +45,11 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	/**
 	 * Get schema for properties of a widget instance (item).
 	 *
-	 * @since 4.9.0
+	 * @since WP-4.9.0
 	 *
 	 * @see WP_REST_Controller::get_item_schema()
 	 * @see WP_REST_Controller::get_additional_fields()
 	 * @link https://core.trac.wordpress.org/ticket/35574
-	 *
 	 * @return array Schema for properties.
 	 */
 	public function get_instance_schema() {
@@ -106,9 +104,10 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	/**
 	 * Render the media on the frontend.
 	 *
-	 * @since 4.9.0
+	 * @since WP-4.9.0
 	 *
 	 * @param array $instance Widget instance props.
+	 * @return void
 	 */
 	public function render_media( $instance ) {
 		$instance = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
@@ -132,7 +131,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	/**
 	 * Loads the required media files for the media manager and scripts for media widgets.
 	 *
-	 * @since 4.9.0
+	 * @since WP-4.9.0
 	 */
 	public function enqueue_admin_scripts() {
 		parent::enqueue_admin_scripts();
@@ -170,66 +169,43 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	/**
 	 * Render form template scripts.
 	 *
-	 * @since 4.9.0
+	 * @since WP-4.9.0
 	 */
 	public function render_control_template_scripts() {
 		parent::render_control_template_scripts();
 		?>
 		<script type="text/html" id="tmpl-wp-media-widget-gallery-preview">
-			<#
-			var ids = _.filter( data.ids, function( id ) {
-				return ( id in data.attachments );
-			} );
-			#>
-			<# if ( ids.length ) { #>
-				<ul class="gallery media-widget-gallery-preview" role="list">
-					<# _.each( ids, function( id, index ) { #>
-						<# var attachment = data.attachments[ id ]; #>
+			<# var describedById = 'describedBy-' + String( Math.random() ); #>
+			<# if ( data.ids.length ) { #>
+				<div class="gallery media-widget-gallery-preview">
+					<# _.each( data.ids, function( id, index ) { #>
+						<#
+						var attachment = data.attachments[ id ];
+						if ( ! attachment ) {
+							return;
+						}
+						#>
 						<# if ( index < 6 ) { #>
-							<li class="gallery-item">
-								<div class="gallery-icon">
-									<img alt="{{ attachment.alt }}"
-										<# if ( index === 5 && data.ids.length > 6 ) { #> aria-hidden="true" <# } #>
-										<# if ( attachment.sizes.thumbnail ) { #>
-											src="{{ attachment.sizes.thumbnail.url }}" width="{{ attachment.sizes.thumbnail.width }}" height="{{ attachment.sizes.thumbnail.height }}"
-										<# } else { #>
-											src="{{ attachment.url }}"
-										<# } #>
-										<# if ( ! attachment.alt && attachment.filename ) { #>
-											aria-label="
-											<?php
-											echo esc_attr(
-												sprintf(
-													/* translators: %s: The image file name. */
-													__( 'The current image has no alternative text. The file name is: %s' ),
-													'{{ attachment.filename }}'
-												)
-											);
-											?>
-											"
-										<# } #>
-									>
-									<# if ( index === 5 && data.ids.length > 6 ) { #>
+							<dl class="gallery-item">
+								<dt class="gallery-icon">
+								<# if ( attachment.sizes.thumbnail ) { #>
+									<img src="{{ attachment.sizes.thumbnail.url }}" width="{{ attachment.sizes.thumbnail.width }}" height="{{ attachment.sizes.thumbnail.height }}" alt="" />
+								<# } else { #>
+									<img src="{{ attachment.url }}" alt="" />
+								<# } #>
+								<# if ( index === 5 && data.ids.length > 6 ) { #>
 									<div class="gallery-icon-placeholder">
-										<p class="gallery-icon-placeholder-text" aria-label="
-										<?php
-											printf(
-												/* translators: %s: The amount of additional, not visible images in the gallery widget preview. */
-												__( 'Additional images added to this gallery: %s' ),
-												'{{ data.ids.length - 5 }}'
-											);
-										?>
-										">+{{ data.ids.length - 5 }}</p>
+										<p class="gallery-icon-placeholder-text">+{{ data.ids.length - 5 }}</p>
 									</div>
-									<# } #>
-								</div>
-							</li>
+								<# } #>
+								</dt>
+							</dl>
 						<# } #>
 					<# } ); #>
-				</ul>
+				</div>
 			<# } else { #>
 				<div class="attachment-media-view">
-					<button type="button" class="placeholder button-add-media"><?php echo esc_html( $this->l10n['add_media'] ); ?></button>
+					<p class="placeholder"><?php echo esc_html( $this->l10n['no_media_selected'] ); ?></p>
 				</div>
 			<# } #>
 		</script>
@@ -239,7 +215,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	/**
 	 * Whether the widget has content to show.
 	 *
-	 * @since 4.9.0
+	 * @since WP-4.9.0
 	 * @access protected
 	 *
 	 * @param array $instance Widget instance props.

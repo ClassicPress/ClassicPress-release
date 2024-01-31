@@ -4,11 +4,10 @@
  *
  * @package ClassicPress
  * @subpackage Upgrader
- * @since 2.8.0
- * @deprecated 4.7.0
+ * @since WP-2.8.0
  */
 
-_deprecated_file( basename( __FILE__ ), '4.7.0', 'class-wp-upgrader.php' );
+_deprecated_file( basename( __FILE__ ), 'WP-4.7.0', 'class-wp-upgrader.php' );
 
 /** WP_Upgrader_Skin class */
 require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader-skin.php';

@@ -1,10 +1,7 @@
+/* global inlineEditL10n, ajaxurl */
 /**
  * This file is used on the term overview page to power quick-editing terms.
- *
- * @output wp-admin/js/inline-edit-tax.js
  */
-
-/* global ajaxurl, inlineEditTax */
 
 window.wp = window.wp || {};
 
@@ -17,19 +14,22 @@ window.wp = window.wp || {};
  * @property {string} what The type property with a hash prefixed and a dash
  *                         suffixed.
  */
+var inlineEditTax;
+
 ( function( $, wp ) {
 
-window.inlineEditTax = {
+inlineEditTax = {
 
 	/**
-	 * Initializes the inline taxonomy editor by adding event handlers to be able to
-	 * quick edit.
+	 * @summary Initializes the inline taxonomy editor.
 	 *
-	 * @since 2.7.0
+	 * Adds event handlers to be able to quick edit.
+	 *
+	 * @since WP-2.7.0
 	 *
 	 * @this inlineEditTax
 	 * @memberof inlineEditTax
-	 * @return {void}
+	 * @returns {void}
 	 */
 	init : function() {
 		var t = this, row = $('#inline-edit');
@@ -42,46 +42,46 @@ window.inlineEditTax = {
 			inlineEditTax.edit( this );
 		});
 
-		/**
-		 * Cancels inline editing when pressing Escape inside the inline editor.
+		/*
+		 * @summary Cancels inline editing when pressing escape inside the inline editor.
 		 *
 		 * @param {Object} e The keyup event that has been triggered.
 		 */
-		row.on( 'keyup', function( e ) {
-			// 27 = [Escape].
+		row.keyup( function( e ) {
+			// 27 = [escape]
 			if ( e.which === 27 ) {
 				return inlineEditTax.revert();
 			}
 		});
 
 		/**
-		 * Cancels inline editing when clicking the cancel button.
+		 * @summary Cancels inline editing when clicking the cancel button.
 		 */
-		$( '.cancel', row ).on( 'click', function() {
+		$( '.cancel', row ).click( function() {
 			return inlineEditTax.revert();
 		});
 
 		/**
-		 * Saves the inline edits when clicking the save button.
+		 * @summary Saves the inline edits when clicking the save button.
 		 */
-		$( '.save', row ).on( 'click', function() {
+		$( '.save', row ).click( function() {
 			return inlineEditTax.save(this);
 		});
 
 		/**
-		 * Saves the inline edits when pressing Enter inside the inline editor.
+		 * @summary Saves the inline edits when pressing enter inside the inline editor.
 		 */
-		$( 'input, select', row ).on( 'keydown', function( e ) {
-			// 13 = [Enter].
+		$( 'input, select', row ).keydown( function( e ) {
+			// 13 = [enter]
 			if ( e.which === 13 ) {
 				return inlineEditTax.save( this );
 			}
 		});
 
 		/**
-		 * Saves the inline edits on submitting the inline edit form.
+		 * @summary Saves the inline edits on submitting the inline edit form.
 		 */
-		$( '#posts-filter input[type="submit"]' ).on( 'mousedown', function() {
+		$( '#posts-filter input[type="submit"]' ).mousedown( function() {
 			t.revert();
 		});
 	},
@@ -89,14 +89,14 @@ window.inlineEditTax = {
 	/**
 	 * Toggles the quick edit based on if it is currently shown or hidden.
 	 *
-	 * @since 2.7.0
+	 * @since WP-2.7.0
 	 *
 	 * @this inlineEditTax
 	 * @memberof inlineEditTax
 	 *
 	 * @param {HTMLElement} el An element within the table row or the table row
 	 *                         itself that we want to quick edit.
-	 * @return {void}
+	 * @returns {void}
 	 */
 	toggle : function(el) {
 		var t = this;
@@ -107,7 +107,7 @@ window.inlineEditTax = {
 	/**
 	 * Shows the quick editor
 	 *
-	 * @since 2.7.0
+	 * @since WP-2.7.0
 	 *
 	 * @this inlineEditTax
 	 * @memberof inlineEditTax
@@ -115,7 +115,7 @@ window.inlineEditTax = {
 	 * @param {string|HTMLElement} id The ID of the term we want to quick edit or an
 	 *                                element within the table row or the
 	 * table row itself.
-	 * @return {boolean} Always returns false.
+	 * @returns {boolean} Always returns false.
 	 */
 	edit : function(id) {
 		var editRow, rowData, val,
@@ -143,18 +143,18 @@ window.inlineEditTax = {
 		$(':input[name="slug"]', editRow).val( val );
 
 		$(editRow).attr('id', 'edit-'+id).addClass('inline-editor').show();
-		$('.ptitle', editRow).eq(0).trigger( 'focus' );
+		$('.ptitle', editRow).eq(0).focus();
 
 		return false;
 	},
 
 	/**
-	 * Saves the quick edit data.
+	 * @summary Saves the quick edit data.
 	 *
 	 * Saves the quick edit data to the server and replaces the table row with the
 	 * HTML retrieved from the server.
 	 *
-	 * @since 2.7.0
+	 * @since WP-2.7.0
 	 *
 	 * @this inlineEditTax
 	 * @memberof inlineEditTax
@@ -162,7 +162,7 @@ window.inlineEditTax = {
 	 * @param {string|HTMLElement} id The ID of the term we want to quick edit or an
 	 *                                element within the table row or the
 	 * table row itself.
-	 * @return {boolean} Always returns false.
+	 * @returns {boolean} Always returns false.
 	 */
 	save : function(id) {
 		var params, fields, tax = $('input[name="taxonomy"]').val() || '';
@@ -184,10 +184,10 @@ window.inlineEditTax = {
 		fields = $('#edit-'+id).find(':input').serialize();
 		params = fields + '&' + $.param(params);
 
-		// Do the Ajax request to save the data to the server.
+		// Do the ajax request to save the data to the server.
 		$.post( ajaxurl, params,
 			/**
-			 * Handles the response from the server
+			 * @summary Handles the response from the server.
 			 *
 			 * Handles the response from the server, replaces the table row with the response
 			 * from the server.
@@ -223,8 +223,8 @@ window.inlineEditTax = {
 							// Move focus back to the Quick Edit button.
 							row.find( '.editinline' )
 								.attr( 'aria-expanded', 'false' )
-								.trigger( 'focus' );
-							wp.a11y.speak( wp.i18n.__( 'Changes saved.' ) );
+								.focus();
+							wp.a11y.speak( inlineEditL10n.saved );
 						});
 
 					} else {
@@ -238,8 +238,8 @@ window.inlineEditTax = {
 					}
 				} else {
 					$errorNotice.removeClass( 'hidden' );
-					$error.text( wp.i18n.__( 'Error while saving the changes.' ) );
-					wp.a11y.speak( wp.i18n.__( 'Error while saving the changes.' ) );
+					$error.html( inlineEditL10n.error );
+					wp.a11y.speak( inlineEditL10n.error );
 				}
 			}
 		);
@@ -251,11 +251,11 @@ window.inlineEditTax = {
 	/**
 	 * Closes the quick edit form.
 	 *
-	 * @since 2.7.0
+	 * @since WP-2.7.0
 	 *
 	 * @this inlineEditTax
 	 * @memberof inlineEditTax
-	 * @return {void}
+	 * @returns {void}
 	 */
 	revert : function() {
 		var id = $('table.widefat tr.inline-editor').attr('id');
@@ -268,19 +268,19 @@ window.inlineEditTax = {
 			// Show the taxonomy row and move focus back to the Quick Edit button.
 			$( this.what + id ).show().find( '.editinline' )
 				.attr( 'aria-expanded', 'false' )
-				.trigger( 'focus' );
+				.focus();
 		}
 	},
 
 	/**
 	 * Retrieves the ID of the term of the element inside the table row.
 	 *
-	 * @since 2.7.0
+	 * @since WP-2.7.0
 	 *
 	 * @memberof inlineEditTax
 	 *
 	 * @param {HTMLElement} o An element within the table row or the table row itself.
-	 * @return {string} The ID of the term based on the element.
+	 * @returns {string} The ID of the term based on the element.
 	 */
 	getId : function(o) {
 		var id = o.tagName === 'TR' ? o.id : $(o).parents('tr').attr('id'), parts = id.split('-');
@@ -289,6 +289,6 @@ window.inlineEditTax = {
 	}
 };
 
-$( function() { inlineEditTax.init(); } );
+$(document).ready(function(){inlineEditTax.init();});
 
 })( jQuery, window.wp );

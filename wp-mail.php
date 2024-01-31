@@ -8,7 +8,7 @@
  */
 
 /** Make sure that the ClassicPress bootstrap has run before continuing. */
-require __DIR__ . '/wp-load.php';
+require dirname( __FILE__ ) . '/wp-load.php';
 
 /** This filter is documented in wp-admin/options.php */
 if ( ! apply_filters( 'enable_post_by_email_configuration', true ) ) {
@@ -24,7 +24,7 @@ if ( 'mail.example.com' === $mailserver_url || empty( $mailserver_url ) ) {
 /**
  * Fires to allow a plugin to do a complete takeover of Post by Email.
  *
- * @since 2.9.0
+ * @since WP-2.9.0
  */
 do_action( 'wp-mail.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
@@ -33,7 +33,7 @@ require_once ABSPATH . WPINC . '/class-pop3.php';
 
 /** Only check at this interval for new messages. */
 if ( ! defined( 'WP_MAIL_INTERVAL' ) ) {
-	define( 'WP_MAIL_INTERVAL', 5 * MINUTE_IN_SECONDS );
+	define( 'WP_MAIL_INTERVAL', 300 ); // 5 minutes
 }
 
 $last_checked = get_transient( 'mailserver_last_checked' );
@@ -62,7 +62,7 @@ if ( false === $count ) {
 
 if ( 0 === $count ) {
 	$pop3->quit();
-	wp_die( __( 'There does not seem to be any new mail.' ) );
+	wp_die( __( 'There doesn&#8217;t seem to be any new mail.' ) );
 }
 
 // Always run as an unauthenticated user.
@@ -80,9 +80,6 @@ for ( $i = 1; $i <= $count; $i++ ) {
 	$content_transfer_encoding = '';
 	$post_author               = 1;
 	$author_found              = false;
-	$post_date                 = null;
-	$post_date_gmt             = null;
-
 	foreach ( $message as $line ) {
 		// Body signal.
 		if ( strlen( $line ) < 3 ) {
@@ -107,7 +104,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				$content_transfer_encoding = explode( ';', $content_transfer_encoding );
 				$content_transfer_encoding = $content_transfer_encoding[0];
 			}
-			if ( ( 'multipart/alternative' === $content_type ) && ( false !== strpos( $line, 'boundary="' ) ) && ( '' === $boundary ) ) {
+			if ( ( $content_type == 'multipart/alternative' ) && ( false !== strpos( $line, 'boundary="' ) ) && ( '' == $boundary ) ) {
 				$boundary = trim( $line );
 				$boundary = explode( '"', $boundary );
 				$boundary = $boundary[1];
@@ -115,7 +112,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 			if ( preg_match( '/Subject: /i', $line ) ) {
 				$subject = trim( $line );
 				$subject = substr( $subject, 9, strlen( $subject ) - 9 );
-				// Captures any text in the subject before $phone_delim as the subject.
+				// Captures any text in the subject before $phone_delim as the subject
 				if ( function_exists( 'iconv_mime_decode' ) ) {
 					$subject = iconv_mime_decode( $subject, 2, get_option( 'blog_charset' ) );
 				} else {
@@ -145,18 +142,17 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				}
 			}
 
-			if ( preg_match( '/Date: /i', $line ) ) { // Of the form '20 Mar 2002 20:32:37 +0100'.
-				$ddate = str_replace( 'Date: ', '', trim( $line ) );
-				// Remove parenthesized timezone string if it exists, as this confuses strtotime().
-				$ddate           = preg_replace( '!\s*\(.+\)\s*$!', '', $ddate );
-				$ddate_timestamp = strtotime( $ddate );
-				$post_date       = gmdate( 'Y-m-d H:i:s', $ddate_timestamp + $time_difference );
-				$post_date_gmt   = gmdate( 'Y-m-d H:i:s', $ddate_timestamp );
+			if ( preg_match( '/Date: /i', $line ) ) { // of the form '20 Mar 2002 20:32:37 +0100'
+				$ddate         = str_replace( 'Date: ', '', trim( $line ) );
+				$ddate         = preg_replace( '!\s*\(.+\)\s*$!', '', $ddate ); // remove parenthesised timezone string if it exists, as this confuses strtotime
+				$ddate_U       = strtotime( $ddate );
+				$post_date     = gmdate( 'Y-m-d H:i:s', $ddate_U + $time_difference );
+				$post_date_gmt = gmdate( 'Y-m-d H:i:s', $ddate_U );
 			}
 		}
 	}
 
-	// Set $post_status based on $author_found and on author's publish_posts capability.
+	// Set $post_status based on $author_found and on author's publish_posts capability
 	if ( $author_found ) {
 		$user        = new WP_User( $post_author );
 		$post_status = ( $user->has_cap( 'publish_posts' ) ) ? 'publish' : 'pending';
@@ -167,11 +163,11 @@ for ( $i = 1; $i <= $count; $i++ ) {
 
 	$subject = trim( $subject );
 
-	if ( 'multipart/alternative' === $content_type ) {
+	if ( $content_type == 'multipart/alternative' ) {
 		$content = explode( '--' . $boundary, $content );
 		$content = $content[2];
 
-		// Match case-insensitive Content-Transfer-Encoding.
+		// Match case-insensitive content-transfer-encoding.
 		if ( preg_match( '/Content-Transfer-Encoding: quoted-printable/i', $content, $delim ) ) {
 			$content = explode( $delim[0], $content );
 			$content = $content[1];
@@ -186,7 +182,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 	 * Give Post-By-Email extending plugins full access to the content, either
 	 * the raw content, or the content of the last quoted-printable section.
 	 *
-	 * @since 2.8.0
+	 * @since WP-2.8.0
 	 *
 	 * @param string $content The original email content.
 	 */
@@ -200,7 +196,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 		$content = iconv( $charset, get_option( 'blog_charset' ), $content );
 	}
 
-	// Captures any text in the body after $phone_delim as the body.
+	// Captures any text in the body after $phone_delim as the body
 	$content = explode( $phone_delim, $content );
 	$content = empty( $content[1] ) ? $content[0] : $content[1];
 
@@ -209,7 +205,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 	/**
 	 * Filters the content of the post submitted by email before saving.
 	 *
-	 * @since 1.2.0
+	 * @since WP-1.2.0
 	 *
 	 * @param string $content The email content.
 	 */
@@ -217,7 +213,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 
 	$post_title = xmlrpc_getposttitle( $content );
 
-	if ( '' === trim( $post_title ) ) {
+	if ( $post_title == '' ) {
 		$post_title = $subject;
 	}
 
@@ -231,7 +227,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 		echo "\n" . $post_ID->get_error_message();
 	}
 
-	// The post wasn't inserted or updated, for whatever reason. Better move forward to the next email.
+	// We couldn't post, for whatever reason. Better move forward to the next email.
 	if ( empty( $post_ID ) ) {
 		continue;
 	}
@@ -239,7 +235,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 	/**
 	 * Fires after a post submitted by email is published.
 	 *
-	 * @since 1.2.0
+	 * @since WP-1.2.0
 	 *
 	 * @param int $post_ID The post ID.
 	 */
@@ -250,7 +246,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 
 	if ( ! $pop3->delete( $i ) ) {
 		echo '<p>' . sprintf(
-			/* translators: %s: POP3 error. */
+			/* translators: %s: POP3 error */
 			__( 'Oops: %s' ),
 			esc_html( $pop3->ERROR )
 		) . '</p>';
@@ -258,7 +254,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 		exit;
 	} else {
 		echo '<p>' . sprintf(
-			/* translators: %s: The message ID. */
+			/* translators: %s: the message ID */
 			__( 'Mission complete. Message %s deleted.' ),
 			'<strong>' . $i . '</strong>'
 		) . '</p>';

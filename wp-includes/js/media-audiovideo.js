@@ -449,6 +449,7 @@
 
 				wp.ajax.send( 'set-attachment-thumbnail', {
 					data : {
+						_ajax_nonce: wp.media.view.settings.nonce.setAttachmentThumbnail,
 						urls: urls,
 						thumbnail_id: attachment.get( 'id' )
 					}
@@ -502,7 +503,7 @@
 		initialize: function() {
 			_.bindAll(this, 'success');
 			this.players = [];
-			this.listenTo( this.controller.states, 'close', wp.media.mixin.unsetPlayers );
+			this.listenTo( this.controller, 'close', wp.media.mixin.unsetPlayers );
 			this.on( 'ready', this.setPlayer );
 			this.on( 'media:setting:remove', wp.media.mixin.unsetPlayers, this );
 			this.on( 'media:setting:remove', this.render );
@@ -606,13 +607,13 @@
 		},
 
 		/**
-		 * @return {media.view.MediaDetails} Returns itself to allow chaining.
+		 * @returns {media.view.MediaDetails} Returns itself to allow chaining
 		 */
 		render: function() {
 			AttachmentDisplay.prototype.render.apply( this, arguments );
 
 			setTimeout( _.bind( function() {
-				this.scrollToTop();
+				this.resetFocus();
 			}, this ), 10 );
 
 			this.settings = _.defaults( {
@@ -622,7 +623,7 @@
 			return this.setMedia();
 		},
 
-		scrollToTop: function() {
+		resetFocus: function() {
 			this.$( '.embed-media-settings' ).scrollTop( 0 );
 		}
 	},/** @lends wp.media.view.MediaDetails */{
@@ -631,7 +632,7 @@
 		 * When multiple players in the DOM contain the same src, things get weird.
 		 *
 		 * @param {HTMLElement} elem
-		 * @return {HTMLElement}
+		 * @returns {HTMLElement}
 		 */
 		prepareSrc : function( elem ) {
 			var i = MediaDetails.instances++;

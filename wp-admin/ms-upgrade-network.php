@@ -4,10 +4,10 @@
  *
  * @package ClassicPress
  * @subpackage Multisite
- * @since 3.0.0
+ * @since WP-3.0.0
  */
 
-require_once __DIR__ . '/admin.php';
+require_once dirname( __FILE__ ) . '/admin.php';
 
 wp_redirect( network_admin_url( 'upgrade.php' ) );
 exit;

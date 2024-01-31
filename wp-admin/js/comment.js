@@ -1,17 +1,13 @@
-/**
- * @output wp-admin/js/comment.js
- */
-
-/* global postboxes */
+/* global postboxes, commentL10n */
 
 /**
- * Binds to the document ready event.
+ * @summary Binds to the document ready event.
  *
- * @since 2.5.0
+ * @since WP-2.5.0
  *
  * @param {jQuery} $ The jQuery object.
  */
-jQuery( function($) {
+jQuery(document).ready( function($) {
 
 	postboxes.add_postbox_toggles('comment');
 
@@ -22,18 +18,18 @@ jQuery( function($) {
 		$edittimestamp = $timestampdiv.siblings( 'a.edit-timestamp' );
 
 	/**
-	 * Adds event that opens the time stamp form if the form is hidden.
+	 * @summary Adds event that opens the time stamp form if the form is hidden.
 	 *
 	 * @listens $edittimestamp:click
 	 *
 	 * @param {Event} event The event object.
-	 * @return {void}
+	 * @returns {void}
 	 */
-	$edittimestamp.on( 'click', function( event ) {
+	$edittimestamp.click( function( event ) {
 		if ( $timestampdiv.is( ':hidden' ) ) {
 			// Slide down the form and set focus on the first field.
 			$timestampdiv.slideDown( 'fast', function() {
-				$( 'input, select', $timestampwrap ).first().trigger( 'focus' );
+				$( 'input, select', $timestampwrap ).first().focus();
 			} );
 			$(this).hide();
 		}
@@ -41,17 +37,17 @@ jQuery( function($) {
 	});
 
 	/**
-	 * Resets the time stamp values when the cancel button is clicked.
+	 * @summary Resets the time stamp values when the cancel button is clicked.
 	 *
 	 * @listens .cancel-timestamp:click
 	 *
 	 * @param {Event} event The event object.
-	 * @return {void}
+	 * @returns {void}
 	 */
 
-	$timestampdiv.find('.cancel-timestamp').on( 'click', function( event ) {
+	$timestampdiv.find('.cancel-timestamp').click( function( event ) {
 		// Move focus back to the Edit link.
-		$edittimestamp.show().trigger( 'focus' );
+		$edittimestamp.show().focus();
 		$timestampdiv.slideUp( 'fast' );
 		$('#mm').val($('#hidden_mm').val());
 		$('#jj').val($('#hidden_jj').val());
@@ -63,14 +59,14 @@ jQuery( function($) {
 	});
 
 	/**
-	 * Sets the time stamp values when the ok button is clicked.
+	 * @summary Sets the time stamp values when the ok button is clicked.
 	 *
 	 * @listens .save-timestamp:click
 	 *
 	 * @param {Event} event The event object.
-	 * @return {void}
+	 * @returns {void}
 	 */
-	$timestampdiv.find('.save-timestamp').on( 'click', function( event ) { // Crazyhorse - multiple OK cancels.
+	$timestampdiv.find('.save-timestamp').click( function( event ) { // crazyhorse - multiple ok cancels
 		var aa = $('#aa').val(), mm = $('#mm').val(), jj = $('#jj').val(), hh = $('#hh').val(), mn = $('#mn').val(),
 			newD = new Date( aa, mm - 1, jj, hh, mn );
 
@@ -84,9 +80,8 @@ jQuery( function($) {
 		}
 
 		$timestamp.html(
-			wp.i18n.__( 'Submitted on:' ) + ' <b>' +
-			/* translators: 1: Month, 2: Day, 3: Year, 4: Hour, 5: Minute. */
-			wp.i18n.__( '%1$s %2$s, %3$s at %4$s:%5$s' )
+			commentL10n.submittedOn + ' <b>' +
+			commentL10n.dateFormat
 				.replace( '%1$s', $( 'option[value="' + mm + '"]', '#mm' ).attr( 'data-text' ) )
 				.replace( '%2$s', parseInt( jj, 10 ) )
 				.replace( '%3$s', aa )
@@ -96,7 +91,7 @@ jQuery( function($) {
 		);
 
 		// Move focus back to the Edit link.
-		$edittimestamp.show().trigger( 'focus' );
+		$edittimestamp.show().focus();
 		$timestampdiv.slideUp( 'fast' );
 	});
 });

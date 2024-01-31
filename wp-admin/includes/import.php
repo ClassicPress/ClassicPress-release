@@ -7,9 +7,9 @@
  */
 
 /**
- * Retrieves the list of importers.
+ * Retrieve list of importers.
  *
- * @since 2.0.0
+ * @since WP-2.0.0
  *
  * @global array $wp_importers
  * @return array
@@ -23,11 +23,11 @@ function get_importers() {
 }
 
 /**
- * Sorts a multidimensional array by first member of each top level member.
+ * Sorts a multidimensional array by first member of each top level member
  *
  * Used by uasort() as a callback, should not be used directly.
  *
- * @since 2.9.0
+ * @since WP-2.9.0
  * @access private
  *
  * @param array $a
@@ -39,9 +39,9 @@ function _usort_by_first_member( $a, $b ) {
 }
 
 /**
- * Registers importer for ClassicPress.
+ * Register importer for ClassicPress.
  *
- * @since 2.0.0
+ * @since WP-2.0.0
  *
  * @global array $wp_importers
  *
@@ -49,7 +49,7 @@ function _usort_by_first_member( $a, $b ) {
  * @param string   $name        Importer name and title.
  * @param string   $description Importer description.
  * @param callable $callback    Callback to run.
- * @return void|WP_Error Void on success. WP_Error when $callback is WP_Error.
+ * @return WP_Error Returns WP_Error when $callback is WP_Error.
  */
 function register_importer( $id, $name, $description, $callback ) {
 	global $wp_importers;
@@ -64,7 +64,7 @@ function register_importer( $id, $name, $description, $callback ) {
  *
  * Removes attachment based on ID.
  *
- * @since 2.0.0
+ * @since WP-2.0.0
  *
  * @param string $id Importer ID.
  */
@@ -73,22 +73,16 @@ function wp_import_cleanup( $id ) {
 }
 
 /**
- * Handles importer uploading and adds attachment.
+ * Handle importer uploading and add attachment.
  *
- * @since 2.0.0
+ * @since WP-2.0.0
  *
- * @return array Uploaded file's details on success, error message on failure.
+ * @return array Uploaded file's details on success, error message on failure
  */
 function wp_import_handle_upload() {
 	if ( ! isset( $_FILES['import'] ) ) {
 		return array(
-			'error' => sprintf(
-				/* translators: 1: php.ini, 2: post_max_size, 3: upload_max_filesize */
-				__( 'File is empty. Please upload something more substantial. This error could also be caused by uploads being disabled in your %1$s file or by %2$s being defined as smaller than %3$s in %1$s.' ),
-				'php.ini',
-				'post_max_size',
-				'upload_max_filesize'
-			),
+			'error' => __( 'File is empty. Please upload something more substantial. This error could also be caused by uploads being disabled in your php.ini or by post_max_size being defined as smaller than upload_max_filesize in php.ini.' ),
 		);
 	}
 
@@ -103,8 +97,8 @@ function wp_import_handle_upload() {
 		return $upload;
 	}
 
-	// Construct the attachment array.
-	$attachment = array(
+	// Construct the object array
+	$object = array(
 		'post_title'     => wp_basename( $upload['file'] ),
 		'post_content'   => $upload['url'],
 		'post_mime_type' => $upload['type'],
@@ -113,8 +107,8 @@ function wp_import_handle_upload() {
 		'post_status'    => 'private',
 	);
 
-	// Save the data.
-	$id = wp_insert_attachment( $attachment, $upload['file'] );
+	// Save the data
+	$id = wp_insert_attachment( $object, $upload['file'] );
 
 	/*
 	 * Schedule a cleanup for one day from now in case of failed
@@ -131,13 +125,12 @@ function wp_import_handle_upload() {
 /**
  * Returns a list from ClassicPress.net of popular importer plugins.
  *
- * @since 3.5.0
+ * @since WP-3.5.0
  *
  * @return array Importers with metadata for each.
  */
 function wp_get_popular_importers() {
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
+	include ABSPATH . WPINC . '/version.php'; // include an unmodified $wp_version
 
 	$locale            = get_user_locale();
 	$cache_key         = 'popular_importers_' . md5( $locale . $wp_version );
@@ -181,7 +174,7 @@ function wp_get_popular_importers() {
 	}
 
 	return array(
-		// slug => name, description, plugin slug, and register_importer() slug.
+		// slug => name, description, plugin slug, and register_importer() slug
 		'blogger'     => array(
 			'name'        => __( 'Blogger' ),
 			'description' => __( 'Import posts, comments, and users from a Blogger blog.' ),
