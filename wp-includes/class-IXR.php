@@ -30,7 +30,7 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @package IXR
- * @since WP-1.5.0
+ * @since 1.5.0
  *
  * @copyright  Incutio Ltd 2010 (http://www.incutio.com)
  * @version    1.7.4 7th September 2010
@@ -39,22 +39,22 @@
  * @license    http://www.opensource.org/licenses/bsd-license.php BSD
  */
 
-require_once( ABSPATH . WPINC . '/IXR/class-IXR-server.php' );
+require_once ABSPATH . WPINC . '/IXR/class-IXR-server.php';
 
-require_once( ABSPATH . WPINC . '/IXR/class-IXR-base64.php' );
+require_once ABSPATH . WPINC . '/IXR/class-IXR-base64.php';
 
-require_once( ABSPATH . WPINC . '/IXR/class-IXR-client.php' );
+require_once ABSPATH . WPINC . '/IXR/class-IXR-client.php';
 
-require_once( ABSPATH . WPINC . '/IXR/class-IXR-clientmulticall.php' );
+require_once ABSPATH . WPINC . '/IXR/class-IXR-clientmulticall.php';
 
-require_once( ABSPATH . WPINC . '/IXR/class-IXR-date.php' );
+require_once ABSPATH . WPINC . '/IXR/class-IXR-date.php';
 
-require_once( ABSPATH . WPINC . '/IXR/class-IXR-error.php' );
+require_once ABSPATH . WPINC . '/IXR/class-IXR-error.php';
 
-require_once( ABSPATH . WPINC . '/IXR/class-IXR-introspectionserver.php' );
+require_once ABSPATH . WPINC . '/IXR/class-IXR-introspectionserver.php';
 
-require_once( ABSPATH . WPINC . '/IXR/class-IXR-message.php' );
+require_once ABSPATH . WPINC . '/IXR/class-IXR-message.php';
 
-require_once( ABSPATH . WPINC . '/IXR/class-IXR-request.php' );
+require_once ABSPATH . WPINC . '/IXR/class-IXR-request.php';
 
-require_once( ABSPATH . WPINC . '/IXR/class-IXR-value.php' );
+require_once ABSPATH . WPINC . '/IXR/class-IXR-value.php';

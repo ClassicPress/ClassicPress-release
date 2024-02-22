@@ -1,5 +1,5 @@
 <?php
-_deprecated_file( basename( __FILE__ ), 'WP-5.3.0', null, 'The PHP native JSON extension is now a requirement.' );
+_deprecated_file( basename( __FILE__ ), '5.3.0', '', 'The PHP native JSON extension is now a requirement.' );
 
 if ( ! class_exists( 'Services_JSON' ) ) :
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
@@ -17,11 +17,11 @@ if ( ! class_exists( 'Services_JSON' ) ) :
  * ideal data-interchange language.
  *
  * This package provides a simple encoder and decoder for JSON notation. It
- * is intended for use with client-side Javascript applications that make
+ * is intended for use with client-side JavaScript applications that make
  * use of HTTPRequest to perform server communication functions - data can
- * be encoded into JSON notation for use in a client-side javascript, or
- * decoded from incoming Javascript requests. JSON format is native to
- * Javascript, and can be directly eval()'ed with no further parsing
+ * be encoded into JSON notation for use in a client-side javaScript, or
+ * decoded from incoming JavaScript requests. JSON format is native to
+ * JavaScript, and can be directly eval()'ed with no further parsing
  * overhead
  *
  * All strings should be in ASCII or UTF-8 format!
@@ -54,8 +54,8 @@ if ( ! class_exists( 'Services_JSON' ) ) :
  * @author      Brett Stimmerman <brettstimmerman[at]gmail[dot]com>
  * @copyright   2005 Michal Migurski
  * @version     CVS: $Id: JSON.php 305040 2010-11-02 23:19:03Z alan_k $
- * @license     http://www.opensource.org/licenses/bsd-license.php
- * @link        http://pear.php.net/pepr/pepr-proposal-show.php?id=198
+ * @license     https://www.opensource.org/licenses/bsd-license.php
+ * @link        https://pear.php.net/pepr/pepr-proposal-show.php?id=198
  */
 
 /**
@@ -107,7 +107,7 @@ define('SERVICES_JSON_USE_TO_JSON', 64);
  * // create a new instance of Services_JSON
  * $json = new Services_JSON();
  *
- * // convert a complexe value to JSON notation, and send it to the browser
+ * // convert a complex value to JSON notation, and send it to the browser
  * $value = array('foo', 'bar', array(1, 2, 'baz'), array(3, array(4)));
  * $output = $json->encode($value);
  *
@@ -122,9 +122,21 @@ define('SERVICES_JSON_USE_TO_JSON', 64);
 class Services_JSON
 {
    /**
+    * Object behavior flags.
+    *
+    * @var int
+    */
+    public $use;
+
+    // private - cache the mbstring lookup results..
+    var $_mb_strlen = false;
+    var $_mb_substr = false;
+    var $_mb_convert_encoding = false;
+
+   /**
     * constructs a new JSON instance
     *
-    * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+    * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
     * @param    int     $use    object behavior flags; combine with boolean-OR
     *
@@ -146,7 +158,7 @@ class Services_JSON
     */
     function __construct( $use = 0 )
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         $this->use = $use;
         $this->_mb_strlen            = function_exists('mb_strlen');
@@ -154,21 +166,17 @@ class Services_JSON
         $this->_mb_substr            = function_exists('mb_substr');
     }
 
-	/**
-	 * PHP4 constructor.
+    /**
+     * PHP4 constructor.
      *
-     * @deprecated WP-5.3.0 Use __construct() instead.
+     * @deprecated 5.3.0 Use __construct() instead.
      *
-     * @see __construct()
-	 */
-	public function Services_JSON( $use = 0 ) {
-		_deprecated_constructor( 'Services_JSON', 'WP-5.3.0', get_class( $this ) );
-		self::__construct( $use );
-	}
-    // private - cache the mbstring lookup results..
-    var $_mb_strlen = false;
-    var $_mb_substr = false;
-    var $_mb_convert_encoding = false;
+     * @see Services_JSON::__construct()
+     */
+    public function Services_JSON( $use = 0 ) {
+        _deprecated_constructor( 'Services_JSON', '5.3.0', get_class( $this ) );
+        self::__construct( $use );
+    }
 
    /**
     * convert a string from one UTF-16 char to one UTF-8 char
@@ -177,7 +185,7 @@ class Services_JSON
     * provides a slower PHP-only method for installations
     * that lack the multibye string extension.
     *
-    * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+    * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
     * @param    string  $utf16  UTF-16 character
     * @return   string  UTF-8 character
@@ -185,7 +193,7 @@ class Services_JSON
     */
     function utf162utf8($utf16)
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         // oh please oh please oh please oh please oh please
         if($this->_mb_convert_encoding) {
@@ -223,9 +231,9 @@ class Services_JSON
     *
     * Normally should be handled by mb_convert_encoding, but
     * provides a slower PHP-only method for installations
-    * that lack the multibye string extension.
+    * that lack the multibyte string extension.
     *
-    * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+    * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
     * @param    string  $utf8   UTF-8 character
     * @return   string  UTF-16 character
@@ -233,7 +241,7 @@ class Services_JSON
     */
     function utf82utf16($utf8)
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         // oh please oh please oh please oh please oh please
         if($this->_mb_convert_encoding) {
@@ -269,11 +277,11 @@ class Services_JSON
    /**
     * encodes an arbitrary variable into JSON format (and sends JSON Header)
     *
-    * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+    * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
     * @param    mixed   $var    any number, boolean, string, array, or object to be encoded.
     *                           see argument 1 to Services_JSON() above for array-parsing behavior.
-    *                           if var is a strng, note that encode() always expects it
+    *                           if var is a string, note that encode() always expects it
     *                           to be in ASCII or UTF-8 format!
     *
     * @return   mixed   JSON string representation of input var or an error if a problem occurs
@@ -281,19 +289,19 @@ class Services_JSON
     */
     function encode($var)
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
-        header('Content-type: application/json');
+        header('Content-Type: application/json');
         return $this->encodeUnsafe($var);
     }
     /**
     * encodes an arbitrary variable into JSON format without JSON Header - warning - may allow XSS!!!!)
     *
-    * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+    * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
     * @param    mixed   $var    any number, boolean, string, array, or object to be encoded.
     *                           see argument 1 to Services_JSON() above for array-parsing behavior.
-    *                           if var is a strng, note that encode() always expects it
+    *                           if var is a string, note that encode() always expects it
     *                           to be in ASCII or UTF-8 format!
     *
     * @return   mixed   JSON string representation of input var or an error if a problem occurs
@@ -301,9 +309,9 @@ class Services_JSON
     */
     function encodeUnsafe($var)
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
-        // see bug https://core.trac.wordpress.org/ticket/16908 - regarding numeric locale printing
+        // see bug #16908 - regarding numeric locale printing
         $lc = setlocale(LC_NUMERIC, 0);
         setlocale(LC_NUMERIC, 'C');
         $ret = $this->_encode($var);
@@ -314,11 +322,11 @@ class Services_JSON
     /**
     * PRIVATE CODE that does the work of encodes an arbitrary variable into JSON format
     *
-    * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+    * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
     * @param    mixed   $var    any number, boolean, string, array, or object to be encoded.
     *                           see argument 1 to Services_JSON() above for array-parsing behavior.
-    *                           if var is a strng, note that encode() always expects it
+    *                           if var is a string, note that encode() always expects it
     *                           to be in ASCII or UTF-8 format!
     *
     * @return   mixed   JSON string representation of input var or an error if a problem occurs
@@ -326,7 +334,7 @@ class Services_JSON
     */
     function _encode($var)
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         switch (gettype($var)) {
             case 'boolean':
@@ -561,7 +569,7 @@ class Services_JSON
    /**
     * array-walking function for use in generating JSON-formatted name-value pairs
     *
-    * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+    * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
     * @param    string  $name   name of key to use
     * @param    mixed   $value  reference to an array element to be encoded
@@ -571,7 +579,7 @@ class Services_JSON
     */
     function name_value($name, $value)
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         $encoded_value = $this->_encode($value);
 
@@ -579,13 +587,13 @@ class Services_JSON
             return $encoded_value;
         }
 
-        return $this->_encode(strval($name)) . ':' . $encoded_value;
+        return $this->_encode((string) $name) . ':' . $encoded_value;
     }
 
    /**
     * reduce a string by removing leading and trailing comments and whitespace
     *
-    * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+    * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
     * @param    $str    string      string value to strip of comments and whitespace
     *
@@ -594,7 +602,7 @@ class Services_JSON
     */
     function reduce_string($str)
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         $str = preg_replace(array(
 
@@ -616,7 +624,7 @@ class Services_JSON
    /**
     * decodes a JSON string into appropriate variable
     *
-    * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+    * @deprecated 5.3.0 Use the PHP native JSON extension instead.
     *
     * @param    string  $str    JSON-formatted string
     *
@@ -629,7 +637,7 @@ class Services_JSON
     */
     function decode($str)
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         $str = $this->reduce_string($str);
 
@@ -816,7 +824,7 @@ class Services_JSON
                                 $parts = array();
 
                                if (preg_match('/^\s*(["\'].*[^\\\]["\'])\s*:/Uis', $slice, $parts)) {
- 	                              // "name":value pair
+                                    // "name":value pair
                                     $key = $this->decode($parts[1]);
                                     $val = $this->decode(trim(substr($slice, strlen($parts[0])), ", \t\n\r\0\x0B"));
                                     if ($this->use & SERVICES_JSON_LOOSE_TYPE) {
@@ -847,7 +855,7 @@ class Services_JSON
                                  ($top['what'] == SERVICES_JSON_IN_STR) &&
                                  (($this->strlen8($this->substr8($chrs, 0, $c)) - $this->strlen8(rtrim($this->substr8($chrs, 0, $c), '\\'))) % 2 != 1)) {
                             // found a quote, we're in a string, and it's not escaped
-                            // we know that it's not escaped becase there is _not_ an
+                            // we know that it's not escaped because there is _not_ an
                             // odd number of backslashes at the end of the string so far
                             array_pop($stk);
                             //print("Found end of string at {$c}: ".$this->substr8($chrs, $top['where'], (1 + 1 + $c - $top['where']))."\n");
@@ -908,17 +916,17 @@ class Services_JSON
     }
 
     /**
-     * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+     * @deprecated 5.3.0 Use the PHP native JSON extension instead.
      *
      * @todo Ultimately, this should just call PEAR::isError()
      */
     function isError($data, $code = null)
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         if (class_exists('pear')) {
             return PEAR::isError($data, $code);
-        } elseif (is_object($data) && (get_class($data) == 'services_json_error' ||
+        } elseif (is_object($data) && ($data instanceof services_json_error ||
                                  is_subclass_of($data, 'services_json_error'))) {
             return true;
         }
@@ -929,14 +937,14 @@ class Services_JSON
     /**
      * Calculates length of string in bytes
      *
-     * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+     * @deprecated 5.3.0 Use the PHP native JSON extension instead.
      *
      * @param string
      * @return integer length
      */
     function strlen8( $str )
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         if ( $this->_mb_strlen ) {
             return mb_strlen( $str, "8bit" );
@@ -947,7 +955,7 @@ class Services_JSON
     /**
      * Returns part of a string, interpreting $start and $length as number of bytes.
      *
-     * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
+     * @deprecated 5.3.0 Use the PHP native JSON extension instead.
      *
      * @param string
      * @param integer start
@@ -956,7 +964,7 @@ class Services_JSON
      */
     function substr8( $string, $start, $length=false )
     {
-        _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+        _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
         if ( $length === false ) {
             $length = $this->strlen8( $string ) - $start;
@@ -973,31 +981,31 @@ if (class_exists('PEAR_Error')) {
 
     class Services_JSON_Error extends PEAR_Error
     {
-	    /**
-	     * PHP5 constructor.
-	     *
-	     * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
-	     */
+        /**
+         * PHP5 constructor.
+         *
+         * @deprecated 5.3.0 Use the PHP native JSON extension instead.
+         */
         function __construct($message = 'unknown error', $code = null,
                                      $mode = null, $options = null, $userinfo = null)
         {
-            _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+            _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
             parent::PEAR_Error($message, $code, $mode, $options, $userinfo);
         }
 
-	    /**
-	     * PHP4 constructor.
-	     *
-	     * @deprecated WP-5.3.0 Use __construct() instead.
-	     *
-	     * @see __construct()
-	     */
-		public function Services_JSON_Error($message = 'unknown error', $code = null,
+        /**
+         * PHP4 constructor.
+         *
+         * @deprecated 5.3.0 Use __construct() instead.
+         *
+         * @see Services_JSON_Error::__construct()
+         */
+        public function Services_JSON_Error($message = 'unknown error', $code = null,
                                      $mode = null, $options = null, $userinfo = null) {
-			_deprecated_constructor( 'Services_JSON_Error', 'WP-5.3.0', get_class( $this ) );
-			self::__construct($message, $code, $mode, $options, $userinfo);
-		}
+            _deprecated_constructor( 'Services_JSON_Error', '5.3.0', get_class( $this ) );
+            self::__construct($message, $code, $mode, $options, $userinfo);
+        }
     }
 
 } else {
@@ -1007,29 +1015,29 @@ if (class_exists('PEAR_Error')) {
      */
     class Services_JSON_Error
     {
-	    /**
-	     * PHP5 constructor.
-	     *
-	     * @deprecated WP-5.3.0 Use the PHP native JSON extension instead.
-	     */
+        /**
+         * PHP5 constructor.
+         *
+         * @deprecated 5.3.0 Use the PHP native JSON extension instead.
+         */
         function __construct( $message = 'unknown error', $code = null,
                                      $mode = null, $options = null, $userinfo = null )
         {
-            _deprecated_function( __METHOD__, 'WP-5.3.0', 'The PHP native JSON extension' );
+            _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
         }
 
-	    /**
-	     * PHP4 constructor.
-	     *
-	     * @deprecated WP-5.3.0 Use __construct() instead.
-	     *
-	     * @see __construct()
-	     */
-		public function Services_JSON_Error( $message = 'unknown error', $code = null,
-	                                     $mode = null, $options = null, $userinfo = null ) {
-			_deprecated_constructor( 'Services_JSON_Error', 'WP-5.3.0', get_class( $this ) );
-			self::__construct( $message, $code, $mode, $options, $userinfo );
-		}
+        /**
+         * PHP4 constructor.
+         *
+         * @deprecated 5.3.0 Use __construct() instead.
+         *
+         * @see Services_JSON_Error::__construct()
+         */
+        public function Services_JSON_Error( $message = 'unknown error', $code = null,
+                                         $mode = null, $options = null, $userinfo = null ) {
+            _deprecated_constructor( 'Services_JSON_Error', '5.3.0', get_class( $this ) );
+            self::__construct( $message, $code, $mode, $options, $userinfo );
+        }
     }
 
 }

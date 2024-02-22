@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin editor network administration panel.
+ * Plugin file editor network administration panel.
  *
  * @package ClassicPress
  * @subpackage Multisite
- * @since WP-3.1.0
+ * @since 3.1.0
  */
 
 /** Load ClassicPress Administration Bootstrap */
-require_once dirname( __FILE__ ) . '/admin.php';
+require_once __DIR__ . '/admin.php';
 
 require ABSPATH . 'wp-admin/plugin-editor.php';

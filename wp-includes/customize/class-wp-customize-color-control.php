@@ -4,13 +4,13 @@
  *
  * @package ClassicPress
  * @subpackage Customize
- * @since WP-4.4.0
+ * @since 4.4.0
  */
 
 /**
  * Customize Color Control class.
  *
- * @since WP-3.4.0
+ * @since 3.4.0
  *
  * @see WP_Customize_Control
  */
@@ -32,7 +32,7 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 	/**
 	 * Mode.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 * @var string
 	 */
 	public $mode = 'full';
@@ -40,12 +40,15 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 	/**
 	 * Constructor.
 	 *
-	 * @since WP-3.4.0
-	 * @uses WP_Customize_Control::__construct()
+	 * @since 3.4.0
+	 *
+	 * @see WP_Customize_Control::__construct()
 	 *
 	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
 	 * @param string               $id      Control ID.
 	 * @param array                $args    Optional. Arguments to override class property defaults.
+	 *                                      See WP_Customize_Control::__construct() for information
+	 *                                      on accepted arguments. Default empty array.
 	 */
 	public function __construct( $manager, $id, $args = array() ) {
 		$this->statuses = array( '' => __( 'Default' ) );
@@ -55,7 +58,7 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 	/**
 	 * Enqueue scripts/styles for the color picker.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 */
 	public function enqueue() {
 		wp_enqueue_script( 'wp-color-picker' );
@@ -65,7 +68,7 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 	/**
 	 * Refresh the parameters passed to the JavaScript via JSON.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 * @uses WP_Customize_Control::to_json()
 	 */
 	public function to_json() {
@@ -78,14 +81,14 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 	/**
 	 * Don't render the control content from PHP, as it's rendered via JS on load.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 */
 	public function render_content() {}
 
 	/**
 	 * Render a JS template for the content of the color picker control.
 	 *
-	 * @since WP-4.1.0
+	 * @since 4.1.0
 	 */
 	public function content_template() {
 		?>
@@ -108,10 +111,10 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 		<div class="customize-control-content">
 			<label><span class="screen-reader-text">{{{ data.label }}}</span>
 			<# if ( isHueSlider ) { #>
-				<input class="color-picker-hue" type="text" data-type="hue" />
+				<input class="color-picker-hue" type="text" data-type="hue">
 			<# } else { #>
-				<input class="color-picker-hex" type="text" maxlength="7" placeholder="{{ defaultValue }}" {{ defaultValueAttr }} />
-			 <# } #>
+				<input class="color-picker-hex" type="text" maxlength="7" placeholder="{{ defaultValue }}" {{ defaultValueAttr }}>
+			<# } #>
 			</label>
 		</div>
 		<?php
