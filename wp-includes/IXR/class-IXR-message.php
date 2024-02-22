@@ -4,7 +4,7 @@
  * IXR_MESSAGE
  *
  * @package IXR
- * @since WP-1.5.0
+ * @since 1.5.0
  *
  */
 class IXR_Message
@@ -50,7 +50,7 @@ class IXR_Message
         }
 
         // first remove the XML declaration
-        // merged from https://core.trac.wordpress.org/ticket/10698 - this method avoids the RAM usage of preg_replace on very large messages
+        // merged from WP #10698 - this method avoids the RAM usage of preg_replace on very large messages
         $header = preg_replace( '/<\?xml.*?\?'.'>/s', '', substr( $this->message, 0, 100 ), 1 );
         $this->message = trim( substr_replace( $this->message, $header, 0, 100 ) );
         if ( '' == $this->message ) {
@@ -79,7 +79,7 @@ class IXR_Message
             /**
              * Filters the number of elements to parse in an XML-RPC response.
              *
-             * @since WP-4.0.0
+             * @since 4.0.0
              *
              * @param int $element_limit Default elements limit.
              */
@@ -101,29 +101,37 @@ class IXR_Message
         $chunk_size = 262144;
 
         /**
-         * Filters the chunk size that can be used to parse an XML-RPC reponse message.
+         * Filters the chunk size that can be used to parse an XML-RPC response message.
          *
-         * @since WP-4.4.0
+         * @since 4.4.0
          *
          * @param int $chunk_size Chunk size to parse in bytes.
          */
         $chunk_size = apply_filters( 'xmlrpc_chunk_parsing_size', $chunk_size );
 
         $final = false;
+
         do {
             if (strlen($this->message) <= $chunk_size) {
                 $final = true;
             }
+
             $part = substr($this->message, 0, $chunk_size);
             $this->message = substr($this->message, $chunk_size);
+
             if (!xml_parse($this->_parser, $part, $final)) {
+                xml_parser_free($this->_parser);
+                unset($this->_parser);
                 return false;
             }
+
             if ($final) {
                 break;
             }
         } while (true);
+
         xml_parser_free($this->_parser);
+        unset($this->_parser);
 
         // Grab the error messages, if any
         if ($this->messageType == 'fault') {
@@ -136,7 +144,7 @@ class IXR_Message
     function tag_open($parser, $tag, $attr)
     {
         $this->_currentTagContents = '';
-        $this->currentTag = $tag;
+        $this->_currentTag = $tag;
         switch($tag) {
             case 'methodCall':
             case 'methodResponse':

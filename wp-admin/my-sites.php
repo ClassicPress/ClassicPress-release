@@ -4,10 +4,10 @@
  *
  * @package ClassicPress
  * @subpackage Multisite
- * @since WP-3.0.0
+ * @since 3.0.0
  */
 
-require_once dirname( __FILE__ ) . '/admin.php';
+require_once __DIR__ . '/admin.php';
 
 if ( ! is_multisite() ) {
 	wp_die( __( 'Multisite support is not enabled.' ) );
@@ -22,18 +22,19 @@ $action = isset( $_POST['action'] ) ? $_POST['action'] : 'splash';
 $blogs = get_blogs_of_user( $current_user->ID );
 
 $updated = false;
-if ( 'updateblogsettings' == $action && isset( $_POST['primary_blog'] ) ) {
+if ( 'updateblogsettings' === $action && isset( $_POST['primary_blog'] ) ) {
 	check_admin_referer( 'update-my-sites' );
 
 	$blog = get_site( (int) $_POST['primary_blog'] );
 	if ( $blog && isset( $blog->domain ) ) {
-		update_user_option( $current_user->ID, 'primary_blog', (int) $_POST['primary_blog'], true );
+		update_user_meta( $current_user->ID, 'primary_blog', (int) $_POST['primary_blog'] );
 		$updated = true;
 	} else {
 		wp_die( __( 'The primary site you chose does not exist.' ) );
 	}
 }
 
+// Used in the HTML title tag.
 $title       = __( 'My Sites' );
 $parent_file = 'index.php';
 
@@ -49,13 +50,13 @@ get_current_screen()->add_help_tab(
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://codex.wordpress.org/Dashboard_My_Sites_Screen">Documentation on My Sites</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://forums.classicpress.net/c/support">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( $updated ) { ?>
-	<div id="message" class="updated notice is-dismissible"><p><strong><?php _e( 'Settings saved.' ); ?></strong></p></div>
+	<div id="message" class="notice notice-success is-dismissible"><p><strong><?php _e( 'Settings saved.' ); ?></strong></p></div>
 <?php } ?>
 
 <div class="wrap">
@@ -73,9 +74,9 @@ if ( in_array( get_site_option( 'registration' ), array( 'all', 'blog' ), true )
 }
 
 if ( empty( $blogs ) ) :
-	echo '<p>';
-	_e( 'You must be a member of at least one site to use this page.' );
-	echo '</p>';
+	?>
+	<div class="notice notice-error is-dismissible"><p><strong><?php _e( 'You must be a member of at least one site to use this page.' ); ?></strong></p></div>
+	<?php
 else :
 	?>
 
@@ -87,11 +88,11 @@ else :
 	/**
 	 * Fires before the sites list on the My Sites screen.
 	 *
-	 * @since WP-3.0.0
+	 * @since 3.0.0
 	 */
 	do_action( 'myblogs_allblogs_options' );
 	?>
-	<br clear="all" />
+	<br clear="all">
 	<ul class="my-sites striped">
 	<?php
 	/**
@@ -101,16 +102,18 @@ else :
 	 * string to this filter will enable the section, and allow new settings
 	 * to be added, either globally or for specific sites.
 	 *
-	 * @since WP-MU (3.0.0)
+	 * @since MU (3.0.0)
 	 *
 	 * @param string $settings_html The settings HTML markup. Default empty.
-	 * @param object $context       Context of the setting (global or site-specific). Default 'global'.
+	 * @param string $context       Context of the setting (global or site-specific). Default 'global'.
 	 */
 	$settings_html = apply_filters( 'myblogs_options', '', 'global' );
-	if ( '' != $settings_html ) {
+
+	if ( $settings_html ) {
 		echo '<h3>' . __( 'Global Settings' ) . '</h3>';
 		echo $settings_html;
 	}
+
 	reset( $blogs );
 
 	foreach ( $blogs as $user_blog ) {
@@ -128,16 +131,18 @@ else :
 		/**
 		 * Filters the row links displayed for each site on the My Sites screen.
 		 *
-		 * @since WP-MU (3.0.0)
+		 * @since MU (3.0.0)
 		 *
 		 * @param string $actions   The HTML site link markup.
 		 * @param object $user_blog An object containing the site data.
 		 */
 		$actions = apply_filters( 'myblogs_blog_actions', $actions, $user_blog );
+
 		echo "<p class='my-sites-actions'>" . $actions . '</p>';
 
 		/** This filter is documented in wp-admin/my-sites.php */
 		echo apply_filters( 'myblogs_options', '', $user_blog );
+
 		echo '</li>';
 
 		restore_current_blog();
@@ -147,7 +152,7 @@ else :
 	<?php
 	if ( count( $blogs ) > 1 || has_action( 'myblogs_allblogs_options' ) || has_filter( 'myblogs_options' ) ) {
 		?>
-		<input type="hidden" name="action" value="updateblogsettings" />
+		<input type="hidden" name="action" value="updateblogsettings">
 		<?php
 		wp_nonce_field( 'update-my-sites' );
 		submit_button();
@@ -157,4 +162,4 @@ else :
 <?php endif; ?>
 	</div>
 <?php
-require ABSPATH . 'wp-admin/admin-footer.php';
+require_once ABSPATH . 'wp-admin/admin-footer.php';

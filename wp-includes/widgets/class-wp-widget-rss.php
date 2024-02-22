@@ -4,13 +4,13 @@
  *
  * @package ClassicPress
  * @subpackage Widgets
- * @since WP-4.4.0
+ * @since 4.4.0
  */
 
 /**
  * Core class used to implement a RSS widget.
  *
- * @since WP-2.8.0
+ * @since 2.8.0
  *
  * @see WP_Widget
  */
@@ -19,12 +19,14 @@ class WP_Widget_RSS extends WP_Widget {
 	/**
 	 * Sets up a new RSS widget instance.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 */
 	public function __construct() {
-		$widget_ops  = array(
+		$widget_ops = array(
 			'description'                 => __( 'Entries from any RSS or Atom feed.' ),
 			'customize_selective_refresh' => true,
+			'show_instance_in_rest'       => true,
+
 		);
 		$control_ops = array(
 			'width'  => 400,
@@ -36,7 +38,8 @@ class WP_Widget_RSS extends WP_Widget {
 	/**
 	 * Outputs the content for the current RSS widget instance.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
+	 * @since CP-2.0.0 Default to 'html' layout.
 	 *
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
@@ -48,7 +51,7 @@ class WP_Widget_RSS extends WP_Widget {
 		}
 
 		$url = ! empty( $instance['url'] ) ? $instance['url'] : '';
-		while ( stristr( $url, 'http' ) != $url ) {
+		while ( ! empty( $url ) && stristr( $url, 'http' ) !== $url ) {
 			$url = substr( $url, 1 );
 		}
 
@@ -72,7 +75,7 @@ class WP_Widget_RSS extends WP_Widget {
 				$title = strip_tags( $rss->get_title() );
 			}
 			$link = strip_tags( $rss->get_permalink() );
-			while ( stristr( $link, 'http' ) != $link ) {
+			while ( ! empty( $link ) && stristr( $link, 'http' ) !== $link ) {
 				$link = substr( $link, 1 );
 			}
 		}
@@ -84,17 +87,47 @@ class WP_Widget_RSS extends WP_Widget {
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
-		$url  = strip_tags( $url );
-		$icon = includes_url( 'images/rss.png' );
 		if ( $title ) {
-			$title = '<a class="rsswidget" href="' . esc_url( $url ) . '"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="' . esc_url( $icon ) . '" alt="RSS" /></a> <a class="rsswidget" href="' . esc_url( $link ) . '">' . esc_html( $title ) . '</a>';
+			$feed_link = '';
+			$feed_url  = strip_tags( $url );
+			$feed_icon = includes_url( 'images/rss.png' );
+			$feed_link = sprintf(
+				'<a class="rsswidget rss-widget-feed" href="%1$s"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="%2$s" alt="%3$s"%4$s></a> ',
+				esc_url( $feed_url ),
+				esc_url( $feed_icon ),
+				esc_attr__( 'RSS' ),
+				( wp_lazy_loading_enabled( 'img', 'rss_widget_feed_icon' ) ? ' loading="lazy"' : '' )
+			);
+
+			/**
+			 * Filters the classic RSS widget's feed icon link.
+			 *
+			 * Themes can remove the icon link by using `add_filter( 'rss_widget_feed_link', '__return_empty_string' );`.
+			 *
+			 * @since 5.9.0
+			 *
+			 * @param string|false $feed_link HTML for link to RSS feed.
+			 * @param array        $instance  Array of settings for the current widget.
+			 */
+			$feed_link = apply_filters( 'rss_widget_feed_link', $feed_link, $instance );
+
+			$title = $feed_link . '<a class="rsswidget rss-widget-title" href="' . esc_url( $link ) . '">' . esc_html( $title ) . '</a>';
 		}
 
 		echo $args['before_widget'];
 		if ( $title ) {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
+
+		// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+		$title      = trim( strip_tags( $title ) );
+		$aria_label = $title ? $title : __( 'RSS Feed' );
+		echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
+
 		wp_widget_rss_output( $rss, $instance );
+
+		echo '</nav>';
+
 		echo $args['after_widget'];
 
 		if ( ! is_wp_error( $rss ) ) {
@@ -106,7 +139,7 @@ class WP_Widget_RSS extends WP_Widget {
 	/**
 	 * Handles updating settings for the current RSS widget instance.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param array $new_instance New settings for this instance as input by the user via
 	 *                            WP_Widget::form().
@@ -114,14 +147,14 @@ class WP_Widget_RSS extends WP_Widget {
 	 * @return array Updated settings to save.
 	 */
 	public function update( $new_instance, $old_instance ) {
-		$testurl = ( isset( $new_instance['url'] ) && ( ! isset( $old_instance['url'] ) || ( $new_instance['url'] != $old_instance['url'] ) ) );
+		$testurl = ( isset( $new_instance['url'] ) && ( ! isset( $old_instance['url'] ) || ( $new_instance['url'] !== $old_instance['url'] ) ) );
 		return wp_widget_rss_process( $new_instance, $testurl );
 	}
 
 	/**
 	 * Outputs the settings form for the RSS widget.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param array $instance Current settings.
 	 */

@@ -4,27 +4,28 @@
  *
  * @package ClassicPress
  * @subpackage Customize
- * @since WP-4.5.0
+ * @since 4.5.0
  */
 
 /**
  * Core Customizer class for implementing selective refresh.
  *
- * @since WP-4.5.0
+ * @since 4.5.0
  */
+#[AllowDynamicProperties]
 final class WP_Customize_Selective_Refresh {
 
 	/**
 	 * Query var used in requests to render partials.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 */
 	const RENDER_QUERY_VAR = 'wp_customize_render_partials';
 
 	/**
 	 * Customize manager.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var WP_Customize_Manager
 	 */
 	public $manager;
@@ -32,7 +33,7 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Registered instances of WP_Customize_Partial.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var WP_Customize_Partial[]
 	 */
 	protected $partials = array();
@@ -40,7 +41,7 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Log of errors triggered when partials are rendered.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var array
 	 */
 	protected $triggered_errors = array();
@@ -48,17 +49,17 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Keep track of the current partial being rendered.
 	 *
-	 * @since WP-4.5.0
-	 * @var string
+	 * @since 4.5.0
+	 * @var string|null
 	 */
 	protected $current_partial_id;
 
 	/**
 	 * Plugin bootstrap for Partial Refresh functionality.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 *
-	 * @param WP_Customize_Manager $manager Manager instance.
+	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
 	 */
 	public function __construct( WP_Customize_Manager $manager ) {
 		$this->manager = $manager;
@@ -70,7 +71,7 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Retrieves the registered partials.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 *
 	 * @return array Partials.
 	 */
@@ -81,31 +82,15 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Adds a partial.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 *
-	 * @param WP_Customize_Partial|string $id   Customize Partial object, or Panel ID.
-	 * @param array                       $args {
-	 *  Optional. Array of properties for the new Partials object. Default empty array.
+	 * @see WP_Customize_Partial::__construct()
 	 *
-	 *  @type string   $type                  Type of the partial to be created.
-	 *  @type string   $selector              The jQuery selector to find the container element for the partial, that is, a partial's placement.
-	 *  @type array    $settings              IDs for settings tied to the partial.
-	 *  @type string   $primary_setting       The ID for the setting that this partial is primarily responsible for
-	 *                                        rendering. If not supplied, it will default to the ID of the first setting.
-	 *  @type string   $capability            Capability required to edit this partial.
-	 *                                        Normally this is empty and the capability is derived from the capabilities
-	 *                                        of the associated `$settings`.
-	 *  @type callable $render_callback       Render callback.
-	 *                                        Callback is called with one argument, the instance of WP_Customize_Partial.
-	 *                                        The callback can either echo the partial or return the partial as a string,
-	 *                                        or return false if error.
-	 *  @type bool     $container_inclusive   Whether the container element is included in the partial, or if only
-	 *                                        the contents are rendered.
-	 *  @type bool     $fallback_refresh      Whether to refresh the entire preview in case a partial cannot be refreshed.
-	 *                                        A partial render is considered a failure if the render_callback returns
-	 *                                        false.
-	 * }
-	 * @return WP_Customize_Partial             The instance of the panel that was added.
+	 * @param WP_Customize_Partial|string $id   Customize Partial object, or Partial ID.
+	 * @param array                       $args Optional. Array of properties for the new Partials object.
+	 *                                          See WP_Customize_Partial::__construct() for information
+	 *                                          on accepted arguments. Default empty array.
+	 * @return WP_Customize_Partial The instance of the partial that was added.
 	 */
 	public function add_partial( $id, $args = array() ) {
 		if ( $id instanceof WP_Customize_Partial ) {
@@ -129,7 +114,7 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Retrieves a partial.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 *
 	 * @param string $id Customize Partial ID.
 	 * @return WP_Customize_Partial|null The partial, if set. Otherwise null.
@@ -145,7 +130,7 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Removes a partial.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 *
 	 * @param string $id Customize Partial ID.
 	 */
@@ -156,7 +141,7 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Initializes the Customizer preview.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 */
 	public function init_preview() {
 		add_action( 'template_redirect', array( $this, 'handle_render_partials_request' ) );
@@ -166,7 +151,7 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Enqueues preview scripts.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 */
 	public function enqueue_preview_scripts() {
 		wp_enqueue_script( 'customize-selective-refresh' );
@@ -176,7 +161,7 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Exports data in preview after it has finished rendering so that partials can be added at runtime.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 */
 	public function export_preview_data() {
 		$partials = array();
@@ -187,7 +172,7 @@ final class WP_Customize_Selective_Refresh {
 			}
 		}
 
-		$switched_locale = switch_to_locale( get_user_locale() );
+		$switched_locale = switch_to_user_locale( get_current_user_id() );
 		$l10n            = array(
 			'shiftClickToEdit' => __( 'Shift-click to edit this element.' ),
 			'clickEditMenu'    => __( 'Click to edit this menu.' ),
@@ -214,12 +199,12 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Registers dynamically-created partials.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 *
 	 * @see WP_Customize_Manager::add_dynamic_settings()
 	 *
-	 * @param array $partial_ids The partial ID to add.
-	 * @return array Added WP_Customize_Partial instances.
+	 * @param string[] $partial_ids Array of the partial IDs to add.
+	 * @return WP_Customize_Partial[] Array of added WP_Customize_Partial instances.
 	 */
 	public function add_dynamic_partials( $partial_ids ) {
 		$new_partials = array();
@@ -242,7 +227,7 @@ final class WP_Customize_Selective_Refresh {
 			 * to override the default false value with an array of args to pass to
 			 * the WP_Customize_Partial constructor.
 			 *
-			 * @since WP-4.5.0
+			 * @since 4.5.0
 			 *
 			 * @param false|array $partial_args The arguments to the WP_Customize_Partial constructor.
 			 * @param string      $partial_id   ID for dynamic partial.
@@ -257,7 +242,7 @@ final class WP_Customize_Selective_Refresh {
 			 *
 			 * Allow non-statically created partials to be constructed with custom WP_Customize_Partial subclass.
 			 *
-			 * @since WP-4.5.0
+			 * @since 4.5.0
 			 *
 			 * @param string $partial_class WP_Customize_Partial or a subclass.
 			 * @param string $partial_id    ID for dynamic partial.
@@ -279,7 +264,7 @@ final class WP_Customize_Selective_Refresh {
 	 * Note that this will not consider whether the request is authorized or valid,
 	 * just that essentially the route is a match.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 *
 	 * @return bool Whether the request is for rendering partials.
 	 */
@@ -292,12 +277,12 @@ final class WP_Customize_Selective_Refresh {
 	 *
 	 * These errors will be relayed back to the client in the Ajax response.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 *
 	 * @param int    $errno   Error number.
 	 * @param string $errstr  Error string.
 	 * @param string $errfile Error file.
-	 * @param string $errline Error line.
+	 * @param int    $errline Error line.
 	 * @return true Always true.
 	 */
 	public function handle_error( $errno, $errstr, $errfile = null, $errline = null ) {
@@ -314,7 +299,7 @@ final class WP_Customize_Selective_Refresh {
 	/**
 	 * Handles the Ajax request to return the rendered partials for the requested placements.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 */
 	public function handle_render_partials_request() {
 		if ( ! $this->is_render_partials_request() ) {
@@ -349,9 +334,9 @@ final class WP_Customize_Selective_Refresh {
 		 * Plugins may do things like call wp_enqueue_scripts() and gather a list of the scripts
 		 * and styles which may get enqueued in the response.
 		 *
-		 * @since WP-4.5.0
+		 * @since 4.5.0
 		 *
-		 * @param WP_Customize_Selective_Refresh $this     Selective refresh component.
+		 * @param WP_Customize_Selective_Refresh $refresh  Selective refresh component.
 		 * @param array                          $partials Placements' context data for the partials rendered in the request.
 		 *                                                 The array is keyed by partial ID, with each item being an array of
 		 *                                                 the placements' context data.
@@ -398,9 +383,9 @@ final class WP_Customize_Selective_Refresh {
 		 * Plugins may do things like call wp_footer() to scrape scripts output and return them
 		 * via the {@see 'customize_render_partials_response'} filter.
 		 *
-		 * @since WP-4.5.0
+		 * @since 4.5.0
 		 *
-		 * @param WP_Customize_Selective_Refresh $this     Selective refresh component.
+		 * @param WP_Customize_Selective_Refresh $refresh  Selective refresh component.
 		 * @param array                          $partials Placements' context data for the partials rendered in the request.
 		 *                                                 The array is keyed by partial ID, with each item being an array of
 		 *                                                 the placements' context data.
@@ -434,7 +419,7 @@ final class WP_Customize_Selective_Refresh {
 		 * Plugins should be aware that `$scripts` and `$styles` may eventually be included by
 		 * default in the response.
 		 *
-		 * @since WP-4.5.0
+		 * @since 4.5.0
 		 *
 		 * @param array $response {
 		 *     Response.
@@ -444,7 +429,7 @@ final class WP_Customize_Selective_Refresh {
 		 *     @type array $errors   List of errors triggered during rendering of partials, if `WP_DEBUG_DISPLAY`
 		 *                           is enabled.
 		 * }
-		 * @param WP_Customize_Selective_Refresh $this     Selective refresh component.
+		 * @param WP_Customize_Selective_Refresh $refresh  Selective refresh component.
 		 * @param array                          $partials Placements' context data for the partials rendered in the request.
 		 *                                                 The array is keyed by partial ID, with each item being an array of
 		 *                                                 the placements' context data.

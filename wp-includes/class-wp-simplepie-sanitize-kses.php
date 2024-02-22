@@ -4,30 +4,31 @@
  *
  * @package ClassicPress
  * @subpackage Feed
- * @since WP-4.7.0
+ * @since 4.7.0
  */
 
 /**
- * Core class used to implement SimpliePie feed sanitization.
+ * Core class used to implement SimplePie feed sanitization.
  *
  * Extends the SimplePie_Sanitize class to use KSES, because
  * we cannot universally count on DOMDocument being available.
  *
- * @since WP-3.5.0
+ * @since 3.5.0
  *
  * @see SimplePie_Sanitize
  */
+#[AllowDynamicProperties]
 class WP_SimplePie_Sanitize_KSES extends SimplePie_Sanitize {
 
 	/**
-	 * ClassicPress SimplePie sanitization using KSES.
+	 * WordPress SimplePie sanitization using KSES.
 	 *
 	 * Sanitizes the incoming data, to ensure that it matches the type of data expected, using KSES.
 	 *
-	 * @since WP-3.5.0
+	 * @since 3.5.0
 	 *
 	 * @param mixed   $data The data that needs to be sanitized.
-	 * @param integer $type The type of data that it's supposed to be.
+	 * @param int     $type The type of data that it's supposed to be.
 	 * @param string  $base Optional. The `xml:base` value to use when converting relative
 	 *                      URLs to absolute ones. Default empty.
 	 * @return mixed Sanitized data.
