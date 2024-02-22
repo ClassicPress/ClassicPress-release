@@ -6,13 +6,13 @@
  *
  * @package ClassicPress
  * @subpackage Customize
- * @since WP-4.7.0
+ * @since 4.7.0
  */
 
 /**
  * Custom Setting to handle WP Custom CSS.
  *
- * @since WP-4.7.0
+ * @since 4.7.0
  *
  * @see WP_Customize_Setting
  */
@@ -21,7 +21,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	/**
 	 * The setting type.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 * @var string
 	 */
 	public $type = 'custom_css';
@@ -29,7 +29,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	/**
 	 * Setting Transport
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 * @var string
 	 */
 	public $transport = 'postMessage';
@@ -37,7 +37,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	/**
 	 * Capability required to edit this setting.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 * @var string
 	 */
 	public $capability = 'edit_css';
@@ -45,7 +45,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	/**
 	 * Stylesheet
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 * @var string
 	 */
 	public $stylesheet = '';
@@ -53,13 +53,13 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	/**
 	 * WP_Customize_Custom_CSS_Setting constructor.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 *
 	 * @throws Exception If the setting ID does not match the pattern `custom_css[$stylesheet]`.
 	 *
-	 * @param WP_Customize_Manager $manager The Customize Manager class.
-	 * @param string               $id      An specific ID of the setting. Can be a
-	 *                                      theme mod or option name.
+	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
+	 * @param string               $id      A specific ID of the setting.
+	 *                                      Can be a theme mod or option name.
 	 * @param array                $args    Setting arguments.
 	 */
 	public function __construct( $manager, $id, $args = array() ) {
@@ -76,7 +76,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	/**
 	 * Add filter to preview post value.
 	 *
-	 * @since WP-4.7.9
+	 * @since 4.7.9
 	 *
 	 * @return bool False when preview short-circuits due no change needing to be previewed.
 	 */
@@ -90,11 +90,12 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	}
 
 	/**
-	 * Filter `wp_get_custom_css` for applying the customized value.
+	 * Filters `wp_get_custom_css` for applying the customized value.
 	 *
 	 * This is used in the preview when `wp_get_custom_css()` is called for rendering the styles.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
+	 *
 	 * @see wp_get_custom_css()
 	 *
 	 * @param string $css        Original CSS.
@@ -114,7 +115,8 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	/**
 	 * Fetch the value of the setting. Will return the previewed value when `preview()` is called.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
+	 *
 	 * @see WP_Customize_Setting::value()
 	 *
 	 * @return string
@@ -143,25 +145,29 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	}
 
 	/**
-	 * Validate CSS.
+	 * Validate a received value for being valid CSS.
 	 *
 	 * Checks for imbalanced braces, brackets, and comments.
 	 * Notifications are rendered when the customizer state is saved.
 	 *
-	 * @since WP-4.7.0
-	 * @since WP-4.9.0 Checking for balanced characters has been moved client-side via linting in code editor.
+	 * @since 4.7.0
+	 * @since 4.9.0 Checking for balanced characters has been moved client-side via linting in code editor.
+	 * @since 5.9.0 Renamed `$css` to `$value` for PHP 8 named parameter support.
 	 *
-	 * @param string $css The input string.
+	 * @param string $value CSS to validate.
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
 	 */
-	public function validate( $css ) {
+	public function validate( $value ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$css = $value;
+
 		$validity = new WP_Error();
 
 		if ( preg_match( '#</?\w+#', $css ) ) {
 			$validity->add( 'illegal_markup', __( 'Markup is not allowed in CSS.' ) );
 		}
 
-		if ( empty( $validity->errors ) ) {
+		if ( ! $validity->has_errors() ) {
 			$validity = parent::validate( $css );
 		}
 		return $validity;
@@ -170,12 +176,16 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	/**
 	 * Store the CSS setting value in the custom_css custom post type for the stylesheet.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
+	 * @since 5.9.0 Renamed `$css` to `$value` for PHP 8 named parameter support.
 	 *
-	 * @param string $css The input value.
+	 * @param string $value CSS to update.
 	 * @return int|false The post ID or false if the value could not be saved.
 	 */
-	public function update( $css ) {
+	public function update( $value ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$css = $value;
+
 		if ( empty( $css ) ) {
 			$css = '';
 		}
