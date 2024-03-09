@@ -7,13 +7,12 @@
  */
 
 /** Load ClassicPress Administration Bootstrap */
-require_once __DIR__ . '/admin.php';
+require_once dirname( __FILE__ ) . '/admin.php';
 
 if ( ! current_user_can( 'manage_links' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to add links to this site.' ) );
 }
 
-// Used in the HTML title tag.
 $title       = __( 'Add New Link' );
 $parent_file = 'link-manager.php';
 
@@ -29,4 +28,4 @@ if ( wp_is_mobile() ) {
 $link = get_default_link_to_edit();
 require ABSPATH . 'wp-admin/edit-link-form.php';
 
-require_once ABSPATH . 'wp-admin/admin-footer.php';
+require ABSPATH . 'wp-admin/admin-footer.php';

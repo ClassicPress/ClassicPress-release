@@ -9,7 +9,7 @@
  /**
   * Prints information about the ClassicPress development version, if any.
   *
-  * @since CP-1.0.0
+  * @since 1.0.0
   */
 function classicpress_dev_version_info() {
 	if ( ! classicpress_is_dev_install() ) {
@@ -49,9 +49,9 @@ function classicpress_dev_version_info() {
 /**
  * Returns whether the server is running Apache with the mod_rewrite module loaded.
  *
- * @since 2.0.0
+ * @since WP-2.0.0
  *
- * @return bool Whether the server is running Apache with the mod_rewrite module loaded.
+ * @return bool
  */
 function got_mod_rewrite() {
 	$got_rewrite = apache_mod_loaded( 'mod_rewrite', true );
@@ -62,7 +62,7 @@ function got_mod_rewrite() {
 	 * This filter was previously used to force URL rewriting for other servers,
 	 * like nginx. Use the {@see 'got_url_rewrite'} filter in got_url_rewrite() instead.
 	 *
-	 * @since 2.5.0
+	 * @since WP-2.5.0
 	 *
 	 * @see got_url_rewrite()
 	 *
@@ -76,7 +76,7 @@ function got_mod_rewrite() {
  *
  * Detects Apache's mod_rewrite, IIS 7.0+ permalink support, and nginx.
  *
- * @since 3.7.0
+ * @since WP-3.7.0
  *
  * @global bool $is_nginx
  *
@@ -88,7 +88,7 @@ function got_url_rewrite() {
 	/**
 	 * Filters whether URL rewriting is available.
 	 *
-	 * @since 3.7.0
+	 * @since WP-3.7.0
 	 *
 	 * @param bool $got_url_rewrite Whether URL rewriting is available.
 	 */
@@ -98,15 +98,18 @@ function got_url_rewrite() {
 /**
  * Extracts strings from between the BEGIN and END markers in the .htaccess file.
  *
- * @since 1.5.0
- * @since CP-1.0.0 Added $is_regex parameter.
+ * @since WP-1.5.0
+ * @since 1.0.0 Added $is_regex parameter.
  *
- * @param string $filename Filename to extract the strings from.
- * @param string $marker   The marker to extract the strings from.
+ * @param string $filename  The path to the file to process (e.g. `.htaccess`).
+ * @param string $marker    The marker string to search for (in the form of
+ *                          `# BEGIN $marker` and `# END $marker` in the file).
  * @param bool   $is_regex  Set to 'true' if $marker is a regex.  The regex
  *                          delimiter is '/'; you must escape this character if
  *                          it occurs in your marker pattern.  Default 'false'.
- * @return string[] An array of strings from a file (.htaccess) from between BEGIN and END markers.
+ *
+ * @return array An array of strings from a file, extracted from between BEGIN
+ *               and END markers.
  */
 function extract_from_markers( $filename, $marker, $is_regex = false ) {
 	$result = array();
@@ -148,20 +151,22 @@ function extract_from_markers( $filename, $marker, $is_regex = false ) {
  * Inserts an array of strings into a file (.htaccess), placing it between
  * BEGIN and END markers.
  *
- * Replaces existing marked info. Retains surrounding
- * data. Creates file if none exists.
+ * Replaces existing marked info. Retains surrounding data. Creates file if
+ * none exists.
  *
- * @since 1.5.0
- * @since CP-1.0.0 Added $marker_out and $is_regex parameters.
+ * @since WP-1.5.0
+ * @since 1.0.0 Added $marker_out and $is_regex parameters.
  *
- * @param string       $filename   Filename to alter.
- * @param string       $marker     The marker to alter.
+ * @param string       $filename   The path to the file to alter (e.g. `.htaccess`).
+ * @param string       $marker_in  The marker to alter (matches lines in the form of
+ *                                 `# BEGIN $marker` and `# END $marker` in the file).
  * @param array|string $insertion  The new content to insert.
  * @param bool         $is_regex   Set to 'true' if $marker_in is a regex.  The regex
  *                                 delimiter is '/'; you must escape this character if
  *                                 it occurs in your marker pattern.  Default 'false'.
  * @param string|null  $marker_out The marker to write. Only needed if $is_regex is true.
-* @return bool True on write success, false on failure.
+ *
+ * @return bool True on write success, false on failure.
  */
 function insert_with_markers(
 	$filename,
@@ -174,18 +179,10 @@ function insert_with_markers(
 		if ( ! is_writable( dirname( $filename ) ) ) {
 			return false;
 		}
-
 		if ( ! touch( $filename ) ) {
 			return false;
 		}
-
-		// Make sure the file is created with a minimum set of permissions.
-		$perms = fileperms( $filename );
-
-		if ( $perms ) {
-			chmod( $filename, $perms | 0644 );
-		}
-	} elseif ( ! is_writable( $filename ) ) {
+	} elseif ( ! is_writeable( $filename ) ) {
 		return false;
 	}
 
@@ -215,27 +212,25 @@ function insert_with_markers(
 	$end_marker_in   = "/{$end_marker_in}/";
 
 	$fp = fopen( $filename, 'r+' );
-
 	if ( ! $fp ) {
 		return false;
 	}
 
-	// Attempt to get a lock. If the filesystem supports locking, this will block until the lock is acquired.
+	// Attempt to get a lock. If the filesystem supports locking, this will
+	// block until the lock is acquired.
 	flock( $fp, LOCK_EX );
 
 	$lines = array();
-
 	while ( ! feof( $fp ) ) {
 		$lines[] = rtrim( fgets( $fp ), "\r\n" );
 	}
 
-	// Split out the existing file into the preceding lines, and those that appear after the marker.
+	// Split out the existing file into the preceding lines, and those that appear after the marker
 	$pre_lines        = array();
 	$post_lines       = array();
 	$existing_lines   = array();
 	$found_marker     = false;
 	$found_end_marker = false;
-
 	foreach ( $lines as $line ) {
 		if ( ! $found_marker && preg_match( $start_marker_in, $line ) ) {
 			$found_marker = true;
@@ -244,7 +239,6 @@ function insert_with_markers(
 			$found_end_marker = true;
 			continue;
 		}
-
 		if ( ! $found_marker ) {
 			$pre_lines[] = $line;
 		} elseif ( $found_marker && $found_end_marker ) {
@@ -254,7 +248,7 @@ function insert_with_markers(
 		}
 	}
 
-	// Check to see if there was a change.
+	// Check to see if there was a change
 	if ( $existing_lines === $insertion ) {
 		flock( $fp, LOCK_UN );
 		fclose( $fp );
@@ -262,7 +256,7 @@ function insert_with_markers(
 		return true;
 	}
 
-	// Generate the new file data.
+	// Generate the new file data
 	$new_file_data = implode(
 		"\n",
 		array_merge(
@@ -274,14 +268,12 @@ function insert_with_markers(
 		)
 	);
 
-	// Write to the start of the file, and truncate it to that length.
+	// Write to the start of the file, and truncate it to that length
 	fseek( $fp, 0 );
 	$bytes = fwrite( $fp, $new_file_data );
-
 	if ( $bytes ) {
 		ftruncate( $fp, ftell( $fp ) );
 	}
-
 	fflush( $fp );
 	flock( $fp, LOCK_UN );
 	fclose( $fp );
@@ -295,18 +287,18 @@ function insert_with_markers(
  * Always writes to the file if it exists and is writable to ensure that we
  * blank out old rules.
  *
- * @since 1.5.0
+ * @since WP-1.5.0
  *
- * @global WP_Rewrite $wp_rewrite ClassicPress rewrite component.
+ * @global WP_Rewrite $wp_rewrite
  *
  * @return bool|null True on write success, false on failure. Null in multisite.
  */
 function save_mod_rewrite_rules() {
-	global $wp_rewrite;
-
 	if ( is_multisite() ) {
 		return;
 	}
+
+	global $wp_rewrite;
 
 	// Ensure get_home_path() is declared.
 	require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -318,9 +310,7 @@ function save_mod_rewrite_rules() {
 	 * If the file doesn't already exist check for write access to the directory
 	 * and whether we have some rules. Else check for write access to the file.
 	 */
-	if ( ! file_exists( $htaccess_file ) && is_writable( $home_path ) && $wp_rewrite->using_mod_rewrite_permalinks()
-		|| is_writable( $htaccess_file )
-	) {
+	if ( ( ! file_exists( $htaccess_file ) && is_writable( $home_path ) && $wp_rewrite->using_mod_rewrite_permalinks() ) || is_writable( $htaccess_file ) ) {
 		if ( got_mod_rewrite() ) {
 			$rules = explode( "\n", $wp_rewrite->mod_rewrite_rules() );
 			return insert_with_markers(
@@ -340,18 +330,18 @@ function save_mod_rewrite_rules() {
  * Updates the IIS web.config file with the current rules if it is writable.
  * If the permalinks do not require rewrite rules then the rules are deleted from the web.config file.
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  *
- * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+ * @global WP_Rewrite $wp_rewrite
  *
  * @return bool|null True on write success, false on failure. Null in multisite.
  */
 function iis7_save_url_rewrite_rules() {
-	global $wp_rewrite;
-
 	if ( is_multisite() ) {
 		return;
 	}
+
+	global $wp_rewrite;
 
 	// Ensure get_home_path() is declared.
 	require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -359,53 +349,45 @@ function iis7_save_url_rewrite_rules() {
 	$home_path       = get_home_path();
 	$web_config_file = $home_path . 'web.config';
 
-	// Using win_is_writable() instead of is_writable() because of a bug in Windows PHP.
-	if ( iis7_supports_permalinks()
-		&& ( ! file_exists( $web_config_file ) && win_is_writable( $home_path ) && $wp_rewrite->using_mod_rewrite_permalinks()
-			|| win_is_writable( $web_config_file ) )
-	) {
-		$rule = $wp_rewrite->iis7_url_rewrite_rules( false );
-
+	// Using win_is_writable() instead of is_writable() because of a bug in Windows PHP
+	if ( iis7_supports_permalinks() && ( ( ! file_exists( $web_config_file ) && win_is_writable( $home_path ) && $wp_rewrite->using_mod_rewrite_permalinks() ) || win_is_writable( $web_config_file ) ) ) {
+		$rule = $wp_rewrite->iis7_url_rewrite_rules( false, '', '' );
 		if ( ! empty( $rule ) ) {
 			return iis7_add_rewrite_rule( $web_config_file, $rule );
 		} else {
 			return iis7_delete_rewrite_rule( $web_config_file );
 		}
 	}
-
 	return false;
 }
 
 /**
- * Updates the "recently-edited" file for the plugin or theme file editor.
+ * Update the "recently-edited" file for the plugin or theme editor.
  *
- * @since 1.5.0
+ * @since WP-1.5.0
  *
  * @param string $file
  */
 function update_recently_edited( $file ) {
 	$oldfiles = (array) get_option( 'recently_edited' );
-
 	if ( $oldfiles ) {
 		$oldfiles   = array_reverse( $oldfiles );
 		$oldfiles[] = $file;
 		$oldfiles   = array_reverse( $oldfiles );
 		$oldfiles   = array_unique( $oldfiles );
-
 		if ( 5 < count( $oldfiles ) ) {
 			array_pop( $oldfiles );
 		}
 	} else {
 		$oldfiles[] = $file;
 	}
-
 	update_option( 'recently_edited', $oldfiles );
 }
 
 /**
- * Makes a tree structure for the theme file editor's file list.
+ * Makes a tree structure for the Theme Editor's file list.
  *
- * @since 4.9.0
+ * @since WP-4.9.0
  * @access private
  *
  * @param array $allowed_files List of theme file paths.
@@ -413,30 +395,22 @@ function update_recently_edited( $file ) {
  */
 function wp_make_theme_file_tree( $allowed_files ) {
 	$tree_list = array();
-
 	foreach ( $allowed_files as $file_name => $absolute_filename ) {
 		$list     = explode( '/', $file_name );
 		$last_dir = &$tree_list;
-
 		foreach ( $list as $dir ) {
 			$last_dir =& $last_dir[ $dir ];
 		}
-
 		$last_dir = $file_name;
 	}
-
 	return $tree_list;
 }
 
 /**
- * Outputs the formatted file list for the theme file editor.
+ * Outputs the formatted file list for the Theme Editor.
  *
- * @since 4.9.0
+ * @since WP-4.9.0
  * @access private
- *
- * @global string $relative_file Name of the file being edited relative to the
- *                               theme directory.
- * @global string $stylesheet    The stylesheet name of the theme being edited.
  *
  * @param array|string $tree  List of file/folder paths, or filename.
  * @param int          $level The aria-level for the current iteration.
@@ -449,10 +423,8 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 	if ( is_array( $tree ) ) {
 		$index = 0;
 		$size  = count( $tree );
-
 		foreach ( $tree as $label => $theme_file ) :
 			$index++;
-
 			if ( ! is_array( $theme_file ) ) {
 				wp_print_theme_file_tree( $theme_file, $level, $index, $size );
 				continue;
@@ -462,12 +434,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 				aria-level="<?php echo esc_attr( $level ); ?>"
 				aria-setsize="<?php echo esc_attr( $size ); ?>"
 				aria-posinset="<?php echo esc_attr( $index ); ?>">
-				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text">
-					<?php
-					/* translators: Hidden accessibility text. */
-					_e( 'folder' );
-					?>
-				</span><span aria-hidden="true" class="icon"></span></span>
+				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
 				<ul role="group" class="tree-folder"><?php wp_print_theme_file_tree( $theme_file, $level + 1, $index, $size ); ?></ul>
 			</li>
 			<?php
@@ -490,9 +457,8 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 				aria-posinset="<?php echo esc_attr( $index ); ?>">
 				<?php
 				$file_description = esc_html( get_file_description( $filename ) );
-
 				if ( $file_description !== $filename && wp_basename( $filename ) !== $file_description ) {
-					$file_description .= '<br><span class="nonessential">(' . esc_html( $filename ) . ')</span>';
+					$file_description .= '<br /><span class="nonessential">(' . esc_html( $filename ) . ')</span>';
 				}
 
 				if ( $relative_file === $filename ) {
@@ -508,35 +474,31 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 }
 
 /**
- * Makes a tree structure for the plugin file editor's file list.
+ * Makes a tree structure for the Plugin Editor's file list.
  *
- * @since 4.9.0
+ * @since WP-4.9.0
  * @access private
  *
- * @param array $plugin_editable_files List of plugin file paths.
+ * @param string $plugin_editable_files List of plugin file paths.
  * @return array Tree structure for listing plugin files.
  */
 function wp_make_plugin_file_tree( $plugin_editable_files ) {
 	$tree_list = array();
-
 	foreach ( $plugin_editable_files as $plugin_file ) {
 		$list     = explode( '/', preg_replace( '#^.+?/#', '', $plugin_file ) );
 		$last_dir = &$tree_list;
-
 		foreach ( $list as $dir ) {
 			$last_dir =& $last_dir[ $dir ];
 		}
-
 		$last_dir = $plugin_file;
 	}
-
 	return $tree_list;
 }
 
 /**
- * Outputs the formatted file list for the plugin file editor.
+ * Outputs the formatted file list for the Plugin Editor.
  *
- * @since 4.9.0
+ * @since WP-4.9.0
  * @access private
  *
  * @param array|string $tree  List of file/folder paths, or filename.
@@ -547,14 +509,11 @@ function wp_make_plugin_file_tree( $plugin_editable_files ) {
  */
 function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $index = 1 ) {
 	global $file, $plugin;
-
 	if ( is_array( $tree ) ) {
 		$index = 0;
 		$size  = count( $tree );
-
 		foreach ( $tree as $label => $plugin_file ) :
 			$index++;
-
 			if ( ! is_array( $plugin_file ) ) {
 				wp_print_plugin_file_tree( $plugin_file, $label, $level, $index, $size );
 				continue;
@@ -564,12 +523,7 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 				aria-level="<?php echo esc_attr( $level ); ?>"
 				aria-setsize="<?php echo esc_attr( $size ); ?>"
 				aria-posinset="<?php echo esc_attr( $index ); ?>">
-				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text">
-					<?php
-					/* translators: Hidden accessibility text. */
-					_e( 'folder' );
-					?>
-				</span><span aria-hidden="true" class="icon"></span></span>
+				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
 				<ul role="group" class="tree-folder"><?php wp_print_plugin_file_tree( $plugin_file, '', $level + 1, $index, $size ); ?></ul>
 			</li>
 			<?php
@@ -605,7 +559,7 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 /**
  * Flushes rewrite rules if siteurl, home or page_on_front changed.
  *
- * @since 2.1.0
+ * @since WP-2.1.0
  *
  * @param string $old_value
  * @param string $value
@@ -624,13 +578,13 @@ function update_home_siteurl( $old_value, $value ) {
 
 
 /**
- * Resets global variables based on $_GET and $_POST.
+ * Resets global variables based on $_GET and $_POST
  *
  * This function resets global variables based on the names passed
  * in the $vars array to the value of $_POST[$var] or $_GET[$var] or ''
  * if neither is defined.
  *
- * @since 2.0.0
+ * @since WP-2.0.0
  *
  * @param array $vars An array of globals to reset.
  */
@@ -651,7 +605,7 @@ function wp_reset_vars( $vars ) {
 /**
  * Displays the given administration message.
  *
- * @since 2.1.0
+ * @since WP-2.1.0
  *
  * @param string|WP_Error $message
  */
@@ -663,14 +617,13 @@ function show_message( $message ) {
 			$message = $message->get_error_message();
 		}
 	}
-
 	echo "<p>$message</p>\n";
 	wp_ob_end_flush_all();
 	flush();
 }
 
 /**
- * @since 2.8.0
+ * @since WP-2.8.0
  *
  * @param string $content
  * @return array
@@ -688,21 +641,19 @@ function wp_doc_link_parse( $content ) {
 	$count            = count( $tokens );
 	$functions        = array();
 	$ignore_functions = array();
-
 	for ( $t = 0; $t < $count - 2; $t++ ) {
 		if ( ! is_array( $tokens[ $t ] ) ) {
 			continue;
 		}
 
-		if ( T_STRING === $tokens[ $t ][0] && ( '(' === $tokens[ $t + 1 ] || '(' === $tokens[ $t + 2 ] ) ) {
+		if ( T_STRING == $tokens[ $t ][0] && ( '(' === $tokens[ $t + 1 ] || '(' === $tokens[ $t + 2 ] ) ) {
 			// If it's a function or class defined locally, there's not going to be any docs available.
 			if ( ( isset( $tokens[ $t - 2 ][1] ) && in_array( $tokens[ $t - 2 ][1], array( 'function', 'class' ), true ) )
-				|| ( isset( $tokens[ $t - 2 ][0] ) && T_OBJECT_OPERATOR === $tokens[ $t - 1 ][0] )
+				|| ( isset( $tokens[ $t - 2 ][0] ) && T_OBJECT_OPERATOR == $tokens[ $t - 1 ][0] )
 			) {
 				$ignore_functions[] = $tokens[ $t ][1];
 			}
-
-			// Add this to our stack of unique references.
+			// Add this to our stack of unique references
 			$functions[] = $tokens[ $t ][1];
 		}
 	}
@@ -713,194 +664,179 @@ function wp_doc_link_parse( $content ) {
 	/**
 	 * Filters the list of functions and classes to be ignored from the documentation lookup.
 	 *
-	 * @since 2.8.0
+	 * @since WP-2.8.0
 	 *
-	 * @param string[] $ignore_functions Array of names of functions and classes to be ignored.
+	 * @param array $ignore_functions Functions and classes to be ignored.
 	 */
 	$ignore_functions = apply_filters( 'documentation_ignore_functions', $ignore_functions );
 
 	$ignore_functions = array_unique( $ignore_functions );
 
-	$output = array();
-
+	$out = array();
 	foreach ( $functions as $function ) {
 		if ( in_array( $function, $ignore_functions, true ) ) {
 			continue;
 		}
-
-		$output[] = $function;
+		$out[] = $function;
 	}
 
-	return $output;
+	return $out;
 }
 
 /**
  * Saves option for number of rows when listing posts, pages, comments, etc.
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  */
 function set_screen_options() {
-	if ( ! isset( $_POST['wp_screen_options'] ) || ! is_array( $_POST['wp_screen_options'] ) ) {
-		return;
-	}
 
-	check_admin_referer( 'screen-options-nonce', 'screenoptionnonce' );
+	if ( isset( $_POST['wp_screen_options'] ) && is_array( $_POST['wp_screen_options'] ) ) {
+		check_admin_referer( 'screen-options-nonce', 'screenoptionnonce' );
 
-	$user = wp_get_current_user();
+		$user = wp_get_current_user();
+		if ( ! $user ) {
+			return;
+		}
+		$option = $_POST['wp_screen_options']['option'];
+		$value  = $_POST['wp_screen_options']['value'];
 
-	if ( ! $user ) {
-		return;
-	}
+		if ( sanitize_key( $option ) != $option ) {
+			return;
+		}
 
-	$option = $_POST['wp_screen_options']['option'];
-	$value  = $_POST['wp_screen_options']['value'];
+		$map_option = $option;
+		$type       = str_replace( 'edit_', '', $map_option );
+		$type       = str_replace( '_per_page', '', $type );
+		if ( in_array( $type, get_taxonomies(), true ) ) {
+			$map_option = 'edit_tags_per_page';
+		} elseif ( in_array( $type, get_post_types(), true ) ) {
+			$map_option = 'edit_per_page';
+		} else {
+			$option = str_replace( '-', '_', $option );
+		}
 
-	if ( sanitize_key( $option ) !== $option ) {
-		return;
-	}
+		switch ( $map_option ) {
+			case 'edit_per_page':
+			case 'users_per_page':
+			case 'edit_comments_per_page':
+			case 'upload_per_page':
+			case 'edit_tags_per_page':
+			case 'plugins_per_page':
+			case 'export_personal_data_requests_per_page':
+			case 'remove_personal_data_requests_per_page':
+				// Network admin
+			case 'sites_network_per_page':
+			case 'users_network_per_page':
+			case 'site_users_network_per_page':
+			case 'plugins_network_per_page':
+			case 'themes_network_per_page':
+			case 'site_themes_network_per_page':
+				$value = (int) $value;
+				if ( $value < 1 || $value > 999 ) {
+					return;
+				}
+				break;
+			default:
+				$screen_option = false;
 
-	$map_option = $option;
-	$type       = str_replace( 'edit_', '', $map_option );
-	$type       = str_replace( '_per_page', '', $type );
+				if ( '_page' === substr( $option, -5 ) || 'layout_columns' === $option ) {
+					/**
+					 * Filters a screen option value before it is set.
+					 *
+					 * The filter can also be used to modify non-standard [items]_per_page
+					 * settings. See the parent function for a full list of standard options.
+					 *
+					 * Returning false to the filter will skip saving the current option.
+					 *
+					 * @since WP-2.8.0
+					 * @since WP-4.9.15 Only applied to options ending with '_page',
+					 *              or the 'layout_columns' option.
+					 *
+					 * @see set_screen_options()
+					 *
+					 * @param mixed  $screen_option The value to save instead of the option value.
+					 *                              Default false (to skip saving the current option).
+					 * @param string $option        The option name.
+					 * @param int    $value         The option value.
+					 */
+					$screen_option = apply_filters( 'set-screen-option', $screen_option, $option, $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+				}
 
-	if ( in_array( $type, get_taxonomies(), true ) ) {
-		$map_option = 'edit_tags_per_page';
-	} elseif ( in_array( $type, get_post_types(), true ) ) {
-		$map_option = 'edit_per_page';
-	} else {
-		$option = str_replace( '-', '_', $option );
-	}
-
-	switch ( $map_option ) {
-		case 'edit_per_page':
-		case 'users_per_page':
-		case 'edit_comments_per_page':
-		case 'upload_per_page':
-		case 'edit_tags_per_page':
-		case 'plugins_per_page':
-		case 'export_personal_data_requests_per_page':
-		case 'remove_personal_data_requests_per_page':
-			// Network admin.
-		case 'sites_network_per_page':
-		case 'users_network_per_page':
-		case 'site_users_network_per_page':
-		case 'plugins_network_per_page':
-		case 'themes_network_per_page':
-		case 'site_themes_network_per_page':
-			$value = (int) $value;
-
-			if ( $value < 1 || $value > 999 ) {
-				return;
-			}
-
-			break;
-
-		default:
-			$screen_option = false;
-
-			if ( '_page' === substr( $option, -5 ) || 'layout_columns' === $option ) {
 				/**
 				 * Filters a screen option value before it is set.
 				 *
-				 * The filter can also be used to modify non-standard [items]_per_page
-				 * settings. See the parent function for a full list of standard options.
+				 * The dynamic portion of the hook, `$option`, refers to the option name.
 				 *
-				 * Returning false from the filter will skip saving the current option.
+				 * Returning false to the filter will skip saving the current option.
 				 *
-				 * @since 2.8.0
-				 * @since 5.4.2 Only applied to options ending with '_page',
-				 *              or the 'layout_columns' option.
+				 * @since WP-4.9.15
 				 *
 				 * @see set_screen_options()
 				 *
-				 * @param mixed  $screen_option The value to save instead of the option value.
-				 *                              Default false (to skip saving the current option).
-				 * @param string $option        The option name.
-				 * @param int    $value         The option value.
+				 * @param mixed   $screen_option The value to save instead of the option value.
+				 *                               Default false (to skip saving the current option).
+				 * @param string  $option        The option name.
+				 * @param int     $value         The option value.
 				 */
-				$screen_option = apply_filters( 'set-screen-option', $screen_option, $option, $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-			}
+				$value = apply_filters( "set_screen_option_{$option}", $screen_option, $option, $value );
 
-			/**
-			 * Filters a screen option value before it is set.
-			 *
-			 * The dynamic portion of the hook name, `$option`, refers to the option name.
-			 *
-			 * Returning false from the filter will skip saving the current option.
-			 *
-			 * @since 5.4.2
-			 *
-			 * @see set_screen_options()
-			 *
-			 * @param mixed   $screen_option The value to save instead of the option value.
-			 *                               Default false (to skip saving the current option).
-			 * @param string  $option        The option name.
-			 * @param int     $value         The option value.
-			 */
-			$value = apply_filters( "set_screen_option_{$option}", $screen_option, $option, $value );
+				if ( false === $value ) {
+					return;
+				}
+				break;
+		}
 
-			if ( false === $value ) {
-				return;
-			}
+		update_user_meta( $user->ID, $option, $value );
 
-			break;
+		$url = remove_query_arg( array( 'pagenum', 'apage', 'paged' ), wp_get_referer() );
+		if ( isset( $_POST['mode'] ) ) {
+			$url = add_query_arg( array( 'mode' => $_POST['mode'] ), $url );
+		}
+
+		wp_safe_redirect( $url );
+		exit;
 	}
-
-	update_user_meta( $user->ID, $option, $value );
-
-	$url = remove_query_arg( array( 'pagenum', 'apage', 'paged' ), wp_get_referer() );
-
-	if ( isset( $_POST['mode'] ) ) {
-		$url = add_query_arg( array( 'mode' => $_POST['mode'] ), $url );
-	}
-
-	wp_safe_redirect( $url );
-	exit;
 }
 
 /**
- * Checks if rewrite rule for ClassicPress already exists in the IIS 7+ configuration file
+ * Check if rewrite rule for ClassicPress already exists in the IIS 7+ configuration file
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  *
- * @param string $filename The file path to the configuration file.
  * @return bool
+ * @param string $filename The file path to the configuration file
  */
 function iis7_rewrite_rule_exists( $filename ) {
 	if ( ! file_exists( $filename ) ) {
 		return false;
 	}
-
 	if ( ! class_exists( 'DOMDocument', false ) ) {
 		return false;
 	}
 
 	$doc = new DOMDocument();
-
 	if ( $doc->load( $filename ) === false ) {
 		return false;
 	}
-
 	$xpath = new DOMXPath( $doc );
 	$rules = $xpath->query( '/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'wordpress\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'WordPress\')]' );
-
-	if ( 0 === $rules->length ) {
+	if ( 0 == $rules->length ) {
 		return false;
+	} else {
+		return true;
 	}
-
-	return true;
 }
 
 /**
- * Deletes ClassicPress rewrite rule from web.config file if it exists there
+ * Delete ClassicPress rewrite rule from web.config file if it exists there
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  *
- * @param string $filename Name of the configuration file.
+ * @param string $filename Name of the configuration file
  * @return bool
  */
 function iis7_delete_rewrite_rule( $filename ) {
-	// If configuration file does not exist then rules also do not exist, so there is nothing to delete.
+	// If configuration file does not exist then rules also do not exist so there is nothing to delete
 	if ( ! file_exists( $filename ) ) {
 		return true;
 	}
@@ -915,10 +851,8 @@ function iis7_delete_rewrite_rule( $filename ) {
 	if ( $doc->load( $filename ) === false ) {
 		return false;
 	}
-
 	$xpath = new DOMXPath( $doc );
 	$rules = $xpath->query( '/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'wordpress\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'WordPress\')]' );
-
 	if ( $rules->length > 0 ) {
 		$child  = $rules->item( 0 );
 		$parent = $child->parentNode;
@@ -926,17 +860,16 @@ function iis7_delete_rewrite_rule( $filename ) {
 		$doc->formatOutput = true;
 		saveDomDocument( $doc, $filename );
 	}
-
 	return true;
 }
 
 /**
- * Adds ClassicPress rewrite rule to the IIS 7+ configuration file.
+ * Add ClassicPress rewrite rule to the IIS 7+ configuration file.
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  *
- * @param string $filename     The file path to the configuration file.
- * @param string $rewrite_rule The XML fragment with URL Rewrite rule.
+ * @param string $filename The file path to the configuration file
+ * @param string $rewrite_rule The XML fragment with URL Rewrite rule
  * @return bool
  */
 function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
@@ -960,48 +893,43 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 
 	$xpath = new DOMXPath( $doc );
 
-	// First check if the rule already exists as in that case there is no need to re-add it.
+	// First check if the rule already exists as in that case there is no need to re-add it
 	$wordpress_rules = $xpath->query( '/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'wordpress\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'WordPress\')]' );
-
 	if ( $wordpress_rules->length > 0 ) {
 		return true;
 	}
 
-	// Check the XPath to the rewrite rule and create XML nodes if they do not exist.
-	$xml_nodes = $xpath->query( '/configuration/system.webServer/rewrite/rules' );
-
-	if ( $xml_nodes->length > 0 ) {
-		$rules_node = $xml_nodes->item( 0 );
+	// Check the XPath to the rewrite rule and create XML nodes if they do not exist
+	$xmlnodes = $xpath->query( '/configuration/system.webServer/rewrite/rules' );
+	if ( $xmlnodes->length > 0 ) {
+		$rules_node = $xmlnodes->item( 0 );
 	} else {
 		$rules_node = $doc->createElement( 'rules' );
 
-		$xml_nodes = $xpath->query( '/configuration/system.webServer/rewrite' );
-
-		if ( $xml_nodes->length > 0 ) {
-			$rewrite_node = $xml_nodes->item( 0 );
+		$xmlnodes = $xpath->query( '/configuration/system.webServer/rewrite' );
+		if ( $xmlnodes->length > 0 ) {
+			$rewrite_node = $xmlnodes->item( 0 );
 			$rewrite_node->appendChild( $rules_node );
 		} else {
 			$rewrite_node = $doc->createElement( 'rewrite' );
 			$rewrite_node->appendChild( $rules_node );
 
-			$xml_nodes = $xpath->query( '/configuration/system.webServer' );
-
-			if ( $xml_nodes->length > 0 ) {
-				$system_web_server_node = $xml_nodes->item( 0 );
-				$system_web_server_node->appendChild( $rewrite_node );
+			$xmlnodes = $xpath->query( '/configuration/system.webServer' );
+			if ( $xmlnodes->length > 0 ) {
+				$system_webServer_node = $xmlnodes->item( 0 );
+				$system_webServer_node->appendChild( $rewrite_node );
 			} else {
-				$system_web_server_node = $doc->createElement( 'system.webServer' );
-				$system_web_server_node->appendChild( $rewrite_node );
+				$system_webServer_node = $doc->createElement( 'system.webServer' );
+				$system_webServer_node->appendChild( $rewrite_node );
 
-				$xml_nodes = $xpath->query( '/configuration' );
-
-				if ( $xml_nodes->length > 0 ) {
-					$config_node = $xml_nodes->item( 0 );
-					$config_node->appendChild( $system_web_server_node );
+				$xmlnodes = $xpath->query( '/configuration' );
+				if ( $xmlnodes->length > 0 ) {
+					$config_node = $xmlnodes->item( 0 );
+					$config_node->appendChild( $system_webServer_node );
 				} else {
 					$config_node = $doc->createElement( 'configuration' );
 					$doc->appendChild( $config_node );
-					$config_node->appendChild( $system_web_server_node );
+					$config_node->appendChild( $system_webServer_node );
 				}
 			}
 		}
@@ -1019,26 +947,25 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 }
 
 /**
- * Saves the XML document into a file.
+ * Saves the XML document into a file
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  *
  * @param DOMDocument $doc
- * @param string      $filename
+ * @param string $filename
  */
 function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$config = $doc->saveXML();
 	$config = preg_replace( "/([^\r])\n/", "$1\r\n", $config );
-
-	$fp = fopen( $filename, 'w' );
+	$fp     = fopen( $filename, 'w' );
 	fwrite( $fp, $config );
 	fclose( $fp );
 }
 
 /**
- * Displays the default admin color scheme picker (Used in user-edit.php).
+ * Display the default admin color scheme picker (Used in user-edit.php)
  *
- * @since 3.0.0
+ * @since WP-3.0.0
  *
  * @global array $_wp_admin_css_colors
  *
@@ -1054,9 +981,8 @@ function admin_color_scheme_picker( $user_id ) {
 		$_wp_admin_css_colors = array_filter(
 			array_merge(
 				array(
-					'fresh'  => '',
-					'light'  => '',
-					'modern' => '',
+					'fresh' => '',
+					'light' => '',
 				),
 				$_wp_admin_css_colors
 			)
@@ -1068,32 +994,30 @@ function admin_color_scheme_picker( $user_id ) {
 	if ( empty( $current_color ) || ! isset( $_wp_admin_css_colors[ $current_color ] ) ) {
 		$current_color = 'fresh';
 	}
+
 	?>
 	<fieldset id="color-picker" class="scheme-list">
-		<legend class="screen-reader-text"><span>
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Admin Color Scheme' );
-			?>
-		</span></legend>
+		<legend class="screen-reader-text"><span><?php _e( 'Admin Color Scheme' ); ?></span></legend>
 		<?php
 		wp_nonce_field( 'save-color-scheme', 'color-nonce', false );
 		foreach ( $_wp_admin_css_colors as $color => $color_info ) :
 
 			?>
-			<div class="color-option <?php echo ( $color === $current_color ) ? 'selected' : ''; ?>">
-				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" class="tog" <?php checked( $color, $current_color ); ?>>
-				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>">
-				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>">
+			<div class="color-option <?php echo ( $color == $current_color ) ? 'selected' : ''; ?>">
+				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" class="tog" <?php checked( $color, $current_color ); ?> />
+				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
+				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
 				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
 				<table class="color-palette">
 					<tr>
 					<?php
+
 					foreach ( $color_info->colors as $html_color ) {
 						?>
 						<td style="background-color: <?php echo esc_attr( $html_color ); ?>">&nbsp;</td>
 						<?php
 					}
+
 					?>
 					</tr>
 				</table>
@@ -1101,6 +1025,7 @@ function admin_color_scheme_picker( $user_id ) {
 			<?php
 
 		endforeach;
+
 		?>
 	</fieldset>
 	<?php
@@ -1127,59 +1052,34 @@ function wp_color_scheme_settings() {
 	} else {
 		// Fall back to the default set of icon colors if the default scheme is missing.
 		$icon_colors = array(
-			'base'    => '#a7aaad',
-			'focus'   => '#72aee6',
+			'base'    => '#a0a5aa',
+			'focus'   => '#00a0d2',
 			'current' => '#fff',
 		);
 	}
 
-	echo '<script>var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ) ) . ";</script>\n";
+	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ) ) . ";</script>\n";
 }
 
 /**
- * Displays the viewport meta in the admin.
- *
- * @since 5.5.0
+ * @since WP-3.3.0
  */
-function wp_admin_viewport_meta() {
-	/**
-	 * Filters the viewport meta in the admin.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @param string $viewport_meta The viewport meta.
-	 */
-	$viewport_meta = apply_filters( 'admin_viewport_meta', 'width=device-width,initial-scale=1.0' );
-
-	if ( empty( $viewport_meta ) ) {
-		return;
+function _ipad_meta() {
+	if ( wp_is_mobile() ) {
+		?>
+		<meta name="viewport" id="viewport-meta" content="width=device-width, initial-scale=1">
+		<?php
 	}
-
-	echo '<meta name="viewport" content="' . esc_attr( $viewport_meta ) . '">';
 }
 
 /**
- * Adds viewport meta for mobile in Customizer.
+ * Check lock status for posts displayed on the Posts screen
  *
- * Hooked to the {@see 'admin_viewport_meta'} filter.
- *
- * @since 5.5.0
- *
- * @param string $viewport_meta The viewport meta.
- * @return string Filtered viewport meta.
- */
-function _customizer_mobile_viewport_meta( $viewport_meta ) {
-	return trim( $viewport_meta, ',' ) . ',minimum-scale=0.5,maximum-scale=1.2';
-}
-
-/**
- * Checks lock status for posts displayed on the Posts screen.
- *
- * @since 3.6.0
+ * @since WP-3.6.0
  *
  * @param array  $response  The Heartbeat response.
  * @param array  $data      The $_POST data sent.
- * @param string $screen_id The screen ID.
+ * @param string $screen_id The screen id.
  * @return array The Heartbeat response.
  */
 function wp_check_locked_posts( $response, $data, $screen_id ) {
@@ -1188,26 +1088,19 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 	if ( array_key_exists( 'wp-check-locked-posts', $data ) && is_array( $data['wp-check-locked-posts'] ) ) {
 		foreach ( $data['wp-check-locked-posts'] as $key ) {
 			$post_id = absint( substr( $key, 5 ) );
-
 			if ( ! $post_id ) {
 				continue;
 			}
 
 			$user_id = wp_check_post_lock( $post_id );
-
 			if ( $user_id ) {
 				$user = get_userdata( $user_id );
-
 				if ( $user && current_user_can( 'edit_post', $post_id ) ) {
-					$send = array(
-						'name' => $user->display_name,
-						/* translators: %s: User's display name. */
-						'text' => sprintf( __( '%s is currently editing' ), $user->display_name ),
-					);
+					$send = array( 'text' => sprintf( __( '%s is currently editing' ), $user->display_name ) );
 
-					if ( get_option( 'show_avatars' ) ) {
-						$send['avatar_src']    = get_avatar_url( $user->ID, array( 'size' => 18 ) );
-						$send['avatar_src_2x'] = get_avatar_url( $user->ID, array( 'size' => 36 ) );
+					$avatar = get_avatar( $user->ID, 18 );
+					if ( $avatar && preg_match( "|src='([^']+)'|", $avatar, $matches ) ) {
+						$send['avatar_src'] = $matches[1];
 					}
 
 					$checked[ $key ] = $send;
@@ -1224,13 +1117,13 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 }
 
 /**
- * Checks lock status on the New/Edit Post screen and refresh the lock.
+ * Check lock status on the New/Edit Post screen and refresh the lock
  *
- * @since 3.6.0
+ * @since WP-3.6.0
  *
  * @param array  $response  The Heartbeat response.
  * @param array  $data      The $_POST data sent.
- * @param string $screen_id The screen ID.
+ * @param string $screen_id The screen id.
  * @return array The Heartbeat response.
  */
 function wp_refresh_post_lock( $response, $data, $screen_id ) {
@@ -1239,7 +1132,6 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
 		$send     = array();
 
 		$post_id = absint( $received['post_id'] );
-
 		if ( ! $post_id ) {
 			return $response;
 		}
@@ -1250,23 +1142,21 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
 
 		$user_id = wp_check_post_lock( $post_id );
 		$user    = get_userdata( $user_id );
-
 		if ( $user ) {
 			$error = array(
-				'name' => $user->display_name,
-				/* translators: %s: User's display name. */
 				'text' => sprintf( __( '%s has taken over and is currently editing.' ), $user->display_name ),
 			);
 
-			if ( get_option( 'show_avatars' ) ) {
-				$error['avatar_src']    = get_avatar_url( $user->ID, array( 'size' => 64 ) );
-				$error['avatar_src_2x'] = get_avatar_url( $user->ID, array( 'size' => 128 ) );
+			$avatar = get_avatar( $user->ID, 64 );
+			if ( $avatar ) {
+				if ( preg_match( "|src='([^']+)'|", $avatar, $matches ) ) {
+					$error['avatar_src'] = $matches[1];
+				}
 			}
 
 			$send['lock_error'] = $error;
 		} else {
 			$new_lock = wp_set_post_lock( $post_id );
-
 			if ( $new_lock ) {
 				$send['new_lock'] = implode( ':', $new_lock );
 			}
@@ -1279,23 +1169,21 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
 }
 
 /**
- * Checks nonce expiration on the New/Edit Post screen and refresh if needed.
+ * Check nonce expiration on the New/Edit Post screen and refresh if needed
  *
- * @since 3.6.0
+ * @since WP-3.6.0
  *
  * @param array  $response  The Heartbeat response.
  * @param array  $data      The $_POST data sent.
- * @param string $screen_id The screen ID.
+ * @param string $screen_id The screen id.
  * @return array The Heartbeat response.
  */
 function wp_refresh_post_nonces( $response, $data, $screen_id ) {
 	if ( array_key_exists( 'wp-refresh-post-nonces', $data ) ) {
-		$received = $data['wp-refresh-post-nonces'];
-
+		$received                           = $data['wp-refresh-post-nonces'];
 		$response['wp-refresh-post-nonces'] = array( 'check' => 1 );
 
 		$post_id = absint( $received['post_id'] );
-
 		if ( ! $post_id ) {
 			return $response;
 		}
@@ -1305,13 +1193,14 @@ function wp_refresh_post_nonces( $response, $data, $screen_id ) {
 		}
 
 		$response['wp-refresh-post-nonces'] = array(
-			'replace' => array(
+			'replace'        => array(
 				'getpermalinknonce'    => wp_create_nonce( 'getpermalink' ),
 				'samplepermalinknonce' => wp_create_nonce( 'samplepermalink' ),
 				'closedpostboxesnonce' => wp_create_nonce( 'closedpostboxes' ),
 				'_ajax_linking_nonce'  => wp_create_nonce( 'internal-linking' ),
 				'_wpnonce'             => wp_create_nonce( 'update-post_' . $post_id ),
 			),
+			'heartbeatNonce' => wp_create_nonce( 'heartbeat-nonce' ),
 		);
 	}
 
@@ -1319,29 +1208,11 @@ function wp_refresh_post_nonces( $response, $data, $screen_id ) {
 }
 
 /**
- * Adds the latest Heartbeat and REST-API nonce to the Heartbeat response.
- *
- * @since 5.0.0
- *
- * @param array $response The Heartbeat response.
- * @return array The Heartbeat response.
- */
-function wp_refresh_heartbeat_nonces( $response ) {
-	// Refresh the Rest API nonce.
-	$response['rest_nonce'] = wp_create_nonce( 'wp_rest' );
-
-	// Refresh the Heartbeat nonce.
-	$response['heartbeat_nonce'] = wp_create_nonce( 'heartbeat-nonce' );
-
-	return $response;
-}
-
-/**
  * Disable suspension of Heartbeat on the Add/Edit Post screens.
  *
- * @since 3.8.0
+ * @since WP-3.8.0
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string $pagenow
  *
  * @param array $settings An array of Heartbeat settings.
  * @return array Filtered Heartbeat settings.
@@ -1357,9 +1228,9 @@ function wp_heartbeat_set_suspension( $settings ) {
 }
 
 /**
- * Performs autosave with heartbeat.
+ * Autosave with heartbeat
  *
- * @since 3.9.0
+ * @since WP-3.9.0
  *
  * @param array $response The Heartbeat response.
  * @param array $data     The $_POST data sent.
@@ -1380,11 +1251,11 @@ function heartbeat_autosave( $response, $data ) {
 				'message' => __( 'Error while saving.' ),
 			);
 		} else {
-			/* translators: Draft saved date format, see https://www.php.net/manual/datetime.format.php */
+			/* translators: draft saved date format, see https://secure.php.net/date */
 			$draft_saved_date_format = __( 'g:i:s a' );
+			/* translators: %s: date and time */
 			$response['wp_autosave'] = array(
 				'success' => true,
-				/* translators: %s: Date and time. */
 				'message' => sprintf( __( 'Draft saved at %s.' ), date_i18n( $draft_saved_date_format ) ),
 			);
 		}
@@ -1394,12 +1265,12 @@ function heartbeat_autosave( $response, $data ) {
 }
 
 /**
- * Removes single-use URL parameters and create canonical link based on new URL.
+ * Remove single-use URL parameters and create canonical link based on new URL.
  *
- * Removes specific query string parameters from a URL, create the canonical link,
+ * Remove specific query string parameters from a URL, create the canonical link,
  * put it in the admin header, and change the current URL to match.
  *
- * @since 4.2.0
+ * @since WP-4.2.0
  */
 function wp_admin_canonical_url() {
 	$removable_query_args = wp_removable_query_args();
@@ -1412,7 +1283,7 @@ function wp_admin_canonical_url() {
 	$current_url  = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$filtered_url = remove_query_arg( $removable_query_args, $current_url );
 	?>
-	<link id="wp-admin-canonical" rel="canonical" href="<?php echo esc_url( $filtered_url ); ?>">
+	<link id="wp-admin-canonical" rel="canonical" href="<?php echo esc_url( $filtered_url ); ?>" />
 	<script>
 		if ( window.history.replaceState ) {
 			window.history.replaceState( null, null, document.getElementById( 'wp-admin-canonical' ).href + window.location.hash );
@@ -1422,9 +1293,9 @@ function wp_admin_canonical_url() {
 }
 
 /**
- * Sends a referrer policy header so referrers are not sent externally from administration screens.
+ * Send a referrer policy header so referrers are not sent externally from administration screens.
  *
- * @since 4.9.0
+ * @since WP-4.9.0
  */
 function wp_admin_headers() {
 	$policy = 'strict-origin-when-cross-origin';
@@ -1432,8 +1303,8 @@ function wp_admin_headers() {
 	/**
 	 * Filters the admin referrer policy header value.
 	 *
-	 * @since 4.9.0
-	 * @since 4.9.5 The default value was changed to 'strict-origin-when-cross-origin'.
+	 * @since WP-4.9.0
+	 * @since WP-4.9.5 The default value was changed to 'strict-origin-when-cross-origin'.
 	 *
 	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
 	 *
@@ -1450,7 +1321,7 @@ function wp_admin_headers() {
  * Used on the Edit Post and Add New Post screens. Needed to ensure the page is not loaded from browser cache,
  * so the post title and editor content are the last saved versions. Ideally this script should run first in the head.
  *
- * @since 4.6.0
+ * @since WP-4.6.0
  */
 function wp_page_reload_on_back_button_js() {
 	?>
@@ -1463,12 +1334,12 @@ function wp_page_reload_on_back_button_js() {
 }
 
 /**
- * Sends a confirmation request email when a change of site admin email address is attempted.
+ * Send a confirmation request email when a change of site admin email address is attempted.
  *
  * The new site admin address will not become active until confirmed.
  *
- * @since 3.0.0
- * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
+ * @since WP-3.0.0
+ * @since WP-4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
  *
  * @param string $old_value The old site admin email address.
  * @param string $value     The proposed new site admin email address.
@@ -1485,17 +1356,16 @@ function update_option_new_admin_email( $old_value, $value ) {
 	);
 	update_option( 'adminhash', $new_admin_email );
 
-	$switched_locale = switch_to_user_locale( get_current_user_id() );
+	$switched_locale = switch_to_locale( get_user_locale() );
 
 	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
 		'Hello ###USERNAME###,
 
-Someone with administrator capabilities recently requested to have the
-administration email address changed on this site:
-###SITEURL###
+You recently requested to have the administration email address on
+your site changed.
 
-To confirm this change, please click on the following link:
+If this is correct, please click on the following link to change it:
 ###ADMIN_URL###
 
 You can safely ignore and delete this email if you do not want to
@@ -1518,8 +1388,8 @@ All at ###SITENAME###
 	 * ###SITENAME###  The name of the site.
 	 * ###SITEURL###   The URL to the site.
 	 *
-	 * @since MU (3.0.0)
-	 * @since 4.9.0 This filter is no longer Multisite specific.
+	 * @since WP-MU (3.0.0)
+	 * @since WP-4.9.0 This filter is no longer Multisite specific.
 	 *
 	 * @param string $email_text      Text in the email.
 	 * @param array  $new_admin_email {
@@ -1538,21 +1408,7 @@ All at ###SITENAME###
 	$content      = str_replace( '###SITENAME###', wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $content );
 	$content      = str_replace( '###SITEURL###', home_url(), $content );
 
-	if ( '' !== get_option( 'blogname' ) ) {
-		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	} else {
-		$site_title = parse_url( home_url(), PHP_URL_HOST );
-	}
-
-	wp_mail(
-		$value,
-		sprintf(
-			/* translators: New admin email address notification email subject. %s: Site title. */
-			__( '[%s] New Admin Email Address' ),
-			$site_title
-		),
-		$content
-	);
+	wp_mail( $value, sprintf( __( '[%s] New Admin Email Address' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ), $content );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
@@ -1563,16 +1419,17 @@ All at ###SITENAME###
  * Appends '(Draft)' to draft page titles in the privacy page dropdown
  * so that unpublished content is obvious.
  *
- * @since 4.9.8
+ * @since WP-4.9.8
  * @access private
  *
  * @param string  $title Page title.
  * @param WP_Post $page  Page data object.
+ *
  * @return string Page title.
  */
 function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
 	if ( 'draft' === $page->post_status && 'privacy' === get_current_screen()->id ) {
-		/* translators: %s: Page title. */
+		/* translators: %s: Page Title */
 		$title = sprintf( __( '%s (Draft)' ), $title );
 	}
 
@@ -1580,73 +1437,581 @@ function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
 }
 
 /**
- * Checks if the user needs to update PHP.
+ * WP_Privacy_Policy_Content class.
+ * TODO: move this to a new file.
  *
- * @since 5.1.0
- * @since 5.1.1 Added the {@see 'wp_is_php_version_acceptable'} filter.
- *
- * @return array|false Array of PHP version data. False on failure.
+ * @since WP-4.9.6
  */
-function wp_check_php_version() {
-	$version = PHP_VERSION;
-	$key     = md5( $version );
+final class WP_Privacy_Policy_Content {
 
-	$response = get_site_transient( 'php_check_' . $key );
+	private static $policy_content = array();
 
-	if ( false === $response ) {
-		$url = 'https://api.wordpress.org/core/serve-happy/1.0/';
+	/**
+	 * Constructor
+	 *
+	 * @since WP-4.9.6
+	 */
+	private function __construct() {}
 
-		$url = add_query_arg( 'php_version', $version, $url );
+	/**
+	 * Add content to the postbox shown when editing the privacy policy.
+	 *
+	 * Plugins and themes should suggest text for inclusion in the site's privacy policy.
+	 * The suggested text should contain information about any functionality that affects user privacy,
+	 * and will be shown in the Suggested Privacy Policy Content postbox.
+	 *
+	 * Intended for use from `wp_add_privacy_policy_content()`.
+	 *
+	 * @since WP-4.9.6
+	 *
+	 * @param string $plugin_name The name of the plugin or theme that is suggesting content for the site's privacy policy.
+	 * @param string $policy_text The suggested content for inclusion in the policy.
+	 */
+	public static function add( $plugin_name, $policy_text ) {
+		if ( empty( $plugin_name ) || empty( $policy_text ) ) {
+			return;
+		}
 
-		$response = wp_remote_get( $url );
+		$data = array(
+			'plugin_name' => $plugin_name,
+			'policy_text' => $policy_text,
+		);
 
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		if ( ! in_array( $data, self::$policy_content, true ) ) {
+			self::$policy_content[] = $data;
+		}
+	}
+
+	/**
+	 * Quick check if any privacy info has changed.
+	 *
+	 * @since WP-4.9.6
+	 */
+	public static function text_change_check() {
+
+		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+
+		// The site doesn't have a privacy policy.
+		if ( empty( $policy_page_id ) ) {
 			return false;
 		}
 
-		/**
-		 * Response should be an array with:
-		 *  'recommended_version' - string - The PHP version recommended by ClassicPress.
-		 *  'is_supported' - boolean - Whether the PHP version is actively supported.
-		 *  'is_secure' - boolean - Whether the PHP version receives security updates.
-		 *  'is_acceptable' - boolean - Whether the PHP version is still acceptable or warnings
-		 *                              should be shown and an update recommended.
-		 */
-		$response = json_decode( wp_remote_retrieve_body( $response ), true );
-
-		if ( ! is_array( $response ) ) {
+		if ( ! current_user_can( 'edit_post', $policy_page_id ) ) {
 			return false;
 		}
 
-		set_site_transient( 'php_check_' . $key, $response, WEEK_IN_SECONDS );
-	}
+		$old = (array) get_post_meta( $policy_page_id, '_wp_suggested_privacy_policy_content' );
 
-	if ( isset( $response['is_acceptable'] ) && $response['is_acceptable'] ) {
-		/**
-		 * Filters whether the active PHP version is considered acceptable by ClassicPress.
-		 *
-		 * Returning false will trigger a PHP version warning to show up in the admin dashboard to administrators.
-		 *
-		 * This filter is only run if the wordpress.org Serve Happy API considers the PHP version acceptable, ensuring
-		 * that this filter can only make this check stricter, but not loosen it.
-		 *
-		 * @since 5.1.1
-		 *
-		 * @param bool   $is_acceptable Whether the PHP version is considered acceptable. Default true.
-		 * @param string $version       PHP version checked.
+		// Updates are not relevant if the user has not reviewed any suggestions yet.
+		if ( empty( $old ) ) {
+			return false;
+		}
+
+		$cached = get_option( '_wp_suggested_policy_text_has_changed' );
+
+		/*
+		 * When this function is called before `admin_init`, `self::$policy_content`
+		 * has not been populated yet, so use the cached result from the last
+		 * execution instead.
 		 */
-		$response['is_acceptable'] = (bool) apply_filters( 'wp_is_php_version_acceptable', true, $version );
+		if ( ! did_action( 'admin_init' ) ) {
+			return 'changed' === $cached;
+		}
+
+		$new = self::$policy_content;
+
+		// Remove the extra values added to the meta.
+		foreach ( $old as $key => $data ) {
+			if ( ! empty( $data['removed'] ) ) {
+				unset( $old[ $key ] );
+				continue;
+			}
+
+			$old[ $key ] = array(
+				'plugin_name' => $data['plugin_name'],
+				'policy_text' => $data['policy_text'],
+			);
+		}
+
+		// Normalize the order of texts, to facilitate comparison.
+		sort( $old );
+		sort( $new );
+
+		// The == operator (equal, not identical) was used intentionally.
+		// See http://php.net/manual/en/language.operators.array.php
+		if ( $new != $old ) {
+			// A plugin was activated or deactivated, or some policy text has changed.
+			// Show a notice on the relevant screens to inform the admin.
+			add_action( 'admin_notices', array( 'WP_Privacy_Policy_Content', 'policy_text_changed_notice' ) );
+			$state = 'changed';
+		} else {
+			$state = 'not-changed';
+		}
+
+		// Cache the result for use before `admin_init` (see above).
+		if ( $cached !== $state ) {
+			update_option( '_wp_suggested_policy_text_has_changed', $state );
+		}
+
+		return 'changed' === $state;
 	}
 
-	$response['is_lower_than_future_minimum'] = false;
+	/**
+	 * Output a warning when some privacy info has changed.
+	 *
+	 * @since WP-4.9.6
+	 */
+	public static function policy_text_changed_notice() {
+		global $post;
 
-	// The minimum supported PHP version will be updated to 7.2. Check if the current version is lower.
-	if ( version_compare( $version, '7.2', '<' ) ) {
-		$response['is_lower_than_future_minimum'] = true;
+		$screen = get_current_screen()->id;
 
-		// Force showing of warnings.
-		$response['is_acceptable'] = false;
+		if ( 'privacy' !== $screen ) {
+			return;
+		}
+
+		?>
+		<div class="policy-text-updated notice notice-warning is-dismissible">
+			<p>
+			<?php
+				printf(
+					/* translators: %s: Privacy Policy Guide URL */
+					__( 'The suggested privacy policy text has changed. Please <a href="%s">review the guide</a> and update your privacy policy.' ),
+					esc_url( admin_url( 'tools.php?wp-privacy-policy-guide=1' ) )
+				);
+			?>
+			</p>
+		</div>
+		<?php
 	}
 
-	return $response;
+	/**
+	 * Update the cached policy info when the policy page is updated.
+	 *
+	 * @since WP-4.9.6
+	 * @access private
+	 */
+	public static function _policy_page_updated( $post_id ) {
+		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+
+		if ( ! $policy_page_id || $policy_page_id !== (int) $post_id ) {
+			return;
+		}
+
+		// Remove updated|removed status.
+		$old          = (array) get_post_meta( $policy_page_id, '_wp_suggested_privacy_policy_content' );
+		$done         = array();
+		$update_cache = false;
+
+		foreach ( $old as $old_key => $old_data ) {
+			if ( ! empty( $old_data['removed'] ) ) {
+				// Remove the old policy text.
+				$update_cache = true;
+				continue;
+			}
+
+			if ( ! empty( $old_data['updated'] ) ) {
+				// 'updated' is now 'added'.
+				$done[]       = array(
+					'plugin_name' => $old_data['plugin_name'],
+					'policy_text' => $old_data['policy_text'],
+					'added'       => $old_data['updated'],
+				);
+				$update_cache = true;
+			} else {
+				$done[] = $old_data;
+			}
+		}
+
+		if ( $update_cache ) {
+			delete_post_meta( $policy_page_id, '_wp_suggested_privacy_policy_content' );
+			// Update the cache.
+			foreach ( $done as $data ) {
+				add_post_meta( $policy_page_id, '_wp_suggested_privacy_policy_content', $data );
+			}
+		}
+	}
+
+	/**
+	 * Check for updated, added or removed privacy policy information from plugins.
+	 *
+	 * Caches the current info in post_meta of the policy page.
+	 *
+	 * @since WP-4.9.6
+	 *
+	 * @return array The privacy policy text/informtion added by core and plugins.
+	 */
+	public static function get_suggested_policy_text() {
+		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+		$checked        = array();
+		$time           = time();
+		$update_cache   = false;
+		$new            = self::$policy_content;
+		$old            = array();
+
+		if ( $policy_page_id ) {
+			$old = (array) get_post_meta( $policy_page_id, '_wp_suggested_privacy_policy_content' );
+		}
+
+		// Check for no-changes and updates.
+		foreach ( $new as $new_key => $new_data ) {
+			foreach ( $old as $old_key => $old_data ) {
+				$found = false;
+
+				if ( $new_data['policy_text'] === $old_data['policy_text'] ) {
+					// Use the new plugin name in case it was changed, translated, etc.
+					if ( $old_data['plugin_name'] !== $new_data['plugin_name'] ) {
+						$old_data['plugin_name'] = $new_data['plugin_name'];
+						$update_cache            = true;
+					}
+
+					// A plugin was re-activated.
+					if ( ! empty( $old_data['removed'] ) ) {
+						unset( $old_data['removed'] );
+						$old_data['added'] = $time;
+						$update_cache      = true;
+					}
+
+					$checked[] = $old_data;
+					$found     = true;
+				} elseif ( $new_data['plugin_name'] === $old_data['plugin_name'] ) {
+					// The info for the policy was updated.
+					$checked[] = array(
+						'plugin_name' => $new_data['plugin_name'],
+						'policy_text' => $new_data['policy_text'],
+						'updated'     => $time,
+					);
+					$found     = $update_cache = true;
+				}
+
+				if ( $found ) {
+					unset( $new[ $new_key ], $old[ $old_key ] );
+					continue 2;
+				}
+			}
+		}
+
+		if ( ! empty( $new ) ) {
+			// A plugin was activated.
+			foreach ( $new as $new_data ) {
+				if ( ! empty( $new_data['plugin_name'] ) && ! empty( $new_data['policy_text'] ) ) {
+					$new_data['added'] = $time;
+					$checked[]         = $new_data;
+				}
+			}
+			$update_cache = true;
+		}
+
+		if ( ! empty( $old ) ) {
+			// A plugin was deactivated.
+			foreach ( $old as $old_data ) {
+				if ( ! empty( $old_data['plugin_name'] ) && ! empty( $old_data['policy_text'] ) ) {
+					$data = array(
+						'plugin_name' => $old_data['plugin_name'],
+						'policy_text' => $old_data['policy_text'],
+						'removed'     => $time,
+					);
+
+					$checked[] = $data;
+				}
+			}
+			$update_cache = true;
+		}
+
+		if ( $update_cache && $policy_page_id ) {
+			delete_post_meta( $policy_page_id, '_wp_suggested_privacy_policy_content' );
+			// Update the cache.
+			foreach ( $checked as $data ) {
+				add_post_meta( $policy_page_id, '_wp_suggested_privacy_policy_content', $data );
+			}
+		}
+
+		return $checked;
+	}
+
+	/**
+	 * Add a notice with a link to the guide when editing the privacy policy page.
+	 *
+	 * @since WP-4.9.6
+	 *
+	 * @param WP_Post $post The currently edited post.
+	 */
+	public static function notice( $post ) {
+		if ( ! ( $post instanceof WP_Post ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_privacy_options' ) ) {
+			return;
+		}
+
+		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+
+		if ( ! $policy_page_id || $policy_page_id != $post->ID ) {
+			return;
+		}
+
+		?>
+		<div class="notice notice-warning inline wp-pp-notice">
+			<p>
+			<?php
+			/* translators: 1: Privacy Policy guide URL, 2: additional link attributes, 3: accessibility text */
+			printf(
+				__( 'Need help putting together your new Privacy Policy page? <a href="%1$s" %2$s>Check out our guide%3$s</a> for recommendations on what content to include, along with policies suggested by your plugins and theme.' ),
+				admin_url( 'tools.php?wp-privacy-policy-guide=1' ),
+				'target="_blank"',
+				sprintf(
+					'<span class="screen-reader-text"> %s</span>',
+					/* translators: accessibility text */
+					__( '(opens in a new tab)' )
+				)
+			);
+			?>
+			</p>
+		</div>
+		<?php
+
+	}
+
+	/**
+	 * Output the privacy policy guide together with content from the theme and plugins.
+	 *
+	 * @since WP-4.9.6
+	 */
+	public static function privacy_policy_guide() {
+
+		$content_array = self::get_suggested_policy_text();
+
+		$content       = '';
+		$toc           = array( '<li><a href="#wp-privacy-policy-guide-introduction">' . __( 'Introduction' ) . '</a></li>' );
+		$date_format   = __( 'F j, Y' );
+		$copy          = __( 'Copy' );
+		$return_to_top = '<a href="#" class="return-to-top">' . __( '&uarr; Return to Top' ) . '</a>';
+
+		foreach ( $content_array as $section ) {
+			$class = $meta = $removed = '';
+
+			if ( ! empty( $section['removed'] ) ) {
+				$class = ' text-removed';
+				$date  = date_i18n( $date_format, $section['removed'] );
+				$meta  = sprintf( __( 'Removed %s.' ), $date );
+
+				$removed = __( 'You deactivated this plugin on %s and may no longer need this policy.' );
+				$removed = '<div class="error inline"><p>' . sprintf( $removed, $date ) . '</p></div>';
+			} elseif ( ! empty( $section['updated'] ) ) {
+				$class = ' text-updated';
+				$date  = date_i18n( $date_format, $section['updated'] );
+				$meta  = sprintf( __( 'Updated %s.' ), $date );
+			}
+
+			if ( $meta ) {
+				$meta = '<br><span class="privacy-text-meta">' . $meta . '</span>';
+			}
+
+			$plugin_name = esc_html( $section['plugin_name'] );
+			$toc_id      = 'wp-privacy-policy-guide-' . sanitize_title( $plugin_name );
+			$toc[]       = sprintf( '<li><a href="#%1$s">%2$s</a>' . $meta . '</li>', $toc_id, $plugin_name );
+
+			$content .= '<div class="privacy-text-section' . $class . '">';
+			$content .= '<a id="' . $toc_id . '">&nbsp;</a>';
+			/* translators: %s: plugin name */
+			$content .= '<h2>' . sprintf( __( 'Source: %s' ), $plugin_name ) . '</h2>';
+			$content .= $removed;
+
+			$content .= '<div class="policy-text">' . $section['policy_text'] . '</div>';
+			$content .= $return_to_top;
+
+			if ( empty( $section['removed'] ) ) {
+				$content         .= '<div class="privacy-text-actions">';
+					$content     .= '<button type="button" class="privacy-text-copy button">';
+						$content .= $copy;
+						$content .= '<span class="screen-reader-text">' . sprintf( __( 'Copy suggested policy text from %s.' ), $plugin_name ) . '</span>';
+					$content     .= '</button>';
+				$content         .= '</div>';
+			}
+
+			$content .= "</div>\n"; // End of .privacy-text-section.
+		}
+
+		if ( count( $toc ) > 2 ) {
+			?>
+			<div  class="privacy-text-box-toc">
+				<p><?php _e( 'Table of Contents' ); ?></p>
+				<ol>
+					<?php echo implode( "\n", $toc ); ?>
+				</ol>
+			</div>
+			<?php
+		}
+
+		?>
+		<div class="privacy-text-box">
+			<div class="privacy-text-box-head">
+				<a id="wp-privacy-policy-guide-introduction">&nbsp;</a>
+				<h2><?php _e( 'Introduction' ); ?></h2>
+				<p><?php _e( 'Hello,' ); ?></p>
+				<p><?php _e( 'This text template will help you to create your web site&#8217;s privacy policy.' ); ?></p>
+				<p><?php _e( 'We have suggested the sections you will need. Under each section heading you will find a short summary of what information you should provide, which will help you to get started. Some sections include suggested policy content, others will have to be completed with information from your theme and plugins.' ); ?></p>
+				<p><?php _e( 'Please edit your privacy policy content, making sure to delete the summaries, and adding any information from your theme and plugins. Once you publish your policy page, remember to add it to your navigation menu.' ); ?></p>
+				<p><?php _e( 'It is your responsibility to write a comprehensive privacy policy, to make sure it reflects all national and international legal requirements on privacy, and to keep your policy current and accurate.' ); ?></p>
+			</div>
+
+			<div class="privacy-text-box-body">
+				<?php echo $content; ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Return the default suggested privacy policy content.
+	 *
+	 * @since WP-4.9.6
+	 *
+	 * @param bool $descr Whether to include the descriptions under the section headings. Default false.
+	 * @return string The default policy content.
+	 */
+	public static function get_default_content( $descr = false ) {
+		$suggested_text = $descr ? '<strong class="privacy-policy-tutorial">' . __( 'Suggested text:' ) . ' </strong>' : '';
+		$content        = '';
+
+		// Start of the suggested privacy policy text.
+		$descr && $content .=
+			'<div class="wp-suggested-text">';
+		$content           .=
+			'<h2>' . __( 'Who we are' ) . '</h2>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this section you should note your site URL, as well as the name of the company, organization, or individual behind it, and some accurate contact information.' ) . '</p>' .
+			'<p class="privacy-policy-tutorial">' . __( 'The amount of information you may be required to show will vary depending on your local or national business regulations. You may, for example, be required to display a physical address, a registered address, or your company registration number.' ) . '</p>';
+		$content           .=
+			/* translators: %s Site URL */
+			'<p>' . $suggested_text . sprintf( __( 'Our website address is: %s.' ), get_bloginfo( 'url', 'display' ) ) . '</p>' .
+
+			'<h2>' . __( 'What personal data we collect and why we collect it' ) . '</h2>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this section you should note what personal data you collect from users and site visitors. This may include personal data, such as name, email address, personal account preferences; transactional data, such as purchase information; and technical data, such as information about cookies.' ) . '</p>' .
+			'<p class="privacy-policy-tutorial">' . __( 'You should also note any collection and retention of sensitive personal data, such as data concerning health.' ) . '</p>' .
+			'<p class="privacy-policy-tutorial">' . __( 'In addition to listing what personal data you collect, you need to note why you collect it. These explanations must note either the legal basis for your data collection and retention or the active consent the user has given.' ) . '</p>' .
+			'<p class="privacy-policy-tutorial">' . __( 'Personal data is not just created by a user&#8217;s interactions with your site. Personal data is also generated from technical processes such as contact forms, comments, cookies, analytics, and third party embeds.' ) . '</p>' .
+			'<p class="privacy-policy-tutorial">' . __( 'By default ClassicPress does not collect any personal data about visitors, and only collects the data shown on the User Profile screen from registered users. However some of your plugins may collect personal data. You should add the relevant information below.' ) . '</p>';
+
+		$content           .=
+			'<h3>' . __( 'Comments' ) . '</h3>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this subsection you should note what information is captured through comments. We have noted the data which ClassicPress collects by default.' ) . '</p>';
+		$content           .=
+			'<p>' . $suggested_text . __( 'When visitors leave comments on the site we collect the data shown in the comments form, and also the visitor&#8217;s IP address and browser user agent string to help spam detection.' ) . '</p>' .
+			'<p>' . __( 'An anonymized string created from your email address (also called a hash) may be provided to the Gravatar service to see if you are using it. The Gravatar service privacy policy is available here: https://automattic.com/privacy/. After approval of your comment, your profile picture is visible to the public in the context of your comment.' ) . '</p>' .
+
+			'<h3>' . __( 'Media' ) . '</h3>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this subsection you should note what information may be disclosed by users who can upload media files. All uploaded files are usually publicly accessible.' ) . '</p>';
+		$content           .=
+			'<p>' . $suggested_text . __( 'If you upload images to the website, you should avoid uploading images with embedded location data (EXIF GPS) included. Visitors to the website can download and extract any location data from images on the website.' ) . '</p>' .
+
+			'<h3>' . __( 'Contact forms' ) . '</h3>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'By default, ClassicPress does not include a contact form. If you use a contact form plugin, use this subsection to note what personal data is captured when someone submits a contact form, and how long you keep it. For example, you may note that you keep contact form submissions for a certain period for customer service purposes, but you do not use the information submitted through them for marketing purposes.' ) . '</p>';
+
+		$content           .=
+			'<h3>' . __( 'Cookies' ) . '</h3>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this subsection you should list the cookies your web site uses, including those set by your plugins, social media, and analytics. We have provided the cookies which ClassicPress installs by default.' ) . '</p>';
+		$content           .=
+			'<p>' . $suggested_text . __( 'If you leave a comment on our site you may opt-in to saving your name, email address and website in cookies. These are for your convenience so that you do not have to fill in your details again when you leave another comment. These cookies will last for one year.' ) . '</p>' .
+			'<p>' . __( 'If you have an account and you log in to this site, we will set a temporary cookie to determine if your browser accepts cookies. This cookie contains no personal data and is discarded when you close your browser.' ) . '</p>' .
+			'<p>' . __( 'When you log in, we will also set up several cookies to save your login information and your screen display choices. Login cookies last for two days, and screen options cookies last for a year. If you select &quot;Remember Me&quot;, your login will persist for two weeks. If you log out of your account, the login cookies will be removed.' ) . '</p>' .
+			'<p>' . __( 'If you edit or publish an article, an additional cookie will be saved in your browser. This cookie includes no personal data and simply indicates the post ID of the article you just edited. It expires after 1 day.' ) . '</p>' .
+
+			'<h3>' . __( 'Embedded content from other websites' ) . '</h3>' .
+			'<p>' . $suggested_text . __( 'Articles on this site may include embedded content (e.g. videos, images, articles, etc.). Embedded content from other websites behaves in the exact same way as if the visitor has visited the other website.' ) . '</p>' .
+			'<p>' . __( 'These websites may collect data about you, use cookies, embed additional third-party tracking, and monitor your interaction with that embedded content, including tracking your interaction with the embedded content if you have an account and are logged in to that website.' ) . '</p>' .
+
+			'<h3>' . __( 'Analytics' ) . '</h3>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this subsection you should note what analytics package you use, how users can opt out of analytics tracking, and a link to your analytics provider&#8217;s privacy policy, if any.' ) . '</p>' .
+			'<p class="privacy-policy-tutorial">' . __( 'By default ClassicPress does not collect any analytics data. However, many web hosting accounts collect some anonymous analytics data. You may also have installed a ClassicPress plugin that provides analytics services. In that case, add information from that plugin here.' ) . '</p>';
+
+		$content           .=
+			'<h2>' . __( 'Who we share your data with' ) . '</h2>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this section you should name and list all third party providers with whom you share site data, including partners, cloud-based services, payment processors, and third party service providers, and note what data you share with them and why. Link to their own privacy policies if possible.' ) . '</p>' .
+			'<p class="privacy-policy-tutorial">' . __( 'By default ClassicPress does not share any personal data with anyone.' ) . '</p>';
+
+		$content           .=
+			'<h2>' . __( 'How long we retain your data' ) . '</h2>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this section you should explain how long you retain personal data collected or processed by the web site. While it is your responsibility to come up with the schedule of how long you keep each dataset for and why you keep it, that information does need to be listed here. For example, you may want to say that you keep contact form entries for six months, analytics records for a year, and customer purchase records for ten years.' ) . '</p>';
+		$content           .=
+			'<p>' . $suggested_text . __( 'If you leave a comment, the comment and its metadata are retained indefinitely. This is so we can recognize and approve any follow-up comments automatically instead of holding them in a moderation queue.' ) . '</p>' .
+			'<p>' . __( 'For users that register on our website (if any), we also store the personal information they provide in their user profile. All users can see, edit, or delete their personal information at any time (except they cannot change their username). Website administrators can also see and edit that information.' ) . '</p>' .
+
+			'<h2>' . __( 'What rights you have over your data' ) . '</h2>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this section you should explain what rights your users have over their data and how they can invoke those rights.' ) . '</p>';
+		$content           .=
+			'<p>' . $suggested_text . __( 'If you have an account on this site, or have left comments, you can request to receive an exported file of the personal data we hold about you, including any data you have provided to us. You can also request that we erase any personal data we hold about you. This does not include any data we are obliged to keep for administrative, legal, or security purposes.' ) . '</p>' .
+
+			'<h2>' . __( 'Where we send your data' ) . '</h2>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this section you should list all transfers of your site data outside the European Union and describe the means by which that data is safeguarded to European data protection standards. This could include your web hosting, cloud storage, or other third party services.' ) . '</p>' .
+			'<p class="privacy-policy-tutorial">' . __( 'European data protection law requires data about European residents which is transferred outside the European Union to be safeguarded to the same standards as if the data was in Europe. So in addition to listing where data goes, you should describe how you ensure that these standards are met either by yourself or by your third party providers, whether that is through an agreement such as Privacy Shield, model clauses in your contracts, or binding corporate rules.' ) . '</p>';
+		$content           .=
+			'<p>' . $suggested_text . __( 'Visitor comments may be checked through an automated spam detection service.' ) . '</p>' .
+
+			'<h2>' . __( 'Your contact information' ) . '</h2>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this section you should provide a contact method for privacy-specific concerns. If you are required to have a Data Protection Officer, list their name and full contact details here as well.' ) . '</p>';
+
+		$content           .=
+			'<h2>' . __( 'Additional information' ) . '</h2>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'If you use your site for commercial purposes and you engage in more complex collection or processing of personal data, you should note the following information in your privacy policy in addition to the information we have already discussed.' ) . '</p>';
+
+		$content           .=
+			'<h3>' . __( 'How we protect your data' ) . '</h3>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this section you should explain what measures you have taken to protect your users&#8217; data. This could include technical measures such as encryption; security measures such as two factor authentication; and measures such as staff training in data protection. If you have carried out a Privacy Impact Assessment, you can mention it here too.' ) . '</p>';
+
+		$content           .=
+			'<h3>' . __( 'What data breach procedures we have in place' ) . '</h3>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'In this section you should explain what procedures you have in place to deal with data breaches, either potential or real, such as internal reporting systems, contact mechanisms, or bug bounties.' ) . '</p>';
+
+		$content           .=
+			'<h3>' . __( 'What third parties we receive data from' ) . '</h3>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'If your web site receives data about users from third parties, including advertisers, this information must be included within the section of your privacy policy dealing with third party data.' ) . '</p>';
+
+		$content           .=
+			'<h3>' . __( 'What automated decision making and/or profiling we do with user data' ) . '</h3>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'If your web site provides a service which includes automated decision making - for example, allowing customers to apply for credit, or aggregating their data into an advertising profile - you must note that this is taking place, and include information about how that information is used, what decisions are made with that aggregated data, and what rights users have over decisions made without human intervention.' ) . '</p>';
+
+		$content           .=
+			'<h3>' . __( 'Industry regulatory disclosure requirements' ) . '</h3>';
+		$descr && $content .=
+			'<p class="privacy-policy-tutorial">' . __( 'If you are a member of a regulated industry, or if you are subject to additional privacy laws, you may be required to disclose that information here.' ) . '</p>' .
+			'</div>';
+		// End of the suggested privacy policy text.
+
+		/**
+		 * Filters the default content suggested for inclusion in a privacy policy.
+		 *
+		 * @since WP-4.9.6
+		 *
+		 * @param $content string The default policy content.
+		 */
+		return apply_filters( 'wp_get_default_privacy_policy_content', $content );
+	}
+
+	/**
+	 * Add the suggested privacy policy text to the policy postbox.
+	 *
+	 * @since WP-4.9.6
+	 */
+	public static function add_suggested_content() {
+		$content = self::get_default_content( true );
+		wp_add_privacy_policy_content( __( 'ClassicPress' ), $content );
+	}
 }

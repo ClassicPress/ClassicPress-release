@@ -4,7 +4,7 @@
  *
  * @package ClassicPress
  * @subpackage Upgrader
- * @since 4.6.0
+ * @since WP-4.6.0
  */
 
 /**
@@ -13,8 +13,8 @@
  * It allows for ClassicPress to upgrade itself in combination with
  * the wp-admin/includes/update-core.php file.
  *
- * @since 2.8.0
- * @since 4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader.php.
+ * @since WP-2.8.0
+ * @since WP-4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader.php.
  *
  * @see WP_Upgrader
  */
@@ -23,13 +23,13 @@ class Core_Upgrader extends WP_Upgrader {
 	/**
 	 * Initialize the upgrade strings.
 	 *
-	 * @since 2.8.0
+	 * @since WP-2.8.0
 	 */
 	public function upgrade_strings() {
 		$this->strings['up_to_date'] = __( 'ClassicPress is at the latest version.' );
-		$this->strings['locked']     = __( 'Another update is currently in progress.' );
+		$this->strings['locked']     = __( 'Another update was started but has not completed yet.' );
 		$this->strings['no_package'] = __( 'Update package not available.' );
-		/* translators: %s: Package URL. */
+		/* translators: %s: package URL */
 		$this->strings['downloading_package']   = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code">%s</span>' );
 		$this->strings['unpack_package']        = __( 'Unpacking the update&#8230;' );
 		$this->strings['copy_failed']           = __( 'Could not copy files.' );
@@ -39,7 +39,7 @@ class Core_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Upgrade WordPress core.
+	 * Verifies and returns the root directory entry of a ClassicPress update.
 	 *
 	 * For WordPress, this was always '/wordpress/'.  For ClassicPress, since
 	 * GitHub builds our zip packages for us, the zip file (and therefore the
@@ -56,7 +56,7 @@ class Core_Upgrader extends WP_Upgrader {
 	 * complicated and this is the simplest way to make sure that this code is
 	 * always available.
 	 *
-	 * @since CP-1.0.0
+	 * @since 1.0.0
 	 *
 	 * @param string $working_dir The directory where a ClassicPress update package
 	 *                            has been extracted.
@@ -94,28 +94,28 @@ class Core_Upgrader extends WP_Upgrader {
 	/**
 	 * Upgrade ClassicPress core.
 	 *
-	 * @since 2.8.0
+	 * @since WP-2.8.0
 	 *
-	 * @global WP_Filesystem_Base $wp_filesystem                ClassicPress filesystem subclass.
+	 * @global WP_Filesystem_Base $wp_filesystem Subclass
 	 * @global callable           $_wp_filesystem_direct_method
 	 *
 	 * @param object $current Response object for whether ClassicPress is current.
 	 * @param array  $args {
-	 *     Optional. Arguments for upgrading ClassicPress core. Default empty array.
+	 *        Optional. Arguments for upgrading ClassicPress core. Default empty array.
 	 *
-	 *     @type bool $pre_check_md5    Whether to check the file checksums before
-	 *                                  attempting the upgrade. Default true.
-	 *     @type bool $attempt_rollback Whether to attempt to rollback the chances if
-	 *                                  there is a problem. Default false.
-	 *     @type bool $do_rollback      Whether to perform this "upgrade" as a rollback.
-	 *                                  Default false.
+	 *        @type bool $pre_check_md5    Whether to check the file checksums before
+	 *                                     attempting the upgrade. Default true.
+	 *        @type bool $attempt_rollback Whether to attempt to rollback the chances if
+	 *                                     there is a problem. Default false.
+	 *        @type bool $do_rollback      Whether to perform this "upgrade" as a rollback.
+	 *                                     Default false.
 	 * }
-	 * @return string|false|WP_Error New WordPress version on success, false or WP_Error on failure.
+	 * @return null|false|WP_Error False or WP_Error on failure, null on success.
 	 */
 	public function upgrade( $current, $args = array() ) {
 		global $wp_filesystem;
 
-		require ABSPATH . WPINC . '/version.php'; // $wp_version;
+		include ABSPATH . WPINC . '/version.php'; // $wp_version;
 
 		$start_time = time();
 
@@ -141,32 +141,6 @@ class Core_Upgrader extends WP_Upgrader {
 		}
 
 		$wp_dir = trailingslashit( $wp_filesystem->abspath() );
-
-		$partial = true;
-		if ( $parsed_args['do_rollback'] ) {
-			$partial = false;
-		} elseif ( $parsed_args['pre_check_md5'] && ! $this->check_files() ) {
-			$partial = false;
-		}
-
-		/*
-		 * If partial update is returned from the API, use that, unless we're doing
-		 * a reinstallation. If we cross the new_bundled version number, then use
-		 * the new_bundled zip. Don't though if the constant is set to skip bundled items.
-		 * If the API returns a no_content zip, go with it. Finally, default to the full zip.
-		 */
-		if ( $parsed_args['do_rollback'] && $current->packages->rollback ) {
-			$to_download = 'rollback';
-		} elseif ( $current->packages->partial && 'reinstall' !== $current->response && $wp_version === $current->partial_version && $partial ) {
-			$to_download = 'partial';
-		} elseif ( $current->packages->new_bundled && version_compare( $wp_version, $current->new_bundled, '<' )
-			&& ( ! defined( 'CORE_UPGRADE_SKIP_NEW_BUNDLED' ) || ! CORE_UPGRADE_SKIP_NEW_BUNDLED ) ) {
-			$to_download = 'new_bundled';
-		} elseif ( $current->packages->no_content ) {
-			$to_download = 'no_content';
-		} else {
-			$to_download = 'full';
-		}
 
 		// Lock to prevent multiple Core Updates occurring.
 		$lock = WP_Upgrader::create_lock( 'core_updater', 15 * MINUTE_IN_SECONDS );
@@ -196,11 +170,10 @@ class Core_Upgrader extends WP_Upgrader {
 		) ) {
 			$wp_filesystem->delete( $working_dir, true );
 			WP_Upgrader::release_lock( 'core_updater' );
-			return new WP_Error( 'copy_failed_for_update_core_file', __( 'The update cannot be installed because some files could not be copied. This is usually due to inconsistent file permissions.' ), 'wp-admin/includes/update-core.php' );
+			return new WP_Error( 'copy_failed_for_update_core_file', __( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ), 'wp-admin/includes/update-core.php' );
 		}
 		$wp_filesystem->chmod( $wp_dir . 'wp-admin/includes/update-core.php', FS_CHMOD_FILE );
 
-		wp_opcache_invalidate( ABSPATH . 'wp-admin/includes/update-core.php' );
 		require_once ABSPATH . 'wp-admin/includes/update-core.php';
 
 		if ( ! function_exists( 'update_core' ) ) {
@@ -260,7 +233,7 @@ class Core_Upgrader extends WP_Upgrader {
 			)
 		);
 
-		// Clear the current updates.
+		// Clear the current updates
 		delete_site_transient( 'update_core' );
 
 		if ( ! $parsed_args['do_rollback'] ) {
@@ -302,15 +275,16 @@ class Core_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Determines if this ClassicPress Core version should update to an offered version or not.
+	 * Determines if the current ClassicPress Core version should update to an
+	 * offered version or not.
 	 *
-	 * @since 3.7.0
+	 * @since WP-3.7.0
 	 *
 	 * @param string $offered_ver The offered version, of the format x.y.z.
 	 * @return bool True if we should update to the offered version, otherwise false.
 	 */
 	public static function should_update_to_version( $offered_ver ) {
-		require ABSPATH . WPINC . '/version.php'; // $cp_version; // x.y.z
+		include ABSPATH . WPINC . '/version.php'; // $cp_version; // x.y.z
 
 		return self::_auto_update_enabled_for_versions(
 			$cp_version,
@@ -326,7 +300,7 @@ class Core_Upgrader extends WP_Upgrader {
 	 * @note This method is intended for internal use only!  It is only public
 	 * so that it can be unit-tested.
 	 *
-	 * @since CP-1.0.0
+	 * @since 1.0.0
 	 *
 	 * @param string $ver_current      The current version of ClassicPress.
 	 * @param string $ver_offered      The proposed version of ClassicPress.
@@ -366,9 +340,9 @@ class Core_Upgrader extends WP_Upgrader {
 
 			// Cannot update if we're retrying the same A to B update that
 			// caused a non-critical failure.  Some non-critical failures do
-			// allow retries, like download_failed.  3.7.1 => 3.7.2
-			// resulted in files_not_writable, if we are still on 3.7.1 and
-			// still trying to update to 3.7.2.
+			// allow retries, like download_failed.  WP-3.7.1 => WP-3.7.2
+			// resulted in files_not_writable, if we are still on WP-3.7.1 and
+			// still trying to update to WP-3.7.2.
 			if (
 				empty( $failure_data['retry'] ) &&
 				$ver_current == $failure_data['current'] &&
@@ -418,7 +392,7 @@ class Core_Upgrader extends WP_Upgrader {
 			 * Filters whether to enable automatic core updates for nightly
 			 * releases.
 			 *
-			 * @since CP-1.0.0
+			 * @since 1.0.0
 			 *
 			 * @param bool $upgrade_nightly Whether to enable automatic updates
 			 *                              for nightly releases.
@@ -477,8 +451,8 @@ class Core_Upgrader extends WP_Upgrader {
 			 * ClassicPress may contain breaking changes.
 			 * @see https://semver.org/
 			 *
-			 * @since 3.7.0
-			 * @since CP-1.0.0 Version numbering scheme changed from WordPress
+			 * @since WP-3.7.0
+			 * @since 1.0.0 Version numbering scheme changed from WordPress
 			 * to ClassicPress (semver). New parameters $current and $offered.
 			 *
 			 * @param bool $upgrade_major Whether to enable automatic updates
@@ -502,8 +476,8 @@ class Core_Upgrader extends WP_Upgrader {
 			 * Filters whether to enable automatic core updates to a newer
 			 * semver minor release.
 			 *
-			 * @since 3.7.0
-			 * @since CP-1.0.0 Version numbering scheme changed from WordPress
+			 * @since WP-3.7.0
+			 * @since 1.0.0 Version numbering scheme changed from WordPress
 			 * to ClassicPress (semver). New parameters $current and $offered.
 			 *
 			 * @param bool $upgrade_minor Whether to enable automatic updates
@@ -525,7 +499,7 @@ class Core_Upgrader extends WP_Upgrader {
 			 * Filters whether to enable automatic core updates to a newer
 			 * semver patch release.
 			 *
-			 * @since CP-1.0.0
+			 * @since 1.0.0
 			 *
 			 * @param bool $upgrade_patch Whether to enable automatic updates
 			 *                            to a newer semver patch release.
@@ -555,8 +529,8 @@ class Core_Upgrader extends WP_Upgrader {
 			 * and the offered version is a newer pre-release of the same
 			 * semver version, or the final release of the same semver version.
 			 *
-			 * @since 3.7.0
-			 * @since CP-1.0.0 Version numbering scheme changed from WordPress
+			 * @since WP-3.7.0
+			 * @since 1.0.0 Version numbering scheme changed from WordPress
 			 * to ClassicPress (semver). New parameters $current and $offered.
 			 *
 			 * @param bool $upgrade_dev Whether to enable automatic updates
@@ -634,8 +608,8 @@ class Core_Upgrader extends WP_Upgrader {
 	/**
 	 * Compare the disk file checksums against the expected checksums.
 	 *
-	 * @since 3.7.0
-	 * @since CP-1.3.0 Correctly uses the checksums for the current ClassicPress
+	 * @since WP-3.7.0
+	 * @since 1.3.0 Correctly uses the checksums for the current ClassicPress
 	 * version, not the equivalent WordPress version. This function is no
 	 * longer used during the core update process.
 	 *

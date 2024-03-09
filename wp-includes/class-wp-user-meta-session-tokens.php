@@ -4,24 +4,22 @@
  *
  * @package ClassicPress
  * @subpackage Session
- * @since 4.7.0
+ * @since WP-4.7.0
  */
 
 /**
  * Meta-based user sessions token manager.
  *
- * @since 4.0.0
- *
- * @see WP_Session_Tokens
+ * @since WP-4.0.0
  */
 class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 
 	/**
-	 * Retrieves all sessions of the user.
+	 * Get all sessions of a user.
 	 *
-	 * @since 4.0.0
+	 * @since WP-4.0.0
 	 *
-	 * @return array Sessions of the user.
+	 * @return array Sessions of a user.
 	 */
 	protected function get_sessions() {
 		$sessions = get_user_meta( $this->user_id, 'session_tokens', true );
@@ -49,11 +47,11 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 	}
 
 	/**
-	 * Retrieves a session based on its verifier (token hash).
+	 * Retrieve a session by its verifier (token hash).
 	 *
-	 * @since 4.0.0
+	 * @since WP-4.0.0
 	 *
-	 * @param string $verifier Verifier for the session to retrieve.
+	 * @param string $verifier Verifier of the session to retrieve.
 	 * @return array|null The session, or null if it does not exist
 	 */
 	protected function get_session( $verifier ) {
@@ -67,11 +65,11 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 	}
 
 	/**
-	 * Updates a session based on its verifier (token hash).
+	 * Update a session by its verifier.
 	 *
-	 * @since 4.0.0
+	 * @since WP-4.0.0
 	 *
-	 * @param string $verifier Verifier for the session to update.
+	 * @param string $verifier Verifier of the session to update.
 	 * @param array  $session  Optional. Session. Omitting this argument destroys the session.
 	 */
 	protected function update_session( $verifier, $session = null ) {
@@ -87,9 +85,9 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 	}
 
 	/**
-	 * Updates the user's sessions in the usermeta table.
+	 * Update a user's sessions in the usermeta table.
 	 *
-	 * @since 4.0.0
+	 * @since WP-4.0.0
 	 *
 	 * @param array $sessions Sessions.
 	 */
@@ -102,9 +100,9 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 	}
 
 	/**
-	 * Destroys all sessions for this user, except the single session with the given verifier.
+	 * Destroy all session tokens for a user, except a single session passed.
 	 *
-	 * @since 4.0.0
+	 * @since WP-4.0.0
 	 *
 	 * @param string $verifier Verifier of the session to keep.
 	 */
@@ -114,18 +112,19 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 	}
 
 	/**
-	 * Destroys all session tokens for the user.
+	 * Destroy all session tokens for a user.
 	 *
-	 * @since 4.0.0
+	 * @since WP-4.0.0
 	 */
 	protected function destroy_all_sessions() {
 		$this->update_sessions( array() );
 	}
 
 	/**
-	 * Destroys all sessions for all users.
+	 * Destroy all session tokens for all users.
 	 *
-	 * @since 4.0.0
+	 * @since WP-4.0.0
+	 * @static
 	 */
 	public static function drop_sessions() {
 		delete_metadata( 'user', 0, 'session_tokens', false, true );

@@ -7,18 +7,11 @@
  */
 
 /** ClassicPress Administration Bootstrap */
-require_once __DIR__ . '/admin.php';
+require_once dirname( __FILE__ ) . '/admin.php';
 
-// This file was used to also display the Privacy tab on the About screen from 4.9.6 until 5.3.0.
-if ( isset( $_GET['privacy-notice'] ) ) {
-	wp_redirect( admin_url( 'privacy.php' ), 301 );
-	exit;
-}
-
-// Used in the HTML title tag.
 $title = __( 'Freedoms' );
 
-require_once ABSPATH . 'wp-admin/admin-header.php';
+require ABSPATH . 'wp-admin/admin-header.php';
 
 $is_privacy_notice = isset( $_GET['privacy-notice'] );
 
@@ -84,9 +77,8 @@ if ( $is_privacy_notice ) {
 
 	$plugins_url = current_user_can( 'activate_plugins' ) ? admin_url( 'plugins.php' ) : __( 'https://wordpress.org/plugins/' );
 	$themes_url  = current_user_can( 'switch_themes' ) ? admin_url( 'themes.php' ) : __( 'https://wordpress.org/themes/' );
-	$license_url = 'https://www.gnu.org/licenses/old-licenses/gpl-2.0.html';
 
-	printf( __( 'Every plugin and theme in ClassicPress.net&#8217;s directory is 100%% GPL or a similarly free and compatible license, so you can feel safe finding <a href="%1$s">plugins</a> and <a href="%2$s">themes</a> there. If you get a plugin or theme from another source, make sure to ask them if it&#8217;s <a href="%3$s">GPL</a> first. If they don&#8217;t respect the ClassicPress license, we don&#8217;t recommend them.' ), $plugins_url, $themes_url, $license_url );
+	printf( __( 'Every plugin and theme in ClassicPress.net&#8217;s directory is 100%% GPL or a similarly free and compatible license, so you can feel safe finding <a href="%1$s">plugins</a> and <a href="%2$s">themes</a> there. If you get a plugin or theme from another source, make sure to ask them if it&#8217;s GPL first. If they don&#8217;t respect the ClassicPress license, we don&#8217;t recommend them.' ), $plugins_url, $themes_url );
 	?>
 	</p>
 

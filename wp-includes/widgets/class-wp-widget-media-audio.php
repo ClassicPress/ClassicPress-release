@@ -4,15 +4,14 @@
  *
  * @package ClassicPress
  * @subpackage Widgets
- * @since 4.8.0
+ * @since WP-4.8.0
  */
 
 /**
  * Core class that implements an audio widget.
  *
- * @since 4.8.0
+ * @since WP-4.8.0
  *
- * @see WP_Widget_Media
  * @see WP_Widget
  */
 class WP_Widget_Media_Audio extends WP_Widget_Media {
@@ -20,7 +19,7 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 	/**
 	 * Constructor.
 	 *
-	 * @since 4.8.0
+	 * @since  WP-4.8.0
 	 */
 	public function __construct() {
 		parent::__construct(
@@ -40,14 +39,14 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 				'replace_media'              => _x( 'Replace Audio', 'label for button in the audio widget; should preferably not be longer than ~13 characters long' ),
 				'edit_media'                 => _x( 'Edit Audio', 'label for button in the audio widget; should preferably not be longer than ~13 characters long' ),
 				'missing_attachment'         => sprintf(
-					/* translators: %s: URL to media library. */
-					__( 'That audio file cannot be found. Check your <a href="%s">media library</a> and make sure it was not deleted.' ),
+					/* translators: %s: URL to media library */
+					__( 'We can&#8217;t find that audio file. Check your <a href="%s">media library</a> and make sure it wasn&#8217;t deleted.' ),
 					esc_url( admin_url( 'upload.php' ) )
 				),
-				/* translators: %d: Widget count. */
+				/* translators: %d: widget count */
 				'media_library_state_multi'  => _n_noop( 'Audio Widget (%d)', 'Audio Widget (%d)' ),
 				'media_library_state_single' => __( 'Audio Widget' ),
-				'unsupported_file_type'      => __( 'Looks like this is not the correct kind of file. Please link to an audio file instead.' ),
+				'unsupported_file_type'      => __( 'Looks like this isn&#8217;t the correct kind of file. Please link to an audio file instead.' ),
 			)
 		);
 	}
@@ -55,27 +54,29 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 	/**
 	 * Get schema for properties of a widget instance (item).
 	 *
-	 * @since 4.8.0
+	 * @since  WP-4.8.0
 	 *
 	 * @see WP_REST_Controller::get_item_schema()
 	 * @see WP_REST_Controller::get_additional_fields()
 	 * @link https://core.trac.wordpress.org/ticket/35574
-	 *
 	 * @return array Schema for properties.
 	 */
 	public function get_instance_schema() {
-		$schema = array(
-			'preload' => array(
-				'type'        => 'string',
-				'enum'        => array( 'none', 'auto', 'metadata' ),
-				'default'     => 'none',
-				'description' => __( 'Preload' ),
-			),
-			'loop'    => array(
-				'type'        => 'boolean',
-				'default'     => false,
-				'description' => __( 'Loop' ),
-			),
+		$schema = array_merge(
+			parent::get_instance_schema(),
+			array(
+				'preload' => array(
+					'type'        => 'string',
+					'enum'        => array( 'none', 'auto', 'metadata' ),
+					'default'     => 'none',
+					'description' => __( 'Preload' ),
+				),
+				'loop'    => array(
+					'type'        => 'boolean',
+					'default'     => false,
+					'description' => __( 'Loop' ),
+				),
+			)
 		);
 
 		foreach ( wp_get_audio_extensions() as $audio_extension ) {
@@ -83,20 +84,21 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 				'type'        => 'string',
 				'default'     => '',
 				'format'      => 'uri',
-				/* translators: %s: Audio extension. */
+				/* translators: %s: audio extension */
 				'description' => sprintf( __( 'URL to the %s audio source file' ), $audio_extension ),
 			);
 		}
 
-		return array_merge( $schema, parent::get_instance_schema() );
+		return $schema;
 	}
 
 	/**
 	 * Render the media on the frontend.
 	 *
-	 * @since 4.8.0
+	 * @since  WP-4.8.0
 	 *
 	 * @param array $instance Widget instance props.
+	 * @return void
 	 */
 	public function render_media( $instance ) {
 		$instance   = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
@@ -128,7 +130,7 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 	 * selective refresh, and so it is important to unconditionally enqueue them in
 	 * case a widget does get added.
 	 *
-	 * @since 4.8.0
+	 * @since WP-4.8.0
 	 */
 	public function enqueue_preview_scripts() {
 		/** This filter is documented in wp-includes/media.php */
@@ -141,7 +143,7 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 	/**
 	 * Loads the required media files for the media manager and scripts for media widgets.
 	 *
-	 * @since 4.8.0
+	 * @since WP-4.8.0
 	 */
 	public function enqueue_admin_scripts() {
 		parent::enqueue_admin_scripts();
@@ -182,7 +184,7 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 	/**
 	 * Render form template scripts.
 	 *
-	 * @since 4.8.0
+	 * @since WP-4.8.0
 	 */
 	public function render_control_template_scripts() {
 		parent::render_control_template_scripts()

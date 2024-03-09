@@ -4,13 +4,13 @@
  *
  * @package ClassicPress
  * @subpackage Widgets
- * @since 4.4.0
+ * @since WP-4.4.0
  */
 
 /**
  * Core class used to implement a Pages widget.
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  *
  * @see WP_Widget
  */
@@ -19,14 +19,13 @@ class WP_Widget_Pages extends WP_Widget {
 	/**
 	 * Sets up a new Pages widget instance.
 	 *
-	 * @since 2.8.0
+	 * @since WP-2.8.0
 	 */
 	public function __construct() {
 		$widget_ops = array(
 			'classname'                   => 'widget_pages',
 			'description'                 => __( 'A list of your site&#8217;s Pages.' ),
 			'customize_selective_refresh' => true,
-			'show_instance_in_rest'       => true,
 		);
 		parent::__construct( 'pages', __( 'Pages' ), $widget_ops );
 	}
@@ -34,20 +33,19 @@ class WP_Widget_Pages extends WP_Widget {
 	/**
 	 * Outputs the content for the current Pages widget instance.
 	 *
-	 * @since 2.8.0
+	 * @since WP-2.8.0
 	 *
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Pages widget instance.
 	 */
 	public function widget( $args, $instance ) {
-		$default_title = __( 'Pages' );
-		$title         = ! empty( $instance['title'] ) ? $instance['title'] : $default_title;
+		$title = ! empty( $instance['title'] ) ? $instance['title'] : __( 'Pages' );
 
 		/**
 		 * Filters the widget title.
 		 *
-		 * @since 2.6.0
+		 * @since WP-2.6.0
 		 *
 		 * @param string $title    The widget title. Default 'Pages'.
 		 * @param array  $instance Array of settings for the current widget.
@@ -58,22 +56,22 @@ class WP_Widget_Pages extends WP_Widget {
 		$sortby  = empty( $instance['sortby'] ) ? 'menu_order' : $instance['sortby'];
 		$exclude = empty( $instance['exclude'] ) ? '' : $instance['exclude'];
 
-		if ( 'menu_order' === $sortby ) {
+		if ( $sortby == 'menu_order' ) {
 			$sortby = 'menu_order, post_title';
 		}
 
-		$output = wp_list_pages(
-			/**
-			 * Filters the arguments for the Pages widget.
-			 *
-			 * @since 2.8.0
-			 * @since 4.9.0 Added the `$instance` parameter.
-			 *
-			 * @see wp_list_pages()
-			 *
-			 * @param array $args     An array of arguments to retrieve the pages list.
-			 * @param array $instance Array of settings for the current widget.
-			 */
+		/**
+		 * Filters the arguments for the Pages widget.
+		 *
+		 * @since WP-2.8.0
+		 * @since WP-4.9.0 Added the `$instance` parameter.
+		 *
+		 * @see wp_list_pages()
+		 *
+		 * @param array $args     An array of arguments to retrieve the pages list.
+		 * @param array $instance Array of settings for the current widget.
+		 */
+		$out = wp_list_pages(
 			apply_filters(
 				'widget_pages_args',
 				array(
@@ -86,25 +84,16 @@ class WP_Widget_Pages extends WP_Widget {
 			)
 		);
 
-		if ( ! empty( $output ) ) {
+		if ( ! empty( $out ) ) {
 			echo $args['before_widget'];
 			if ( $title ) {
 				echo $args['before_title'] . $title . $args['after_title'];
 			}
-
-			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
-			$title      = trim( strip_tags( $title ) );
-			$aria_label = $title ? $title : $default_title;
-			echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
 			?>
-
-			<ul>
-				<?php echo $output; ?>
-			</ul>
-
+		<ul>
+			<?php echo $out; ?>
+		</ul>
 			<?php
-			echo '</nav>';
-
 			echo $args['after_widget'];
 		}
 	}
@@ -112,7 +101,7 @@ class WP_Widget_Pages extends WP_Widget {
 	/**
 	 * Handles updating settings for the current Pages widget instance.
 	 *
-	 * @since 2.8.0
+	 * @since WP-2.8.0
 	 *
 	 * @param array $new_instance New settings for this instance as input by the user via
 	 *                            WP_Widget::form().
@@ -136,12 +125,12 @@ class WP_Widget_Pages extends WP_Widget {
 	/**
 	 * Outputs the settings form for the Pages widget.
 	 *
-	 * @since 2.8.0
+	 * @since WP-2.8.0
 	 *
 	 * @param array $instance Current settings.
 	 */
 	public function form( $instance ) {
-		// Defaults.
+		//Defaults
 		$instance = wp_parse_args(
 			(array) $instance,
 			array(
@@ -153,7 +142,7 @@ class WP_Widget_Pages extends WP_Widget {
 		?>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php _e( 'Title:' ); ?></label>
-			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>">
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
 		</p>
 
 		<p>
@@ -167,10 +156,11 @@ class WP_Widget_Pages extends WP_Widget {
 
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'exclude' ) ); ?>"><?php _e( 'Exclude:' ); ?></label>
-			<input type="text" value="<?php echo esc_attr( $instance['exclude'] ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'exclude' ) ); ?>" id="<?php echo esc_attr( $this->get_field_id( 'exclude' ) ); ?>" class="widefat">
-			<br>
+			<input type="text" value="<?php echo esc_attr( $instance['exclude'] ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'exclude' ) ); ?>" id="<?php echo esc_attr( $this->get_field_id( 'exclude' ) ); ?>" class="widefat" />
+			<br />
 			<small><?php _e( 'Page IDs, separated by commas.' ); ?></small>
 		</p>
 		<?php
 	}
+
 }

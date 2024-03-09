@@ -4,14 +4,14 @@
  *
  * @package ClassicPress
  * @subpackage Upgrader
- * @since 4.6.0
+ * @since WP-4.6.0
  */
 
 /**
  * Translation Upgrader Skin for ClassicPress Translation Upgrades.
  *
- * @since 3.7.0
- * @since 4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader-skins.php.
+ * @since WP-3.7.0
+ * @since WP-4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader-skins.php.
  *
  * @see WP_Upgrader_Skin
  */
@@ -22,6 +22,7 @@ class Language_Pack_Upgrader_Skin extends WP_Upgrader_Skin {
 	public $display_footer_actions = true;
 
 	/**
+	 *
 	 * @param array $args
 	 */
 	public function __construct( $args = array() ) {
@@ -47,18 +48,16 @@ class Language_Pack_Upgrader_Skin extends WP_Upgrader_Skin {
 
 		echo '<div class="update-messages lp-show-latest">';
 
-		/* translators: 1: Project name (plugin, theme, or ClassicPress), 2: Language. */
 		printf( '<h2>' . __( 'Updating translations for %1$s (%2$s)&#8230;' ) . '</h2>', $name, $this->language_update->language );
 	}
 
 	/**
-	 * @since 5.9.0 Renamed `$error` to `$errors` for PHP 8 named parameter support.
 	 *
-	 * @param string|WP_Error $errors Errors.
+	 * @param string|WP_Error $error
 	 */
-	public function error( $errors ) {
+	public function error( $error ) {
 		echo '<div class="lp-error">';
-		parent::error( $errors );
+		parent::error( $error );
 		echo '</div>';
 	}
 
@@ -84,9 +83,9 @@ class Language_Pack_Upgrader_Skin extends WP_Upgrader_Skin {
 		/**
 		 * Filters the list of action links available following a translations update.
 		 *
-		 * @since 3.7.0
+		 * @since WP-3.7.0
 		 *
-		 * @param string[] $update_actions Array of translations update links.
+		 * @param array $update_actions Array of translations update links.
 		 */
 		$update_actions = apply_filters( 'update_translations_complete_actions', $update_actions );
 
