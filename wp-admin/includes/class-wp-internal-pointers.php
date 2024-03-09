@@ -4,33 +4,27 @@
  *
  * @package ClassicPress
  * @subpackage Administration
- * @since 4.4.0
+ * @since WP-4.4.0
  */
 
 /**
  * Core class used to implement an internal admin pointers API.
  *
- * @since 3.3.0
+ * @since WP-3.3.0
  */
-#[AllowDynamicProperties]
 final class WP_Internal_Pointers {
 	/**
 	 * Initializes the new feature pointers.
 	 *
-	 * @since 3.3.0
+	 * @since WP-3.3.0
 	 *
 	 * All pointers can be disabled using the following:
 	 *     remove_action( 'admin_enqueue_scripts', array( 'WP_Internal_Pointers', 'enqueue_scripts' ) );
 	 *
 	 * Individual pointers (e.g. wp390_widgets) can be disabled using the following:
+	 *     remove_action( 'admin_print_footer_scripts', array( 'WP_Internal_Pointers', 'pointer_wp390_widgets' ) );
 	 *
-	 *    function yourprefix_remove_pointers() {
-	 *        remove_action(
-	 *            'admin_print_footer_scripts',
-	 *            array( 'WP_Internal_Pointers', 'pointer_wp390_widgets' )
-	 *        );
-	 *    }
-	 *    add_action( 'admin_enqueue_scripts', 'yourprefix_remove_pointers', 11 );
+	 * @static
 	 *
 	 * @param string $hook_suffix The current admin page.
 	 */
@@ -49,10 +43,10 @@ final class WP_Internal_Pointers {
 		 *     )
 		 */
 		$registered_pointers = array(
-			// None currently.
+			'index.php' => 'wp496_privacy',
 		);
 
-		// Check if screen related pointer is registered.
+		// Check if screen related pointer is registered
 		if ( empty( $registered_pointers[ $hook_suffix ] ) ) {
 			return;
 		}
@@ -73,10 +67,14 @@ final class WP_Internal_Pointers {
 		 *     )
 		 */
 		$caps_required = array(
-			// None currently.
+			'wp496_privacy' => array(
+				'manage_privacy_options',
+				'export_others_personal_data',
+				'erase_others_personal_data',
+			),
 		);
 
-		// Get dismissed pointers.
+		// Get dismissed pointers
 		$dismissed = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
 
 		$got_pointers = false;
@@ -89,7 +87,7 @@ final class WP_Internal_Pointers {
 				}
 			}
 
-			// Bind pointer print function.
+			// Bind pointer print function
 			add_action( 'admin_print_footer_scripts', array( 'WP_Internal_Pointers', 'pointer_' . $pointer ) );
 			$got_pointers = true;
 		}
@@ -98,7 +96,7 @@ final class WP_Internal_Pointers {
 			return;
 		}
 
-		// Add pointers script and style to queue.
+		// Add pointers script and style to queue
 		wp_enqueue_style( 'wp-pointer' );
 		wp_enqueue_script( 'wp-pointer' );
 	}
@@ -106,7 +104,9 @@ final class WP_Internal_Pointers {
 	/**
 	 * Print the pointer JavaScript data.
 	 *
-	 * @since 3.3.0
+	 * @since WP-3.3.0
+	 *
+	 * @static
 	 *
 	 * @param string $pointer_id The pointer ID.
 	 * @param string $selector The HTML elements, on which the pointer should be attached.
@@ -118,7 +118,7 @@ final class WP_Internal_Pointers {
 		}
 
 		?>
-		<script>
+		<script type="text/javascript">
 		(function($){
 			var options = <?php echo wp_json_encode( $args ); ?>, setup;
 
@@ -141,9 +141,7 @@ final class WP_Internal_Pointers {
 			if ( options.position && options.position.defer_loading )
 				$(window).bind( 'load.wp-pointers', setup );
 			else
-				$( function() {
-					setup();
-				} );
+				$(document).ready( setup );
 
 		})( jQuery );
 		</script>
@@ -160,16 +158,50 @@ final class WP_Internal_Pointers {
 	public static function pointer_wp360_locks() {}
 	public static function pointer_wp390_widgets() {}
 	public static function pointer_wp410_dfw() {}
-	public static function pointer_wp496_privacy() {}
+
+	/**
+	 * Display a pointer for the new privacy tools.
+	 *
+	 * @since WP-4.9.6
+	 */
+	public static function pointer_wp496_privacy() {
+		$content  = '<h3>' . __( 'Personal Data and Privacy' ) . '</h3>';
+		$content .= '<h4>' . __( 'Personal Data Export and Erasure' ) . '</h4>';
+		$content .= '<p>' . __( 'New <strong>Tools</strong> have been added to help you with personal data export and erasure requests.' ) . '</p>';
+		$content .= '<h4>' . __( 'Privacy Policy' ) . '</h4>';
+		$content .= '<p>' . __( 'Create or select your site&#8217;s privacy policy page under <strong>Settings &gt; Privacy</strong> to keep your users informed and aware.' ) . '</p>';
+
+		if ( is_rtl() ) {
+			$position = array(
+				'edge'  => 'right',
+				'align' => 'bottom',
+			);
+		} else {
+			$position = array(
+				'edge'  => 'left',
+				'align' => 'bottom',
+			);
+		}
+
+		$js_args = array(
+			'content'      => $content,
+			'position'     => $position,
+			'pointerClass' => 'wp-pointer arrow-bottom',
+			'pointerWidth' => 420,
+		);
+		self::print_js( 'wp496_privacy', '#menu-tools', $js_args );
+	}
 
 	/**
 	 * Prevents new users from seeing existing 'new feature' pointers.
 	 *
-	 * @since 3.3.0
+	 * @since WP-3.3.0
+	 *
+	 * @static
 	 *
 	 * @param int $user_id User ID.
 	 */
 	public static function dismiss_pointers_for_new_users( $user_id ) {
-		add_user_meta( $user_id, 'dismissed_wp_pointers', '' );
+		add_user_meta( $user_id, 'dismissed_wp_pointers', 'wp496_privacy' );
 	}
 }

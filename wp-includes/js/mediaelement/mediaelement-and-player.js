@@ -8,7 +8,7 @@
  * Copyright 2010-2017, John Dyer (http://j.hn/)
  * License: MIT
  *
- */(function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(_dereq_,module,exports){
+ */(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 
 },{}],2:[function(_dereq_,module,exports){
 (function (global){
@@ -847,7 +847,7 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 		var renderInfo = _renderer.renderer.select(mediaFiles, t.mediaElement.options.renderers.length ? t.mediaElement.options.renderers : []),
 		    event = void 0;
 
-		if (!t.mediaElement.paused && !(t.mediaElement.src == null || t.mediaElement.src === '')) {
+		if (!t.mediaElement.paused) {
 			t.mediaElement.pause();
 			event = (0, _general.createEvent)('pause', t.mediaElement);
 			t.mediaElement.dispatchEvent(event);
@@ -859,12 +859,11 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 			return;
 		}
 
-		var shouldChangeRenderer = !(mediaFiles[0].src == null || mediaFiles[0].src === '');
-		return shouldChangeRenderer ? t.mediaElement.changeRenderer(renderInfo.rendererName, mediaFiles) : null;
+		return mediaFiles[0].src ? t.mediaElement.changeRenderer(renderInfo.rendererName, mediaFiles) : null;
 	},
 	    triggerAction = function triggerAction(methodName, args) {
 		try {
-			if (methodName === 'play' && (t.mediaElement.rendererName === 'native_dash' || t.mediaElement.rendererName === 'native_hls' || t.mediaElement.rendererName === 'vimeo_iframe')) {
+			if (methodName === 'play' && t.mediaElement.rendererName === 'native_dash') {
 				var response = t.mediaElement.renderer[methodName](args);
 				if (response && typeof response.then === 'function') {
 					response.catch(function () {
@@ -962,15 +961,6 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 		}
 	};
 
-	t.mediaElement.destroy = function () {
-		var mediaElement = t.mediaElement.originalNode.cloneNode(true);
-		var wrapper = t.mediaElement.parentElement;
-		mediaElement.removeAttribute('id');
-		mediaElement.remove();
-		t.mediaElement.remove();
-		wrapper.appendChild(mediaElement);
-	};
-
 	if (mediaFiles.length) {
 		t.mediaElement.src = mediaFiles;
 	}
@@ -1018,7 +1008,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var mejs = {};
 
-mejs.version = '4.2.17';
+mejs.version = '4.2.6';
 
 mejs.html5media = {
 	properties: ['volume', 'src', 'currentTime', 'muted', 'duration', 'paused', 'ended', 'buffered', 'error', 'networkState', 'readyState', 'seeking', 'seekable', 'currentSrc', 'preload', 'bufferedBytes', 'bufferedTime', 'initialTime', 'startOffsetTime', 'defaultPlaybackRate', 'playbackRate', 'played', 'autoplay', 'loop', 'controls'],
@@ -1249,7 +1239,7 @@ Object.assign(_player2.default.prototype, {
 
 		t.exitFullscreenCallback = function (e) {
 			var key = e.which || e.keyCode || 0;
-			if (t.options.enableKeyboard && key === 27 && (Features.HAS_TRUE_NATIVE_FULLSCREEN && Features.IS_FULLSCREEN || t.isFullScreen)) {
+			if (key === 27 && (Features.HAS_TRUE_NATIVE_FULLSCREEN && Features.IS_FULLSCREEN || t.isFullScreen)) {
 				player.exitFullScreen();
 			}
 		};
@@ -1303,11 +1293,7 @@ Object.assign(_player2.default.prototype, {
 		    isNative = t.media.rendererName !== null && /(html5|native)/i.test(t.media.rendererName),
 		    containerStyles = getComputedStyle(t.getElement(t.container));
 
-		if (!t.isVideo) {
-			return;
-		}
-
-		if (t.options.useFakeFullscreen === false && (Features.IS_IOS || Features.IS_SAFARI) && Features.HAS_IOS_FULLSCREEN && typeof t.media.originalNode.webkitEnterFullscreen === 'function' && t.media.originalNode.canPlayType((0, _media.getTypeFromFile)(t.media.getSrc()))) {
+		if (t.options.useFakeFullscreen === false && Features.IS_IOS && Features.HAS_IOS_FULLSCREEN && typeof t.media.originalNode.webkitEnterFullscreen === 'function' && t.media.originalNode.canPlayType((0, _media.getTypeFromFile)(t.media.getSrc()))) {
 			t.media.originalNode.webkitEnterFullscreen();
 			return;
 		}
@@ -1386,7 +1372,7 @@ Object.assign(_player2.default.prototype, {
 		if (captionText) {
 			captionText.style.fontSize = zoomFactor * 100 + '%';
 			captionText.style.lineHeight = 'normal';
-			t.getElement(t.container).querySelector('.' + t.options.classPrefix + 'captions-position').style.bottom = (screen.height - t.normalHeight) / 2 - t.getElement(t.controls).offsetHeight / 2 + zoomFactor + 15 + 'px';
+			t.getElement(t.container).querySelector('.' + t.options.classPrefix + 'captions-position').style.bottom = '45px';
 		}
 		var event = (0, _general.createEvent)('enteredfullscreen', t.getElement(t.container));
 		t.getElement(t.container).dispatchEvent(event);
@@ -1394,10 +1380,6 @@ Object.assign(_player2.default.prototype, {
 	exitFullScreen: function exitFullScreen() {
 		var t = this,
 		    isNative = t.media.rendererName !== null && /(native|html5)/i.test(t.media.rendererName);
-
-		if (!t.isVideo) {
-			return;
-		}
 
 		clearTimeout(t.containerSizeTimeout);
 
@@ -1605,24 +1587,10 @@ Object.assign(_player2.default.prototype, {
 						player.startControlsTimer();
 					}
 
-					var timeSlider = player.getElement(player.container).querySelector('.' + t.options.classPrefix + 'time-total');
-					if (timeSlider) {
-						timeSlider.focus();
-					}
+					player.getElement(player.container).querySelector('.' + _player.config.classPrefix + 'time-total').focus();
 
 					var newTime = Math.max(player.currentTime - player.options.defaultSeekBackwardInterval(player), 0);
-
-					if (!player.paused) {
-						player.pause();
-					}
-
-					setTimeout(function () {
-						player.setCurrentTime(newTime);
-					}, 0);
-
-					setTimeout(function () {
-						player.play();
-					}, 0);
+					player.setCurrentTime(newTime);
 				}
 			}
 		}, {
@@ -1635,24 +1603,10 @@ Object.assign(_player2.default.prototype, {
 						player.startControlsTimer();
 					}
 
-					var timeSlider = player.getElement(player.container).querySelector('.' + t.options.classPrefix + 'time-total');
-					if (timeSlider) {
-						timeSlider.focus();
-					}
+					player.getElement(player.container).querySelector('.' + _player.config.classPrefix + 'time-total').focus();
 
 					var newTime = Math.min(player.currentTime + player.options.defaultSeekForwardInterval(player), player.duration);
-
-					if (!player.paused) {
-						player.pause();
-					}
-
-					setTimeout(function () {
-						player.setCurrentTime(newTime);
-					}, 0);
-
-					setTimeout(function () {
-						player.play();
-					}, 0);
+					player.setCurrentTime(newTime);
 				}
 			}
 		});
@@ -1728,7 +1682,7 @@ Object.assign(_player2.default.prototype, {
 
 				pos = x - offsetStyles.left;
 				percentage = pos / width;
-				t.newTime = percentage * t.getDuration();
+				t.newTime = percentage <= 0.02 ? 0 : percentage * t.getDuration();
 
 				if (mouseIsDown && t.getCurrentTime() !== null && t.newTime.toFixed(4) !== t.getCurrentTime().toFixed(4)) {
 					t.setCurrentRailHandle(t.newTime);
@@ -1796,7 +1750,7 @@ Object.assign(_player2.default.prototype, {
 			if (media.paused) {
 				t.slider.setAttribute('aria-label', timeSliderText);
 				t.slider.setAttribute('aria-valuemin', 0);
-				t.slider.setAttribute('aria-valuemax', isNaN(duration) ? 0 : duration);
+				t.slider.setAttribute('aria-valuemax', duration);
 				t.slider.setAttribute('aria-valuenow', seconds);
 				t.slider.setAttribute('aria-valuetext', time);
 			} else {
@@ -1815,7 +1769,7 @@ Object.assign(_player2.default.prototype, {
 		    handleMouseup = function handleMouseup() {
 			if (mouseIsDown && t.getCurrentTime() !== null && t.newTime.toFixed(4) !== t.getCurrentTime().toFixed(4)) {
 				t.setCurrentTime(t.newTime);
-				t.setCurrentRailHandle(t.newTime);
+				t.setCurrentRail();
 				t.updateCurrent(t.newTime);
 			}
 			if (t.forcedHandlePause) {
@@ -1836,7 +1790,7 @@ Object.assign(_player2.default.prototype, {
 				startedPaused = t.paused;
 			}
 
-			if (t.options.enableKeyboard && t.options.keyActions.length) {
+			if (t.options.keyActions.length) {
 
 				var keyCode = e.which || e.keyCode || 0,
 				    duration = t.getDuration(),
@@ -1897,20 +1851,17 @@ Object.assign(_player2.default.prototype, {
 						return;
 				}
 
-				seekTime = seekTime < 0 || isNaN(seekTime) ? 0 : seekTime >= duration ? duration : Math.floor(seekTime);
+				seekTime = seekTime < 0 ? 0 : seekTime >= duration ? duration : Math.floor(seekTime);
 				lastKeyPressTime = new Date();
 				if (!startedPaused) {
 					player.pause();
 				}
 
-				setTimeout(function () {
-					t.setCurrentTime(seekTime);
-				}, 0);
-
 				if (seekTime < t.getDuration() && !startedPaused) {
 					setTimeout(restartPlayer, 1100);
 				}
 
+				t.setCurrentTime(seekTime);
 				player.showControls();
 
 				e.preventDefault();
@@ -1999,7 +1950,7 @@ Object.assign(_player2.default.prototype, {
 					player.setCurrentRail(e);
 				}
 				updateSlider();
-			} else if (!broadcast && t.options.forceLive) {
+			} else if (!broadcast || t.options.forceLive) {
 				var label = _document2.default.createElement('span');
 				label.className = t.options.classPrefix + 'broadcast';
 				label.innerText = _i18n2.default.t('mejs.live-broadcast');
@@ -2218,7 +2169,7 @@ Object.assign(_player2.default.prototype, {
 
 		var duration = t.getDuration();
 
-		if (t.media !== undefined && (isNaN(duration) || duration === Infinity || duration < 0)) {
+		if (isNaN(duration) || duration === Infinity || duration < 0) {
 			t.media.duration = t.options.duration = duration = 0;
 		}
 
@@ -2681,9 +2632,7 @@ Object.assign(_player2.default.prototype, {
 		if (track !== null && track.isLoaded) {
 			var i = t.searchTrackPosition(track.entries, t.media.currentTime);
 			if (i > -1) {
-				var text = track.entries[i].text;
-				if (typeof t.options.captionTextPreprocessor === 'function') text = t.options.captionTextPreprocessor(text);
-				t.captionsText.innerHTML = sanitize(text);
+				t.captionsText.innerHTML = sanitize(track.entries[i].text);
 				t.captionsText.className = t.options.classPrefix + 'captions-text ' + (track.entries[i].identifier || '');
 				t.captions.style.display = '';
 				t.captions.style.height = '0px';
@@ -2926,7 +2875,7 @@ _mejs2.default.TrackFormatParser = {
 						text = text + '\n' + lines[i];
 						i++;
 					}
-					text = text === null ? '' : text.trim().replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a href='$1' target='_blank'>$1</a>");
+					text = text.trim().replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a href='$1' target='_blank'>$1</a>");
 					entries.push({
 						identifier: identifier,
 						start: (0, _time.convertSMPTEtoSeconds)(timecode[1]) === 0 ? 0.200 : (0, _time.convertSMPTEtoSeconds)(timecode[1]),
@@ -2943,15 +2892,15 @@ _mejs2.default.TrackFormatParser = {
 
 	dfxp: {
 		parse: function parse(trackText) {
-			var trackElem = _document2.default.adoptNode(new DOMParser().parseFromString(trackText, 'application/xml').documentElement),
-			    container = trackElem.querySelector('div'),
+			trackText = $(trackText).filter('tt');
+			var container = trackText.firstChild,
 			    lines = container.querySelectorAll('p'),
-			    styleNode = _document2.default.getElementById(container.getAttribute('style')),
+			    styleNode = trackText.getElementById('' + container.attr('style')),
 			    entries = [];
 
 			var styles = void 0;
 
-			if (styleNode) {
+			if (styleNode.length) {
 				styleNode.removeAttribute('id');
 				var attributes = styleNode.attributes;
 				if (attributes.length) {
@@ -2971,23 +2920,23 @@ _mejs2.default.TrackFormatParser = {
 					text: null
 				};
 
-				if (lines[_i16].getAttribute('begin')) {
-					_temp.start = (0, _time.convertSMPTEtoSeconds)(lines[_i16].getAttribute('begin'));
+				if (lines.eq(_i16).attr('begin')) {
+					_temp.start = (0, _time.convertSMPTEtoSeconds)(lines.eq(_i16).attr('begin'));
 				}
-				if (!_temp.start && lines[_i16 - 1].getAttribute('end')) {
-					_temp.start = (0, _time.convertSMPTEtoSeconds)(lines[_i16 - 1].getAttribute('end'));
+				if (!_temp.start && lines.eq(_i16 - 1).attr('end')) {
+					_temp.start = (0, _time.convertSMPTEtoSeconds)(lines.eq(_i16 - 1).attr('end'));
 				}
-				if (lines[_i16].getAttribute('end')) {
-					_temp.stop = (0, _time.convertSMPTEtoSeconds)(lines[_i16].getAttribute('end'));
+				if (lines.eq(_i16).attr('end')) {
+					_temp.stop = (0, _time.convertSMPTEtoSeconds)(lines.eq(_i16).attr('end'));
 				}
-				if (!_temp.stop && lines[_i16 + 1].getAttribute('begin')) {
-					_temp.stop = (0, _time.convertSMPTEtoSeconds)(lines[_i16 + 1].getAttribute('begin'));
+				if (!_temp.stop && lines.eq(_i16 + 1).attr('begin')) {
+					_temp.stop = (0, _time.convertSMPTEtoSeconds)(lines.eq(_i16 + 1).attr('begin'));
 				}
 
 				if (styles) {
 					style = '';
 					for (var _style in styles) {
-						style += _style + ': ' + styles[_style] + ';';
+						style += _style + ':' + styles[_style] + ';';
 					}
 				}
 				if (style) {
@@ -2996,7 +2945,7 @@ _mejs2.default.TrackFormatParser = {
 				if (_temp.start === 0) {
 					_temp.start = 0.200;
 				}
-				_temp.text = lines[_i16].innerHTML.trim().replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_| !:, .; ]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a href='$1' target='_blank'>$1</a>");
+				_temp.text = lines.eq(_i16).innerHTML.trim().replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a href='$1' target='_blank'>$1</a>");
 				entries.push(_temp);
 			}
 			return entries;
@@ -3064,8 +3013,8 @@ Object.assign(_player2.default.prototype, {
 		t.options.keyActions.push({
 			keys: [38],
 			action: function action(player) {
-				var volumeSlider = player.getElement(player.container).querySelector('.' + t.options.classPrefix + 'volume-slider');
-				if (volumeSlider && volumeSlider.matches(':focus')) {
+				var volumeSlider = player.getElement(player.container).querySelector('.' + _player.config.classPrefix + 'volume-slider');
+				if (volumeSlider || player.getElement(player.container).querySelector('.' + _player.config.classPrefix + 'volume-slider').matches(':focus')) {
 					volumeSlider.style.display = 'block';
 				}
 				if (player.isVideo) {
@@ -3082,7 +3031,7 @@ Object.assign(_player2.default.prototype, {
 		}, {
 			keys: [40],
 			action: function action(player) {
-				var volumeSlider = player.getElement(player.container).querySelector('.' + t.options.classPrefix + 'volume-slider');
+				var volumeSlider = player.getElement(player.container).querySelector('.' + _player.config.classPrefix + 'volume-slider');
 				if (volumeSlider) {
 					volumeSlider.style.display = 'block';
 				}
@@ -3102,11 +3051,7 @@ Object.assign(_player2.default.prototype, {
 		}, {
 			keys: [77],
 			action: function action(player) {
-				var volumeSlider = player.getElement(player.container).querySelector('.' + t.options.classPrefix + 'volume-slider');
-				if (volumeSlider) {
-					volumeSlider.style.display = 'block';
-				}
-
+				player.getElement(player.container).querySelector('.' + _player.config.classPrefix + 'volume-slider').style.display = 'block';
 				if (player.isVideo) {
 					player.showControls();
 					player.startControlsTimer();
@@ -3126,7 +3071,6 @@ Object.assign(_player2.default.prototype, {
 			anchor.setAttribute('aria-label', _i18n2.default.t('mejs.volume-slider'));
 			anchor.setAttribute('aria-valuemin', 0);
 			anchor.setAttribute('aria-valuemax', 100);
-			anchor.setAttribute('aria-valuenow', 100);
 			anchor.setAttribute('role', 'slider');
 			anchor.innerHTML += '<span class="' + t.options.classPrefix + 'offscreen">' + volumeControlText + '</span>' + ('<div class="' + t.options.classPrefix + 'horizontal-volume-total">') + ('<div class="' + t.options.classPrefix + 'horizontal-volume-current"></div>') + ('<div class="' + t.options.classPrefix + 'horizontal-volume-handle"></div>') + '</div>';
 			mute.parentNode.insertBefore(anchor, mute.nextSibling);
@@ -3224,7 +3168,6 @@ Object.assign(_player2.default.prototype, {
 				(0, _dom.removeClass)(mute, t.options.classPrefix + 'mute');
 				(0, _dom.addClass)(mute, t.options.classPrefix + 'unmute');
 			} else {
-
 				positionVolumeHandle(media.volume);
 				(0, _dom.removeClass)(mute, t.options.classPrefix + 'unmute');
 				(0, _dom.addClass)(mute, t.options.classPrefix + 'mute');
@@ -3266,7 +3209,7 @@ Object.assign(_player2.default.prototype, {
 			mouseIsOver = false;
 		});
 		mute.addEventListener('keydown', function (e) {
-			if (t.options.enableKeyboard && t.options.keyActions.length) {
+			if (t.options.keyActions.length) {
 				var keyCode = e.which || e.keyCode || 0,
 				    volume = media.volume;
 
@@ -3345,6 +3288,7 @@ Object.assign(_player2.default.prototype, {
 					rendered = true;
 					if (player.options.startVolume === 0 || media.originalNode.muted) {
 						media.setMuted(true);
+						player.options.startVolume = 0;
 					}
 					media.setVolume(player.options.startVolume);
 					t.setControlsSize();
@@ -3357,8 +3301,6 @@ Object.assign(_player2.default.prototype, {
 				if (!modified && !rendered) {
 					if (player.options.startVolume === 0 || media.originalNode.muted) {
 						media.setMuted(true);
-					}
-					if (player.options.startVolume === 0) {
 						player.options.startVolume = 0;
 					}
 					media.setVolume(player.options.startVolume);
@@ -3370,9 +3312,7 @@ Object.assign(_player2.default.prototype, {
 
 		if (player.options.startVolume === 0 || media.originalNode.muted) {
 			media.setMuted(true);
-			if (player.options.startVolume === 0) {
-				player.options.startVolume = 0;
-			}
+			player.options.startVolume = 0;
 			toggleMute();
 		}
 
@@ -3786,6 +3726,50 @@ var MediaElementPlayer = function () {
 				}
 				dom.addClass(t.getElement(t.container), t.isVideo ? t.options.classPrefix + 'video' : t.options.classPrefix + 'audio');
 
+				if (_constants.IS_SAFARI && !_constants.IS_IOS) {
+
+					dom.addClass(t.getElement(t.container), t.options.classPrefix + 'hide-cues');
+
+					var cloneNode = t.node.cloneNode(),
+					    children = t.node.children,
+					    mediaFiles = [],
+					    tracks = [];
+
+					for (var i = 0, total = children.length; i < total; i++) {
+						var childNode = children[i];
+
+						(function () {
+							switch (childNode.tagName.toLowerCase()) {
+								case 'source':
+									var elements = {};
+									Array.prototype.slice.call(childNode.attributes).forEach(function (item) {
+										elements[item.name] = item.value;
+									});
+									elements.type = (0, _media.formatType)(elements.src, elements.type);
+									mediaFiles.push(elements);
+									break;
+								case 'track':
+									childNode.mode = 'hidden';
+									tracks.push(childNode);
+									break;
+								default:
+									cloneNode.appendChild(childNode);
+									break;
+							}
+						})();
+					}
+
+					t.node.remove();
+					t.node = t.media = cloneNode;
+
+					if (mediaFiles.length) {
+						t.mediaFiles = mediaFiles;
+					}
+					if (tracks.length) {
+						t.trackFiles = tracks;
+					}
+				}
+
 				t.getElement(t.container).querySelector('.' + t.options.classPrefix + 'mediaelement').appendChild(t.node);
 
 				t.media.player = t;
@@ -3999,7 +3983,7 @@ var MediaElementPlayer = function () {
 			var t = this,
 			    autoplayAttr = domNode.getAttribute('autoplay'),
 			    autoplay = !(autoplayAttr === undefined || autoplayAttr === null || autoplayAttr === 'false'),
-			    isNative = media.rendererName !== null && /(native|html5)/i.test(media.rendererName);
+			    isNative = media.rendererName !== null && /(native|html5)/i.test(t.media.rendererName);
 
 			if (t.getElement(t.controls)) {
 				t.enableControls();
@@ -4144,7 +4128,7 @@ var MediaElementPlayer = function () {
 						if (_mejs2.default.players.hasOwnProperty(playerIndex)) {
 							var p = _mejs2.default.players[playerIndex];
 
-							if (p.id !== t.id && t.options.pauseOtherPlayers && !p.paused && !p.ended && p.options.ignorePauseOtherPlayersOption !== true) {
+							if (p.id !== t.id && t.options.pauseOtherPlayers && !p.paused && !p.ended) {
 								p.pause();
 								p.hasFocus = false;
 							}
@@ -4413,8 +4397,8 @@ var MediaElementPlayer = function () {
 			    parentStyles = parent ? getComputedStyle(parent, null) : getComputedStyle(_document2.default.body, null),
 			    nativeWidth = function () {
 				if (t.isVideo) {
-					if (t.node.videoWidth && t.node.videoWidth > 0) {
-						return t.node.videoWidth;
+					if (t.media.videoWidth && t.media.videoWidth > 0) {
+						return t.media.videoWidth;
 					} else if (t.node.getAttribute('width')) {
 						return t.node.getAttribute('width');
 					} else {
@@ -4426,8 +4410,8 @@ var MediaElementPlayer = function () {
 			}(),
 			    nativeHeight = function () {
 				if (t.isVideo) {
-					if (t.node.videoHeight && t.node.videoHeight > 0) {
-						return t.node.videoHeight;
+					if (t.media.videoHeight && t.media.videoHeight > 0) {
+						return t.media.videoHeight;
 					} else if (t.node.getAttribute('height')) {
 						return t.node.getAttribute('height');
 					} else {
@@ -4438,16 +4422,13 @@ var MediaElementPlayer = function () {
 				}
 			}(),
 			    aspectRatio = function () {
-				if (!t.options.enableAutosize) {
-					return t.initialAspectRatio;
-				}
 				var ratio = 1;
 				if (!t.isVideo) {
 					return ratio;
 				}
 
-				if (t.node.videoWidth && t.node.videoWidth > 0 && t.node.videoHeight && t.node.videoHeight > 0) {
-					ratio = t.height >= t.width ? t.node.videoWidth / t.node.videoHeight : t.node.videoHeight / t.node.videoWidth;
+				if (t.media.videoWidth && t.media.videoWidth > 0 && t.media.videoHeight && t.media.videoHeight > 0) {
+					ratio = t.height >= t.width ? t.media.videoWidth / t.media.videoHeight : t.media.videoHeight / t.media.videoWidth;
 				} else {
 					ratio = t.initialAspectRatio;
 				}
@@ -5178,12 +5159,11 @@ var MediaElementPlayer = function () {
 
 					delete t.node.autoplay;
 
-					t.node.setAttribute('src', '');
 					if (t.media.canPlayType((0, _media.getTypeFromFile)(src)) !== '') {
 						t.node.setAttribute('src', src);
 					}
 
-					if (rendererName && rendererName.indexOf('iframe') > -1) {
+					if (~rendererName.indexOf('iframe')) {
 						var layer = _document2.default.getElementById(t.media.id + '-iframe-overlay');
 						layer.remove();
 					}
@@ -5230,7 +5210,7 @@ var MediaElementPlayer = function () {
 				t.getElement(t.container).parentNode.insertBefore(t.node, t.getElement(t.container));
 			}
 
-			if (t.media.renderer && typeof t.media.renderer.destroy === 'function') {
+			if (typeof t.media.renderer.destroy === 'function') {
 				t.media.renderer.destroy();
 			}
 
@@ -5238,9 +5218,7 @@ var MediaElementPlayer = function () {
 
 			if (_typeof(t.getElement(t.container)) === 'object') {
 				var offscreen = t.getElement(t.container).parentNode.querySelector('.' + t.options.classPrefix + 'offscreen');
-				if (offscreen) {
-					offscreen.remove();
-				}
+				offscreen.remove();
 				t.getElement(t.container).remove();
 			}
 			t.globalUnbind('resize', t.globalResizeCallback);
@@ -5378,11 +5356,7 @@ var DefaultPlayer = function () {
 	}, {
 		key: 'getDuration',
 		value: function getDuration() {
-			var duration = this.media.getDuration();
-			if (duration === Infinity && this.media.seekable && this.media.seekable.length) {
-				duration = this.media.seekable.end(0);
-			}
-			return duration;
+			return this.media.getDuration();
 		}
 	}, {
 		key: 'setVolume',
@@ -5462,11 +5436,6 @@ var DefaultPlayer = function () {
 			return this.getDuration();
 		}
 	}, {
-		key: 'remainingTime',
-		get: function get() {
-			return this.getDuration() - this.currentTime();
-		}
-	}, {
 		key: 'volume',
 		set: function set(volume) {
 			this.setVolume(volume);
@@ -5510,11 +5479,11 @@ var _player2 = _interopRequireDefault(_player);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 if (typeof jQuery !== 'undefined') {
-	_mejs2.default.$ = jQuery;
+	_mejs2.default.$ = _window2.default.jQuery = _window2.default.$ = jQuery;
 } else if (typeof Zepto !== 'undefined') {
-	_mejs2.default.$ = Zepto;
+	_mejs2.default.$ = _window2.default.Zepto = _window2.default.$ = Zepto;
 } else if (typeof ender !== 'undefined') {
-	_mejs2.default.$ = ender;
+	_mejs2.default.$ = _window2.default.ender = _window2.default.$ = ender;
 }
 
 (function ($) {
@@ -5633,12 +5602,12 @@ var DashNativeRenderer = {
 		options = Object.assign(options, mediaElement.options);
 
 		var props = _mejs2.default.html5media.properties,
-		    events = _mejs2.default.html5media.events.concat(['click', 'mouseover', 'mouseout']).filter(function (e) {
-			return e !== 'error';
-		}),
+		    events = _mejs2.default.html5media.events.concat(['click', 'mouseover', 'mouseout']),
 		    attachNativeEvents = function attachNativeEvents(e) {
-			var event = (0, _general.createEvent)(e.type, mediaElement);
-			mediaElement.dispatchEvent(event);
+			if (e.type !== 'error') {
+				var _event = (0, _general.createEvent)(e.type, mediaElement);
+				mediaElement.dispatchEvent(_event);
+			}
 		},
 		    assignGettersSetters = function assignGettersSetters(propName) {
 			var capName = '' + propName.substring(0, 1).toUpperCase() + propName.substring(1);
@@ -5690,7 +5659,10 @@ var DashNativeRenderer = {
 			var dashEvents = dashjs.MediaPlayer.events,
 			    assignEvents = function assignEvents(eventName) {
 				if (eventName === 'loadedmetadata') {
+					dashPlayer.getDebug().setLogToBrowserConsole(options.dash.debug);
 					dashPlayer.initialize();
+					dashPlayer.setScheduleWhilePaused(false);
+					dashPlayer.setFastSwitchEnabled(true);
 					dashPlayer.attachView(node);
 					dashPlayer.setAutoPlay(false);
 
@@ -5710,21 +5682,25 @@ var DashNativeRenderer = {
 				assignEvents(events[_i3]);
 			}
 
-			var assignMdashEvents = function assignMdashEvents(e) {
-				if (e.type.toLowerCase() === 'error') {
-					mediaElement.generateError(e.message, node.src);
-					console.error(e);
+			var assignMdashEvents = function assignMdashEvents(name, data) {
+				if (name.toLowerCase() === 'error') {
+					mediaElement.generateError(data.message, node.src);
+					console.error(data);
 				} else {
-					var _event = (0, _general.createEvent)(e.type, mediaElement);
-					_event.data = e;
-					mediaElement.dispatchEvent(_event);
+					var _event2 = (0, _general.createEvent)(name, mediaElement);
+					_event2.data = data;
+					mediaElement.dispatchEvent(_event2);
 				}
 			};
 
 			for (var eventType in dashEvents) {
 				if (dashEvents.hasOwnProperty(eventType)) {
 					dashPlayer.on(dashEvents[eventType], function (e) {
-						return assignMdashEvents(e);
+						for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+							args[_key - 1] = arguments[_key];
+						}
+
+						return assignMdashEvents(e.type, args);
 					});
 				}
 			}
@@ -6268,7 +6244,7 @@ var NativeFlv = {
 				NativeFlv._createPlayer(settings);
 			});
 		} else {
-			settings.options.path = typeof settings.options.path === 'string' ? settings.options.path : 'https://cdn.jsdelivr.net/npm/flv.js@latest';
+			settings.options.path = typeof settings.options.path === 'string' ? settings.options.path : 'https://cdnjs.cloudflare.com/ajax/libs/flv.js/1.3.3/flv.min.js';
 
 			NativeFlv.promise = NativeFlv.promise || (0, _dom.loadScript)(settings.options.path);
 			NativeFlv.promise.then(function () {
@@ -6293,7 +6269,7 @@ var FlvNativeRenderer = {
 	options: {
 		prefix: 'native_flv',
 		flv: {
-			path: 'https://cdn.jsdelivr.net/npm/flv.js@latest',
+			path: 'https://cdnjs.cloudflare.com/ajax/libs/flv.js/1.3.3/flv.min.js',
 
 			cors: true,
 			debug: false
@@ -6316,12 +6292,12 @@ var FlvNativeRenderer = {
 		options = Object.assign(options, mediaElement.options);
 
 		var props = _mejs2.default.html5media.properties,
-		    events = _mejs2.default.html5media.events.concat(['click', 'mouseover', 'mouseout']).filter(function (e) {
-			return e !== 'error';
-		}),
+		    events = _mejs2.default.html5media.events.concat(['click', 'mouseover', 'mouseout']),
 		    attachNativeEvents = function attachNativeEvents(e) {
-			var event = (0, _general.createEvent)(e.type, mediaElement);
-			mediaElement.dispatchEvent(event);
+			if (e.type !== 'error') {
+				var _event = (0, _general.createEvent)(e.type, mediaElement);
+				mediaElement.dispatchEvent(_event);
+			}
 		},
 		    assignGettersSetters = function assignGettersSetters(propName) {
 			var capName = '' + propName.substring(0, 1).toUpperCase() + propName.substring(1);
@@ -6390,9 +6366,9 @@ var FlvNativeRenderer = {
 					var message = data[0] + ': ' + data[1] + ' ' + data[2].msg;
 					mediaElement.generateError(message, node.src);
 				} else {
-					var _event = (0, _general.createEvent)(name, mediaElement);
-					_event.data = data;
-					mediaElement.dispatchEvent(_event);
+					var _event2 = (0, _general.createEvent)(name, mediaElement);
+					_event2.data = data;
+					mediaElement.dispatchEvent(_event2);
 				}
 			};
 
@@ -6517,7 +6493,7 @@ var NativeHls = {
 				NativeHls._createPlayer(settings);
 			});
 		} else {
-			settings.options.path = typeof settings.options.path === 'string' ? settings.options.path : 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+			settings.options.path = typeof settings.options.path === 'string' ? settings.options.path : 'https://cdnjs.cloudflare.com/ajax/libs/hls.js/0.8.4/hls.min.js';
 
 			NativeHls.promise = NativeHls.promise || (0, _dom.loadScript)(settings.options.path);
 			NativeHls.promise.then(function () {
@@ -6540,7 +6516,7 @@ var HlsNativeRenderer = {
 	options: {
 		prefix: 'native_hls',
 		hls: {
-			path: 'https://cdn.jsdelivr.net/npm/hls.js@latest',
+			path: 'https://cdnjs.cloudflare.com/ajax/libs/hls.js/0.8.4/hls.min.js',
 
 			autoStartLoad: false,
 			debug: false
@@ -6568,12 +6544,12 @@ var HlsNativeRenderer = {
 		options.hls.autoStartLoad = preload && preload !== 'none' || autoplay;
 
 		var props = _mejs2.default.html5media.properties,
-		    events = _mejs2.default.html5media.events.concat(['click', 'mouseover', 'mouseout']).filter(function (e) {
-			return e !== 'error';
-		}),
+		    events = _mejs2.default.html5media.events.concat(['click', 'mouseover', 'mouseout']),
 		    attachNativeEvents = function attachNativeEvents(e) {
-			var event = (0, _general.createEvent)(e.type, mediaElement);
-			mediaElement.dispatchEvent(event);
+			if (e.type !== 'error') {
+				var _event = (0, _general.createEvent)(e.type, mediaElement);
+				mediaElement.dispatchEvent(_event);
+			}
 		},
 		    assignGettersSetters = function assignGettersSetters(propName) {
 			var capName = '' + propName.substring(0, 1).toUpperCase() + propName.substring(1);
@@ -6673,12 +6649,12 @@ var HlsNativeRenderer = {
 								hlsPlayer.destroy();
 								break;
 						}
-						return;
 					}
+				} else {
+					var _event2 = (0, _general.createEvent)(name, mediaElement);
+					_event2.data = data;
+					mediaElement.dispatchEvent(_event2);
 				}
-				var event = (0, _general.createEvent)(name, mediaElement);
-				event.data = data;
-				mediaElement.dispatchEvent(event);
 			};
 
 			var _loop = function _loop(eventType) {
@@ -6846,9 +6822,7 @@ var HtmlMediaElement = {
 			assignGettersSetters(props[i]);
 		}
 
-		var events = _mejs2.default.html5media.events.concat(['click', 'mouseover', 'mouseout']).filter(function (e) {
-			return e !== 'error';
-		}),
+		var events = _mejs2.default.html5media.events.concat(['click', 'mouseover', 'mouseout']),
 		    assignEvents = function assignEvents(eventName) {
 			node.addEventListener(eventName, function (e) {
 				if (isActive) {
@@ -6894,7 +6868,7 @@ var HtmlMediaElement = {
 		}
 
 		node.addEventListener('error', function (e) {
-			if (e && e.target && e.target.error && e.target.error.code === 4 && isActive) {
+			if (e.target.error.code === 4 && isActive) {
 				if (index < total && mediaFiles[index + 1] !== undefined) {
 					node.src = mediaFiles[index++].src;
 					node.load();
@@ -7106,8 +7080,6 @@ var YouTubeIframeRenderer = {
 						case 'volume':
 							volume = youTubeApi.getVolume() / 100;
 							return volume;
-						case 'playbackRate':
-							return youTubeApi.getPlaybackRate();
 						case 'paused':
 							return paused;
 						case 'ended':
@@ -7173,13 +7145,6 @@ var YouTubeIframeRenderer = {
 								mediaElement.dispatchEvent(event);
 							}, 50);
 							break;
-						case 'playbackRate':
-							youTubeApi.setPlaybackRate(value);
-							setTimeout(function () {
-								var event = (0, _general.createEvent)('ratechange', youtube);
-								mediaElement.dispatchEvent(event);
-							}, 50);
-							break;
 						case 'readyState':
 							var event = (0, _general.createEvent)('canplay', youtube);
 							mediaElement.dispatchEvent(event);
@@ -7222,29 +7187,6 @@ var YouTubeIframeRenderer = {
 			assignMethods(methods[_i]);
 		}
 
-		var errorHandler = function errorHandler(error) {
-			var message = '';
-			switch (error.data) {
-				case 2:
-					message = 'The request contains an invalid parameter value. Verify that video ID has 11 characters and that contains no invalid characters, such as exclamation points or asterisks.';
-					break;
-				case 5:
-					message = 'The requested content cannot be played in an HTML5 player or another error related to the HTML5 player has occurred.';
-					break;
-				case 100:
-					message = 'The video requested was not found. Either video has been removed or has been marked as private.';
-					break;
-				case 101:
-				case 105:
-					message = 'The owner of the requested video does not allow it to be played in embedded players.';
-					break;
-				default:
-					message = 'Unknown error.';
-					break;
-			}
-			mediaElement.generateError('Code ' + error.data + ': ' + message, mediaFiles);
-		};
-
 		var youtubeContainer = _document2.default.createElement('div');
 		youtubeContainer.id = youtube.id;
 
@@ -7265,7 +7207,6 @@ var YouTubeIframeRenderer = {
 			videoId: videoId,
 			height: height,
 			width: width,
-			host: youtube.options.youtube && youtube.options.youtube.nocookie ? 'https://www.youtube-nocookie.com' : undefined,
 			playerVars: Object.assign({
 				controls: 0,
 				rel: 0,
@@ -7369,7 +7310,9 @@ var YouTubeIframeRenderer = {
 					}
 				},
 				onError: function onError(e) {
-					return errorHandler(e);
+					var event = (0, _general.createEvent)('error', youtube);
+					event.data = e.data;
+					mediaElement.dispatchEvent(event);
 				}
 			}
 		};
@@ -7386,10 +7329,6 @@ var YouTubeIframeRenderer = {
 		}
 		if (mediaElement.originalNode.loop) {
 			youtubeSettings.playerVars.loop = 1;
-		}
-
-		if ((youtubeSettings.playerVars.loop && parseInt(youtubeSettings.playerVars.loop, 10) === 1 || mediaElement.originalNode.src.indexOf('loop=') > -1) && !youtubeSettings.playerVars.playlist && mediaElement.originalNode.src.indexOf('playlist=') === -1) {
-			youtubeSettings.playerVars.playlist = YouTubeApi.getYouTubeId(mediaElement.originalNode.src);
 		}
 
 		YouTubeApi.enqueueIframe(youtubeSettings);
@@ -7503,7 +7442,7 @@ var SUPPORT_POINTER_EVENTS = exports.SUPPORT_POINTER_EVENTS = function () {
 	element.style.pointerEvents = 'auto';
 	element.style.pointerEvents = 'x';
 	documentElement.appendChild(element);
-	var supports = getComputedStyle && (getComputedStyle(element, '') || {}).pointerEvents === 'auto';
+	var supports = getComputedStyle && getComputedStyle(element, '').pointerEvents === 'auto';
 	element.remove();
 	return !!supports;
 }();
@@ -7529,7 +7468,7 @@ for (var i = 0, total = html5Elements.length; i < total; i++) {
 	video = _document2.default.createElement(html5Elements[i]);
 }
 
-var SUPPORTS_NATIVE_HLS = exports.SUPPORTS_NATIVE_HLS = IS_SAFARI || IS_IE && /edge/i.test(UA);
+var SUPPORTS_NATIVE_HLS = exports.SUPPORTS_NATIVE_HLS = IS_SAFARI || IS_ANDROID && (IS_CHROME || IS_STOCK_ANDROID) || IS_IE && /edge/i.test(UA);
 
 var hasiOSFullScreen = video.webkitEnterFullscreen !== undefined;
 
@@ -7564,7 +7503,7 @@ if (hasTrueNativeFullScreen) {
 	if (hasWebkitNativeFullScreen) {
 		fullScreenEventName = 'webkitfullscreenchange';
 	} else if (hasMozNativeFullScreen) {
-		fullScreenEventName = 'fullscreenchange';
+		fullScreenEventName = 'mozfullscreenchange';
 	} else if (hasMsNativeFullScreen) {
 		fullScreenEventName = 'MSFullscreenChange';
 	}
@@ -8076,10 +8015,8 @@ function getTypeFromFile(url) {
 	var mime = 'video/mp4';
 
 	if (normalizedExt) {
-		if (~['mp4', 'm4v', 'ogg', 'ogv', 'webm', 'flv', 'mpeg'].indexOf(normalizedExt)) {
+		if (~['mp4', 'm4v', 'ogg', 'ogv', 'webm', 'flv', 'mpeg', 'mov'].indexOf(normalizedExt)) {
 			mime = 'video/' + normalizedExt;
-		} else if ('mov' === normalizedExt) {
-			mime = 'video/quicktime';
 		} else if (~['mp3', 'oga', 'wav', 'mid', 'midi'].indexOf(normalizedExt)) {
 			mime = 'audio/' + normalizedExt;
 		}
@@ -8312,7 +8249,7 @@ function secondsToTimeCode(time) {
 	var showFrameCount = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 	var fps = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 25;
 	var secondsDecimalLength = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0;
-	var timeFormat = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 'hh:mm:ss';
+	var timeFormat = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 'mm:ss';
 
 
 	time = !time || typeof time !== 'number' || time < 0 ? 0 : time;
@@ -8351,7 +8288,7 @@ function secondsToTimeCode(time) {
 		if (showFrameCount) {
 			seconds = timeBaseDivision % 60;
 		} else {
-			seconds = Math.floor(f / timeBase % 60).toFixed(secondsDecimalLength);
+			seconds = (f / timeBase % 60).toFixed(secondsDecimalLength);
 		}
 	} else {
 		hours = Math.floor(time / 3600) % 24;
@@ -8359,15 +8296,12 @@ function secondsToTimeCode(time) {
 		if (showFrameCount) {
 			seconds = Math.floor(time % 60);
 		} else {
-			seconds = Math.floor(time % 60).toFixed(secondsDecimalLength);
+			seconds = (time % 60).toFixed(secondsDecimalLength);
 		}
 	}
 	hours = hours <= 0 ? 0 : hours;
 	minutes = minutes <= 0 ? 0 : minutes;
 	seconds = seconds <= 0 ? 0 : seconds;
-
-	seconds = seconds === 60 ? 0 : seconds;
-	minutes = minutes === 60 ? 0 : minutes;
 
 	var timeFormatFrags = timeFormat.split(':');
 	var timeFormatSettings = {};

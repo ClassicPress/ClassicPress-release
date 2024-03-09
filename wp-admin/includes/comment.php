@@ -4,24 +4,25 @@
  *
  * @package ClassicPress
  * @subpackage Administration
- * @since 2.3.0
+ * @since WP-2.3.0
  */
 
 /**
- * Determines if a comment exists based on author and date.
+ * Determine if a comment exists based on author and date.
  *
  * For best performance, use `$timezone = 'gmt'`, which queries a field that is properly indexed. The default value
  * for `$timezone` is 'blog' for legacy reasons.
  *
- * @since 2.0.0
- * @since 4.4.0 Added the `$timezone` parameter.
+ * @since WP-2.0.0
+ * @since WP-4.4.0 Added the `$timezone` parameter.
  *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @global wpdb $wpdb ClassicPress database abstraction object.
  *
  * @param string $comment_author Author of the comment.
  * @param string $comment_date   Date of the comment.
  * @param string $timezone       Timezone. Accepts 'blog' or 'gmt'. Default 'blog'.
- * @return string|null Comment post ID on success.
+ *
+ * @return mixed Comment post ID on success.
  */
 function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
 	global $wpdb;
@@ -42,13 +43,9 @@ function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
 }
 
 /**
- * Updates a comment with values provided in $_POST.
+ * Update a comment with values provided in $_POST.
  *
- * @since 2.0.0
- * @since 5.5.0 A return value was added.
- *
- * @return int|WP_Error The value 1 if the comment was updated, 0 if not updated.
- *                      A WP_Error object on failure.
+ * @since WP-2.0.0
  */
 function edit_comment() {
 	if ( ! current_user_can( 'edit_comment', (int) $_POST['comment_ID'] ) ) {
@@ -75,34 +72,33 @@ function edit_comment() {
 	}
 
 	foreach ( array( 'aa', 'mm', 'jj', 'hh', 'mn' ) as $timeunit ) {
-		if ( ! empty( $_POST[ 'hidden_' . $timeunit ] ) && $_POST[ 'hidden_' . $timeunit ] !== $_POST[ $timeunit ] ) {
+		if ( ! empty( $_POST[ 'hidden_' . $timeunit ] ) && $_POST[ 'hidden_' . $timeunit ] != $_POST[ $timeunit ] ) {
 			$_POST['edit_date'] = '1';
 			break;
 		}
 	}
 
 	if ( ! empty( $_POST['edit_date'] ) ) {
-		$aa = $_POST['aa'];
-		$mm = $_POST['mm'];
-		$jj = $_POST['jj'];
-		$hh = $_POST['hh'];
-		$mn = $_POST['mn'];
-		$ss = $_POST['ss'];
-		$jj = ( $jj > 31 ) ? 31 : $jj;
-		$hh = ( $hh > 23 ) ? $hh - 24 : $hh;
-		$mn = ( $mn > 59 ) ? $mn - 60 : $mn;
-		$ss = ( $ss > 59 ) ? $ss - 60 : $ss;
-
+		$aa                    = $_POST['aa'];
+		$mm                    = $_POST['mm'];
+		$jj                    = $_POST['jj'];
+		$hh                    = $_POST['hh'];
+		$mn                    = $_POST['mn'];
+		$ss                    = $_POST['ss'];
+		$jj                    = ( $jj > 31 ) ? 31 : $jj;
+		$hh                    = ( $hh > 23 ) ? $hh - 24 : $hh;
+		$mn                    = ( $mn > 59 ) ? $mn - 60 : $mn;
+		$ss                    = ( $ss > 59 ) ? $ss - 60 : $ss;
 		$_POST['comment_date'] = "$aa-$mm-$jj $hh:$mn:$ss";
 	}
 
-	return wp_update_comment( $_POST, true );
+	wp_update_comment( $_POST );
 }
 
 /**
  * Returns a WP_Comment object based on comment ID.
  *
- * @since 2.0.0
+ * @since WP-2.0.0
  *
  * @param int $id ID of comment to retrieve.
  * @return WP_Comment|false Comment if found. False on failure.
@@ -120,9 +116,9 @@ function get_comment_to_edit( $id ) {
 	/**
 	 * Filters the comment content before editing.
 	 *
-	 * @since 2.0.0
+	 * @since WP-2.0.0
 	 *
-	 * @param string $comment_content Comment content.
+	 * @param string $comment->comment_content Comment content.
 	 */
 	$comment->comment_content = apply_filters( 'comment_edit_pre', $comment->comment_content );
 
@@ -135,14 +131,14 @@ function get_comment_to_edit( $id ) {
 }
 
 /**
- * Gets the number of pending comments on a post or posts.
+ * Get the number of pending comments on a post or posts
  *
- * @since 2.3.0
+ * @since WP-2.3.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @global wpdb $wpdb ClassicPress database abstraction object.
  *
- * @param int|int[] $post_id Either a single Post ID or an array of Post IDs
- * @return int|int[] Either a single Posts pending comments as an int or an array of ints keyed on the Post IDs
+ * @param int|array $post_id Either a single Post ID or an array of Post IDs
+ * @return int|array Either a single Posts pending comments as an int or an array of ints keyed on the Post IDs
  */
 function get_pending_comments_num( $post_id ) {
 	global $wpdb;
@@ -169,7 +165,7 @@ function get_pending_comments_num( $post_id ) {
 
 	$pending_keyed = array();
 
-	// Default to zero pending for all posts in request.
+	// Default to zero pending for all posts in request
 	foreach ( $post_id_array as $id ) {
 		$pending_keyed[ $id ] = 0;
 	}
@@ -184,12 +180,12 @@ function get_pending_comments_num( $post_id ) {
 }
 
 /**
- * Adds avatars to relevant places in admin.
+ * Add avatars to relevant places in admin, or try to.
  *
- * @since 2.5.0
+ * @since WP-2.5.0
  *
  * @param string $name User name.
- * @return string Avatar with the user name.
+ * @return string Avatar with Admin name.
  */
 function floated_admin_avatar( $name ) {
 	$avatar = get_avatar( get_comment(), 32, 'mystery' );
@@ -197,9 +193,7 @@ function floated_admin_avatar( $name ) {
 }
 
 /**
- * Enqueues comment shortcuts jQuery script.
- *
- * @since 2.7.0
+ * @since WP-2.7.0
  */
 function enqueue_comment_hotkeys_js() {
 	if ( 'true' === get_user_option( 'comment_shortcuts' ) ) {
@@ -208,12 +202,12 @@ function enqueue_comment_hotkeys_js() {
 }
 
 /**
- * Displays error message at bottom of comments.
+ * Display error message at bottom of comments.
  *
  * @param string $msg Error Message. Assumed to contain HTML and be sanitized.
  */
 function comment_footer_die( $msg ) {
 	echo "<div class='wrap'><p>$msg</p></div>";
-	require_once ABSPATH . 'wp-admin/admin-footer.php';
+	include ABSPATH . 'wp-admin/admin-footer.php';
 	die;
 }

@@ -12,13 +12,13 @@
  * @package ClassicPress
  */
 
-require_once __DIR__ . '/wp-load.php';
+require_once dirname( __FILE__ ) . '/wp-load.php';
 
 header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), true );
 $link_cat = '';
 if ( ! empty( $_GET['link_cat'] ) ) {
 	$link_cat = $_GET['link_cat'];
-	if ( ! in_array( $link_cat, array( 'all', '0' ), true ) ) {
+	if ( ! in_array( $link_cat, array( 'all', '0' ) ) ) {
 		$link_cat = absint( (string) urldecode( $link_cat ) );
 	}
 }
@@ -29,7 +29,7 @@ echo '<?xml version="1.0"?' . ">\n";
 	<head>
 		<title>
 		<?php
-			/* translators: %s: Site title. */
+			/* translators: 1: Site name */
 			printf( __( 'Links for %s' ), esc_attr( get_bloginfo( 'name', 'display' ) ) );
 		?>
 		</title>
@@ -38,7 +38,7 @@ echo '<?xml version="1.0"?' . ">\n";
 		/**
 		 * Fires in the OPML header.
 		 *
-		 * @since 3.0.0
+		 * @since WP-3.0.0
 		 */
 		do_action( 'opml_head' );
 		?>
@@ -63,7 +63,13 @@ if ( empty( $link_cat ) ) {
 }
 
 foreach ( (array) $cats as $cat ) :
-	/** This filter is documented in wp-includes/bookmark-template.php */
+	/**
+	 * Filters the OPML outline link category name.
+	 *
+	 * @since WP-2.2.0
+	 *
+	 * @param string $catname The OPML outline category name.
+	 */
 	$catname = apply_filters( 'link_category', $cat->name );
 
 	?>
@@ -74,19 +80,18 @@ foreach ( (array) $cats as $cat ) :
 		/**
 		 * Filters the OPML outline link title text.
 		 *
-		 * @since 2.2.0
+		 * @since WP-2.2.0
 		 *
 		 * @param string $title The OPML outline title text.
 		 */
 		$title = apply_filters( 'link_title', $bookmark->link_name );
 		?>
-<outline text="<?php echo esc_attr( $title ); ?>" type="link" xmlUrl="<?php echo esc_url( $bookmark->link_rss ); ?>" htmlUrl="<?php echo esc_url( $bookmark->link_url ); ?>" updated="
-							<?php
-							if ( '0000-00-00 00:00:00' !== $bookmark->link_updated ) {
-								echo $bookmark->link_updated;
-							}
-							?>
-" />
+	<outline text="<?php echo esc_attr( $title ); ?>" type="link" xmlUrl="<?php echo esc_attr( $bookmark->link_rss ); ?>" htmlUrl="<?php echo esc_attr( $bookmark->link_url ); ?>" updated="
+							  <?php
+								if ( '0000-00-00 00:00:00' != $bookmark->link_updated ) {
+									echo $bookmark->link_updated;}
+								?>
+	" />
 		<?php
 	endforeach; // $bookmarks
 	?>

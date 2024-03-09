@@ -1,7 +1,3 @@
-/**
- * @output wp-admin/js/widgets/media-audio-widget.js
- */
-
 /* eslint consistent-this: [ "error", "control" ] */
 (function( component ) {
 	'use strict';
@@ -11,15 +7,15 @@
 	/**
 	 * Custom audio details frame that removes the replace-audio state.
 	 *
-	 * @class    wp.mediaWidgets.controlConstructors~AudioDetailsMediaFrame
-	 * @augments wp.media.view.MediaFrame.AudioDetails
+	 * @class AudioDetailsMediaFrame
+	 * @constructor
 	 */
-	AudioDetailsMediaFrame = wp.media.view.MediaFrame.AudioDetails.extend(/** @lends wp.mediaWidgets.controlConstructors~AudioDetailsMediaFrame.prototype */{
+	AudioDetailsMediaFrame = wp.media.view.MediaFrame.AudioDetails.extend({
 
 		/**
 		 * Create the default states.
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		createStates: function createStates() {
 			this.states.add([
@@ -44,8 +40,8 @@
 	 *
 	 * See WP_Widget_Audio::enqueue_admin_scripts() for amending prototype from PHP exports.
 	 *
-	 * @class    wp.mediaWidgets.modelConstructors.media_audio
-	 * @augments wp.mediaWidgets.MediaWidgetModel
+	 * @class AudioWidgetModel
+	 * @constructor
 	 */
 	AudioWidgetModel = component.MediaWidgetModel.extend({});
 
@@ -54,10 +50,10 @@
 	 *
 	 * See WP_Widget_Audio::enqueue_admin_scripts() for amending prototype from PHP exports.
 	 *
-	 * @class    wp.mediaWidgets.controlConstructors.media_audio
-	 * @augments wp.mediaWidgets.MediaWidgetControl
+	 * @class AudioWidgetModel
+	 * @constructor
 	 */
-	AudioWidgetControl = component.MediaWidgetControl.extend(/** @lends wp.mediaWidgets.controlConstructors.media_audio.prototype */{
+	AudioWidgetControl = component.MediaWidgetControl.extend({
 
 		/**
 		 * Show display settings.
@@ -70,7 +66,7 @@
 		 * Map model props to media frame props.
 		 *
 		 * @param {Object} modelProps - Model props.
-		 * @return {Object} Media frame props.
+		 * @returns {Object} Media frame props.
 		 */
 		mapModelToMediaFrameProps: function mapModelToMediaFrameProps( modelProps ) {
 			var control = this, mediaFrameProps;
@@ -82,7 +78,7 @@
 		/**
 		 * Render preview.
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		renderPreview: function renderPreview() {
 			var control = this, previewContainer, previewTemplate, attachmentId, attachmentUrl;
@@ -109,7 +105,7 @@
 		/**
 		 * Open the media audio-edit frame to modify the selected item.
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		editMedia: function editMedia() {
 			var control = this, mediaFrame, metadata, updateCallback;

@@ -1,7 +1,3 @@
-/**
- * @output wp-admin/js/widgets/media-image-widget.js
- */
-
 /* eslint consistent-this: [ "error", "control" ] */
 (function( component, $ ) {
 	'use strict';
@@ -13,8 +9,8 @@
 	 *
 	 * See WP_Widget_Media_Image::enqueue_admin_scripts() for amending prototype from PHP exports.
 	 *
-	 * @class    wp.mediaWidgets.modelConstructors.media_image
-	 * @augments wp.mediaWidgets.MediaWidgetModel
+	 * @class ImageWidgetModel
+	 * @constructor
 	 */
 	ImageWidgetModel = component.MediaWidgetModel.extend({});
 
@@ -23,10 +19,10 @@
 	 *
 	 * See WP_Widget_Media_Image::enqueue_admin_scripts() for amending prototype from PHP exports.
 	 *
-	 * @class    wp.mediaWidgets.controlConstructors.media_audio
-	 * @augments wp.mediaWidgets.MediaWidgetControl
+	 * @class ImageWidgetModel
+	 * @constructor
 	 */
-	ImageWidgetControl = component.MediaWidgetControl.extend(/** @lends wp.mediaWidgets.controlConstructors.media_image.prototype */{
+	ImageWidgetControl = component.MediaWidgetControl.extend({
 
 		/**
 		 * View events.
@@ -40,7 +36,7 @@
 		/**
 		 * Render preview.
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		renderPreview: function renderPreview() {
 			var control = this, previewContainer, previewTemplate, fieldsContainer, fieldsTemplate, linkInput;
@@ -64,7 +60,7 @@
 		/**
 		 * Open the media image-edit frame to modify the selected item.
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		editMedia: function editMedia() {
 			var control = this, mediaFrame, updateCallback, defaultSync, metadata;
@@ -119,7 +115,7 @@
 		/**
 		 * Get props which are merged on top of the model when an embed is chosen (as opposed to an attachment).
 		 *
-		 * @return {Object} Reset/override props.
+		 * @returns {Object} Reset/override props.
 		 */
 		getEmbedResetProps: function getEmbedResetProps() {
 			return _.extend(
@@ -138,7 +134,7 @@
 		 * Prevent the image_title attribute from being initially set when adding an image from the media library.
 		 *
 		 * @param {wp.media.view.MediaFrame.Select} mediaFrame - Select frame.
-		 * @return {Object} Props.
+		 * @returns {Object} Props.
 		 */
 		getModelPropsFromMediaFrame: function getModelPropsFromMediaFrame( mediaFrame ) {
 			var control = this;
@@ -151,7 +147,7 @@
 		/**
 		 * Map model props to preview template props.
 		 *
-		 * @return {Object} Preview template props.
+		 * @returns {Object} Preview template props.
 		 */
 		mapModelToPreviewTemplateProps: function mapModelToPreviewTemplateProps() {
 			var control = this, previewTemplateProps, url;

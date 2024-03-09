@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 
-// Don't load directly.
+// don't load directly
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
@@ -26,22 +26,17 @@ global $hook_suffix;
 	/**
 	 * Fires after the opening tag for the admin footer.
 	 *
-	 * @since 2.5.0
+	 * @since WP-2.5.0
 	 */
 	do_action( 'in_admin_footer' );
 	?>
 	<p id="footer-left" class="alignleft">
 		<?php
-		$text = sprintf(
-			/* translators: %s: https://www.classicpress.net/ */
-			__( 'Thank you for creating with <a href="%s">ClassicPress</a>.' ),
-			__( 'https://www.classicpress.net/' )
-		);
-
+		$text = sprintf( __( 'Thank you for creating with <a href="%s">ClassicPress</a>.' ), 'https://www.classicpress.net/' );
 		/**
 		 * Filters the "Thank you" text displayed in the admin footer.
 		 *
-		 * @since 2.8.0
+		 * @since WP-2.8.0
 		 *
 		 * @param string $text The content that will be printed.
 		 */
@@ -56,7 +51,7 @@ global $hook_suffix;
 		 * ClassicPress prints the current version and update information,
 		 * using core_update_footer() at priority 10.
 		 *
-		 * @since 2.3.0
+		 * @since WP-2.3.0
 		 *
 		 * @see core_update_footer()
 		 *
@@ -71,7 +66,7 @@ global $hook_suffix;
 /**
  * Prints scripts or data before the default footer scripts.
  *
- * @since 1.2.0
+ * @since WP-1.2.0
  *
  * @param string $data The data to print.
  */
@@ -83,14 +78,14 @@ do_action( 'admin_footer', '' );
  * The dynamic portion of the hook name, `$hook_suffix`,
  * refers to the global hook suffix of the current page.
  *
- * @since 4.6.0
+ * @since WP-4.6.0
  */
 do_action( "admin_print_footer_scripts-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 /**
  * Prints any scripts and data queued for the footer.
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  */
 do_action( 'admin_print_footer_scripts' );
 
@@ -100,20 +95,20 @@ do_action( 'admin_print_footer_scripts' );
  * The dynamic portion of the hook name, `$hook_suffix`,
  * refers to the global hook suffix of the current page.
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  */
 do_action( "admin_footer-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-// get_site_option() won't exist when auto upgrading from <= 2.7.
-if ( function_exists( 'get_site_option' )
-	&& false === get_site_option( 'can_compress_scripts' )
-) {
-	compression_test();
+// get_site_option() won't exist when auto upgrading from <= 2.7
+if ( function_exists( 'get_site_option' ) ) {
+	if ( false === get_site_option( 'can_compress_scripts' ) ) {
+		compression_test();
+	}
 }
 
 ?>
 
 <div class="clear"></div></div><!-- wpwrap -->
-<script>if(typeof wpOnload==='function')wpOnload();</script>
+<script type="text/javascript">if(typeof wpOnload=='function')wpOnload();</script>
 </body>
 </html>

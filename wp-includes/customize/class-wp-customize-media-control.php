@@ -4,13 +4,13 @@
  *
  * @package ClassicPress
  * @subpackage Customize
- * @since 4.4.0
+ * @since WP-4.4.0
  */
 
 /**
  * Customize Media Control class.
  *
- * @since 4.2.0
+ * @since WP-4.2.0
  *
  * @see WP_Customize_Control
  */
@@ -18,7 +18,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	/**
 	 * Control type.
 	 *
-	 * @since 4.2.0
+	 * @since WP-4.2.0
 	 * @var string
 	 */
 	public $type = 'media';
@@ -26,7 +26,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	/**
 	 * Media control mime type.
 	 *
-	 * @since 4.2.0
+	 * @since WP-4.2.0
 	 * @var string
 	 */
 	public $mime_type = '';
@@ -34,7 +34,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	/**
 	 * Button labels.
 	 *
-	 * @since 4.2.0
+	 * @since WP-4.2.0
 	 * @var array
 	 */
 	public $button_labels = array();
@@ -42,16 +42,12 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	/**
 	 * Constructor.
 	 *
-	 * @since 4.1.0
-	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
-	 *
-	 * @see WP_Customize_Control::__construct()
+	 * @since WP-4.1.0
+	 * @since WP-4.2.0 Moved from WP_Customize_Upload_Control.
 	 *
 	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
 	 * @param string               $id      Control ID.
 	 * @param array                $args    Optional. Arguments to override class property defaults.
-	 *                                      See WP_Customize_Control::__construct() for information
-	 *                                      on accepted arguments. Default empty array.
 	 */
 	public function __construct( $manager, $id, $args = array() ) {
 		parent::__construct( $manager, $id, $args );
@@ -62,8 +58,8 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	/**
 	 * Enqueue control related scripts/styles.
 	 *
-	 * @since 3.4.0
-	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
+	 * @since WP-3.4.0
+	 * @since WP-4.2.0 Moved from WP_Customize_Upload_Control.
 	 */
 	public function enqueue() {
 		wp_enqueue_media();
@@ -72,8 +68,8 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	/**
 	 * Refresh the parameters passed to the JavaScript via JSON.
 	 *
-	 * @since 3.4.0
-	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
+	 * @since WP-3.4.0
+	 * @since WP-4.2.0 Moved from WP_Customize_Upload_Control.
 	 *
 	 * @see WP_Customize_Control::to_json()
 	 */
@@ -91,7 +87,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 				// Fake an attachment model - needs all fields used by template.
 				// Note that the default value must be a URL, NOT an attachment ID.
 				$ext  = substr( $this->setting->default, -3 );
-				$type = in_array( $ext, array( 'jpg', 'png', 'gif', 'bmp', 'webp' ), true ) ? 'image' : 'document';
+				$type = in_array( $ext, array( 'jpg', 'png', 'gif', 'bmp' ), true ) ? 'image' : 'document';
 
 				$default_attachment = array(
 					'id'    => 1,
@@ -122,8 +118,8 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	/**
 	 * Don't render any content for this control from PHP.
 	 *
-	 * @since 3.4.0
-	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
+	 * @since WP-3.4.0
+	 * @since WP-4.2.0 Moved from WP_Customize_Upload_Control.
 	 *
 	 * @see WP_Customize_Media_Control::content_template()
 	 */
@@ -132,17 +128,18 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	/**
 	 * Render a JS template for the content of the media control.
 	 *
-	 * @since 4.1.0
-	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
+	 * @since WP-4.1.0
+	 * @since WP-4.2.0 Moved from WP_Customize_Upload_Control.
 	 */
 	public function content_template() {
 		?>
 		<#
+		var selectButtonId = _.uniqueId( 'customize-media-control-button-' );
 		var descriptionId = _.uniqueId( 'customize-media-control-description-' );
 		var describedByAttr = data.description ? ' aria-describedby="' + descriptionId + '" ' : '';
 		#>
 		<# if ( data.label ) { #>
-			<span class="customize-control-title">{{ data.label }}</span>
+			<label class="customize-control-title" for="{{ selectButtonId }}">{{ data.label }}</label>
 		<# } #>
 		<div class="customize-control-notifications-container"></div>
 		<# if ( data.description ) { #>
@@ -153,14 +150,14 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 			<div class="attachment-media-view attachment-media-view-{{ data.attachment.type }} {{ data.attachment.orientation }}">
 				<div class="thumbnail thumbnail-{{ data.attachment.type }}">
 					<# if ( 'image' === data.attachment.type && data.attachment.sizes && data.attachment.sizes.medium ) { #>
-						<img class="attachment-thumb" src="{{ data.attachment.sizes.medium.url }}" draggable="false" alt="">
+						<img class="attachment-thumb" src="{{ data.attachment.sizes.medium.url }}" draggable="false" alt="" />
 					<# } else if ( 'image' === data.attachment.type && data.attachment.sizes && data.attachment.sizes.full ) { #>
-						<img class="attachment-thumb" src="{{ data.attachment.sizes.full.url }}" draggable="false" alt="">
+						<img class="attachment-thumb" src="{{ data.attachment.sizes.full.url }}" draggable="false" alt="" />
 					<# } else if ( 'audio' === data.attachment.type ) { #>
 						<# if ( data.attachment.image && data.attachment.image.src && data.attachment.image.src !== data.attachment.icon ) { #>
-							<img src="{{ data.attachment.image.src }}" class="thumbnail" draggable="false" alt="">
+							<img src="{{ data.attachment.image.src }}" class="thumbnail" draggable="false" alt="" />
 						<# } else { #>
-							<img src="{{ data.attachment.icon }}" class="attachment-thumb type-icon" draggable="false" alt="">
+							<img src="{{ data.attachment.icon }}" class="attachment-thumb type-icon" draggable="false" alt="" />
 						<# } #>
 						<p class="attachment-meta attachment-meta-title">&#8220;{{ data.attachment.title }}&#8221;</p>
 						<# if ( data.attachment.album || data.attachment.meta.album ) { #>
@@ -170,35 +167,38 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 						<p class="attachment-meta">{{ data.attachment.artist || data.attachment.meta.artist }}</p>
 						<# } #>
 						<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
-							<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}">
+							<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}"/>
 						</audio>
 					<# } else if ( 'video' === data.attachment.type ) { #>
 						<div class="wp-media-wrapper wp-video">
-							<video controls class="wp-video-shortcode" preload="metadata"
+							<video controls="controls" class="wp-video-shortcode" preload="metadata"
 								<# if ( data.attachment.image && data.attachment.image.src !== data.attachment.icon ) { #>poster="{{ data.attachment.image.src }}"<# } #>>
-								<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}">
+								<source type="{{ data.attachment.mime }}" src="{{ data.attachment.url }}"/>
 							</video>
 						</div>
 					<# } else { #>
-						<img class="attachment-thumb type-icon icon" src="{{ data.attachment.icon }}" draggable="false" alt="">
+						<img class="attachment-thumb type-icon icon" src="{{ data.attachment.icon }}" draggable="false" alt="" />
 						<p class="attachment-title">{{ data.attachment.title }}</p>
 					<# } #>
 				</div>
 				<div class="actions">
 					<# if ( data.canUpload ) { #>
 					<button type="button" class="button remove-button">{{ data.button_labels.remove }}</button>
-					<button type="button" class="button upload-button control-focus" {{{ describedByAttr }}}>{{ data.button_labels.change }}</button>
+					<button type="button" class="button upload-button control-focus" id="{{ selectButtonId }}" {{{ describedByAttr }}}>{{ data.button_labels.change }}</button>
 					<# } #>
 				</div>
 			</div>
 		<# } else { #>
 			<div class="attachment-media-view">
-				<# if ( data.canUpload ) { #>
-					<button type="button" class="upload-button button-add-media" {{{ describedByAttr }}}>{{ data.button_labels.select }}</button>
-				<# } #>
+				<div class="placeholder">
+						{{ data.button_labels.placeholder }}
+				</div>
 				<div class="actions">
 					<# if ( data.defaultAttachment ) { #>
 						<button type="button" class="button default-button">{{ data.button_labels['default'] }}</button>
+					<# } #>
+					<# if ( data.canUpload ) { #>
+					<button type="button" class="button upload-button" id="{{ selectButtonId }}" {{{ describedByAttr }}}>{{ data.button_labels.select }}</button>
 					<# } #>
 				</div>
 			</div>
@@ -211,9 +211,9 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	 *
 	 * Provides an array of the default button labels based on the mime type of the current control.
 	 *
-	 * @since 4.9.0
+	 * @since WP-4.9.0
 	 *
-	 * @return string[] An associative array of default button labels keyed by the button name.
+	 * @return array An associative array of default button labels.
 	 */
 	public function get_default_button_labels() {
 		// Get just the mime type and strip the mime subtype if present.
@@ -243,7 +243,6 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 			case 'image':
 				return array(
 					'select'       => __( 'Select image' ),
-					'site_icon'    => __( 'Select site icon' ),
 					'change'       => __( 'Change image' ),
 					'default'      => __( 'Default' ),
 					'remove'       => __( 'Remove' ),

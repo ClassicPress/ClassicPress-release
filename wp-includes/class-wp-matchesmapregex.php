@@ -3,15 +3,14 @@
  * WP_MatchesMapRegex helper class
  *
  * @package ClassicPress
- * @since 4.7.0
+ * @since WP-4.7.0
  */
 
 /**
  * Helper class to remove the need to use eval to replace $matches[] in query strings.
  *
- * @since 2.9.0
+ * @since WP-2.9.0
  */
-#[AllowDynamicProperties]
 class WP_MatchesMapRegex {
 	/**
 	 * store for matches
@@ -39,7 +38,7 @@ class WP_MatchesMapRegex {
 	 *
 	 * @var string
 	 */
-	public $_pattern = '(\$matches\[[1-9]+[0-9]*\])'; // Magic number.
+	public $_pattern = '(\$matches\[[1-9]+[0-9]*\])'; // magic number
 
 	/**
 	 * constructor
@@ -57,6 +56,8 @@ class WP_MatchesMapRegex {
 	 * Substitute substring matches in subject.
 	 *
 	 * static helper function to ease use
+	 *
+	 * @static
 	 *
 	 * @param string $subject subject
 	 * @param array  $matches data used for substitution
@@ -80,11 +81,11 @@ class WP_MatchesMapRegex {
 	/**
 	 * preg_replace_callback hook
 	 *
-	 * @param array $matches preg_replace regexp matches
+	 * @param  array $matches preg_replace regexp matches
 	 * @return string
 	 */
 	public function callback( $matches ) {
-		$index = (int) substr( $matches[0], 9, -1 );
+		$index = intval( substr( $matches[0], 9, -1 ) );
 		return ( isset( $this->_matches[ $index ] ) ? urlencode( $this->_matches[ $index ] ) : '' );
 	}
 }

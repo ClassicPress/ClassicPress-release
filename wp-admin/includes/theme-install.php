@@ -51,16 +51,16 @@ $theme_field_defaults = array(
 );
 
 /**
- * Retrieves the list of WordPress theme features (aka theme tags).
+ * Retrieve list of ClassicPress theme features (aka theme tags)
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  *
- * @deprecated 3.1.0 Use get_theme_feature_list() instead.
+ * @deprecated since WP-3.1.0 Use get_theme_feature_list() instead.
  *
  * @return array
  */
 function install_themes_feature_list() {
-	_deprecated_function( __FUNCTION__, '3.1.0', 'get_theme_feature_list()' );
+	_deprecated_function( __FUNCTION__, 'WP-3.1.0', 'get_theme_feature_list()' );
 
 	$cache = get_transient( 'wporg_theme_feature_list' );
 	if ( ! $cache ) {
@@ -82,9 +82,9 @@ function install_themes_feature_list() {
 }
 
 /**
- * Displays search form for searching themes.
+ * Display search form for searching themes.
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  *
  * @param bool $type_selector
  */
@@ -96,14 +96,9 @@ function install_theme_search_form( $type_selector = true ) {
 	}
 	?>
 <form id="search-themes" method="get">
-	<input type="hidden" name="tab" value="search">
+	<input type="hidden" name="tab" value="search" />
 	<?php if ( $type_selector ) : ?>
-	<label class="screen-reader-text" for="typeselector">
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Type of search' );
-		?>
-	</label>
+	<label class="screen-reader-text" for="typeselector"><?php _e( 'Type of search' ); ?></label>
 	<select	name="type" id="typeselector">
 	<option value="term" <?php selected( 'term', $type ); ?>><?php _e( 'Keyword' ); ?></option>
 	<option value="author" <?php selected( 'author', $type ); ?>><?php _e( 'Author' ); ?></option>
@@ -113,38 +108,30 @@ function install_theme_search_form( $type_selector = true ) {
 		<?php
 		switch ( $type ) {
 			case 'term':
-				/* translators: Hidden accessibility text. */
 				_e( 'Search by keyword' );
 				break;
 			case 'author':
-				/* translators: Hidden accessibility text. */
 				_e( 'Search by author' );
 				break;
 			case 'tag':
-				/* translators: Hidden accessibility text. */
 				_e( 'Search by tag' );
 				break;
 		}
 		?>
 	</label>
 	<?php else : ?>
-	<label class="screen-reader-text" for="s">
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Search by keyword' );
-		?>
-	</label>
+	<label class="screen-reader-text" for="s"><?php _e( 'Search by keyword' ); ?></label>
 	<?php endif; ?>
-	<input type="search" name="s" id="s" size="30" value="<?php echo esc_attr( $term ); ?>" autofocus>
+	<input type="search" name="s" id="s" size="30" value="<?php echo esc_attr( $term ); ?>" autofocus="autofocus" />
 	<?php submit_button( __( 'Search' ), '', 'search', false ); ?>
 </form>
 	<?php
 }
 
 /**
- * Displays tags filter for themes.
+ * Display tags filter for themes.
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  */
 function install_themes_dashboard() {
 	install_theme_search_form( false );
@@ -153,7 +140,7 @@ function install_themes_dashboard() {
 <p class="install-help"><?php _e( 'Find a theme based on specific features.' ); ?></p>
 
 <form method="get">
-	<input type="hidden" name="tab" value="search">
+	<input type="hidden" name="tab" value="search" />
 	<?php
 	$feature_list = get_theme_feature_list();
 	echo '<div class="feature-filter">';
@@ -169,41 +156,34 @@ function install_themes_dashboard() {
 			?>
 
 <li>
-	<input type="checkbox" name="features[]" id="feature-id-<?php echo $feature; ?>" value="<?php echo $feature; ?>">
+	<input type="checkbox" name="features[]" id="feature-id-<?php echo $feature; ?>" value="<?php echo $feature; ?>" />
 	<label for="feature-id-<?php echo $feature; ?>"><?php echo $feature_name; ?></label>
 </li>
 
 <?php	} ?>
 </ol>
-<br class="clear">
+<br class="clear" />
 		<?php
 	}
 	?>
 
 </div>
-<br class="clear">
+<br class="clear" />
 	<?php submit_button( __( 'Find Themes' ), '', 'search' ); ?>
 </form>
 	<?php
 }
 
 /**
- * Displays a form to upload themes from zip files.
- *
- * @since 2.8.0
+ * @since WP-2.8.0
  */
 function install_themes_upload() {
 	?>
-<p class="install-help"><?php _e( 'If you have a theme in a .zip format, you may install or update it by uploading it here.' ); ?></p>
-<form method="post" enctype="multipart/form-data" class="wp-upload-form" action="<?php echo esc_url( self_admin_url( 'update.php?action=upload-theme' ) ); ?>">
+<p class="install-help"><?php _e( 'If you have a theme in a .zip format, you may install it by uploading it here.' ); ?></p>
+<form method="post" enctype="multipart/form-data" class="wp-upload-form" action="<?php echo self_admin_url( 'update.php?action=upload-theme' ); ?>">
 	<?php wp_nonce_field( 'theme-upload' ); ?>
-	<label class="screen-reader-text" for="themezip">
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Theme zip file' );
-		?>
-	</label>
-	<input type="file" id="themezip" name="themezip" accept=".zip">
+	<label class="screen-reader-text" for="themezip"><?php _e( 'Theme zip file' ); ?></label>
+	<input type="file" id="themezip" name="themezip" accept=".zip"/>
 	<?php submit_button( __( 'Install Now' ), '', 'install-theme-submit', false ); ?>
 </form>
 	<?php
@@ -212,14 +192,14 @@ function install_themes_upload() {
 /**
  * Prints a theme on the Install Themes pages.
  *
- * @deprecated 3.4.0
+ * @deprecated WP-3.4.0
  *
  * @global WP_Theme_Install_List_Table $wp_list_table
  *
  * @param object $theme
  */
 function display_theme( $theme ) {
-	_deprecated_function( __FUNCTION__, '3.4.0' );
+	_deprecated_function( __FUNCTION__, 'WP-3.4.0' );
 	global $wp_list_table;
 	if ( ! isset( $wp_list_table ) ) {
 		$wp_list_table = _get_list_table( 'WP_Theme_Install_List_Table' );
@@ -229,9 +209,9 @@ function display_theme( $theme ) {
 }
 
 /**
- * Displays theme content based on theme list.
+ * Display theme content based on theme list.
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  *
  * @global WP_Theme_Install_List_Table $wp_list_table
  */
@@ -243,12 +223,13 @@ function display_themes() {
 	}
 	$wp_list_table->prepare_items();
 	$wp_list_table->display();
+
 }
 
 /**
- * Displays theme information in dialog box form.
+ * Display theme information in dialog box form.
  *
- * @since 2.8.0
+ * @since WP-2.8.0
  *
  * @global WP_Theme_Install_List_Table $wp_list_table
  */

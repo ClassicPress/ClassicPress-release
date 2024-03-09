@@ -1,22 +1,15 @@
 /* General Widgets Styles */
 
 .widget {
-	margin: 0 auto 10px !important;
+	margin: 0 auto 10px;
 	position: relative;
 	box-sizing: border-box;
-}
-
-.widget.open {
-	z-index: 99;
-}
-.widget.open:focus-within {
-	z-index: 100;
 }
 
 .widget-top {
 	font-size: 13px;
 	font-weight: 600;
-	background: #f6f7f7;
+	background: #f7f7f7;
 }
 
 .widget-top .widget-action {
@@ -25,13 +18,13 @@
 	padding: 10px;
 	background: none;
 	cursor: pointer;
+	outline: none;
 }
 
 .widget-title h3,
-.widget-title h4,
-summary.widget-title {
+.widget-title h4 {
 	margin: 0;
-	padding: 12px 10px 15px 15px;
+	padding: 15px;
 	font-size: 1em;
 	line-height: 1;
 	overflow: hidden;
@@ -42,24 +35,12 @@ summary.widget-title {
 	user-select: none;
 }
 
-.widget-title h3 {
-	padding-right: 5px;
-}
-
-summary.widget-title::marker,
-summary.widget-title::-webkit-details-marker {
-	font-size: 1.4em;
-	cursor: pointer;
-}
-
 .widgets-holder-wrap .widget-inside {
-	border: 0;
-	border-top: 1px solid #c3c4c7;
-	padding: 1px 15px 15px;
-	line-height: 1.23076923;
+	border-top: none;
+	padding: 1px 15px 15px 15px;
+	line-height: 16px;
 }
 
-#available-widgets .widget-inside,
 .widget.widget-dirty .widget-control-close-wrapper {
 	display: none;
 }
@@ -67,12 +48,12 @@ summary.widget-title::-webkit-details-marker {
 .in-widget-title,
 #widgets-right a.widget-control-edit,
 #available-widgets .widget-description {
-	color: #646970;
+	color: #666;
 }
 
 .deleting .widget-title,
 .deleting .widget-top .widget-action .toggle-indicator:before {
-	color: #a7aaad;
+	color: #a0a5aa;
 }
 
 /* Media Widgets */
@@ -102,36 +83,15 @@ summary.widget-title::-webkit-details-marker {
 	margin-left: 8px;
 }
 
-.media-widget-control .attachment-media-view .button-add-media,
 .media-widget-control .placeholder {
-	border: 1px dashed #c3c4c7;
+	border: 1px dashed #b4b9be;
 	box-sizing: border-box;
 	cursor: pointer;
-	line-height: 1.6;
+	line-height: 20px;
 	padding: 9px 0;
 	position: relative;
 	text-align: center;
 	width: 100%;
-}
-
-.media-widget-control .attachment-media-view .button-add-media {
-	cursor: pointer;
-	background-color: #f0f0f1;
-	color: #2c3338;
-}
-
-.media-widget-control .attachment-media-view .button-add-media:hover {
-	background-color: #fff;
-}
-
-.media-widget-control .attachment-media-view .button-add-media:focus {
-	background-color: #fff;
-	border-style: solid;
-	border-color: #4f94d4;
-	box-shadow: 0 0 3px rgba(34, 113, 177, 0.8);
-	/* Only visible in Windows High Contrast mode */
-	outline: 2px solid transparent;
-	outline-offset: -2px;
 }
 
 .media-widget-control .media-widget-preview {
@@ -151,9 +111,6 @@ summary.widget-title::-webkit-details-marker {
 .media-widget-control .media-widget-preview img {
 	max-width: 100%;
 	vertical-align: middle;
-	background-image: linear-gradient(-45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7), linear-gradient(-45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7);
-	background-position: 100% 0, 10px 10px;
-	background-size: 20px 20px;
 }
 .media-widget-control .media-widget-preview .wp-video-shortcode {
 	background: #000;
@@ -166,7 +123,6 @@ summary.widget-title::-webkit-details-marker {
 .media-frame.media-widget .image-details .embed-media-settings .setting.align,
 .media-frame.media-widget .attachment-display-settings .setting.align,
 .media-frame.media-widget .embed-media-settings .setting.align,
-.media-frame.media-widget .embed-media-settings .legend-inline,
 .media-frame.media-widget .embed-link-settings .setting.link-text,
 .media-frame.media-widget .replace-attachment,
 .media-frame.media-widget .checkbox-setting.autoplay {
@@ -181,7 +137,7 @@ summary.widget-title::-webkit-details-marker {
 	display: inline-block;
 	min-height: 132px;
 	width: 100%;
-	background: #000;
+	background: black;
 }
 
 .media-widget-video-link .dashicons {
@@ -189,7 +145,7 @@ summary.widget-title::-webkit-details-marker {
 	position: relative;
 	width: 100%;
 	top: -90px;
-	color: #fff;
+	color: white;
 	text-decoration: none;
 }
 
@@ -199,7 +155,7 @@ summary.widget-title::-webkit-details-marker {
 
 .media-frame #embed-url-field.invalid,
 .media-widget-image-link > .link:invalid {
-	border: 1px solid #d63638;
+	border: 1px solid #dc3232;
 }
 
 .media-widget-image-link {
@@ -219,7 +175,7 @@ summary.widget-title::-webkit-details-marker {
 }
 
 .media-widget-preview .placeholder {
-	background: #f0f0f1;
+	background: #f1f1f1;
 }
 
 .media-widget-gallery-preview .gallery-item {
@@ -265,13 +221,13 @@ summary.widget-title::-webkit-details-marker {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: rgba(0, 0, 0, 0.5);
+	background-color: rgba( 0, 0, 0, .5 );
 }
 
 .media-widget-gallery-preview .gallery-icon-placeholder-text {
 	font-weight: 600;
 	font-size: 2em;
-	color: #fff;
+	color: white;
 }
 
 
@@ -285,7 +241,7 @@ summary.widget-title::-webkit-details-marker {
 }
 
 .widget-placeholder {
-	border: 1px dashed #c3c4c7;
+	border: 1px dashed #b4b9be;
 	margin: 0 auto 10px;
 	height: 45px;
 	width: 100%;
@@ -330,18 +286,7 @@ summary.widget-title::-webkit-details-marker {
 
 .sidebar-name .handlediv:focus {
 	box-shadow: none;
-	/* Only visible in Windows High Contrast mode */
-	outline: 1px solid transparent;
-}
-
-#widgets-left .sidebar-name .toggle-indicator {
-	display: none;
-}
-
-#widgets-left .widgets-holder-wrap.closed .sidebar-name .toggle-indicator,
-#widgets-left .sidebar-name:hover .toggle-indicator,
-#widgets-left .sidebar-name .handlediv:focus .toggle-indicator {
-	display: block;
+	outline: none;
 }
 
 .sidebar-name .toggle-indicator:before {
@@ -351,8 +296,8 @@ summary.widget-title::-webkit-details-marker {
 
 .sidebar-name .handlediv:focus .toggle-indicator:before {
 	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+		0 0 0 1px #5b9dd9,
+		0 0 2px 1px rgba(30, 140, 190, .8);
 }
 
 .sidebar-name h2,
@@ -360,34 +305,19 @@ summary.widget-title::-webkit-details-marker {
 	margin: 0;
 	padding: 8px 10px;
 	overflow: hidden;
-	white-space: normal;
-	line-height: 1.5;
-	font-size: 1em;
-}
-
-summary.sidebar-name {
-	padding: 15px 7px 15px 15px;
-	color: #1d2327;
-	font-size: 1.3em;
-	font-weight: 600;
-}
-
-summary.sidebar-name::marker,
-summary.sidebar-name::-webkit-details-marker {
-	font-size: 1.2em;
-	cursor: pointer;
+	white-space: nowrap;
 }
 
 .widgets-holder-wrap .description {
 	padding: 0 0 15px;
 	margin: 0;
 	font-style: normal;
-	color: #646970;
+	color: #72777c;
 }
 
 .widget-holder .description,
 .inactive-sidebar .description {
-	color: #50575e;
+	color: #555d66;
 }
 
 #widgets-right .widgets-holder-wrap .description {
@@ -435,6 +365,10 @@ div#widgets-left .widget-holder {
 	box-shadow: none;
 }
 
+#available-widgets .widget-action {
+	display: none;
+}
+
 #available-widgets .widget {
 	margin: 0;
 }
@@ -465,7 +399,7 @@ div#widgets-left .widget-holder {
 	width: 100%;
 	background: transparent;
 	padding: 0;
-	margin: 0 0 20px;
+	margin: 0 0 20px 0;
 	border: none;
 	box-shadow: none;
 }
@@ -500,7 +434,7 @@ div#widgets-right .sidebars-column-2 {
 }
 
 div#widgets-right .widgets-holder-wrap {
-	margin: 10px 0 0;
+	margin: 10px 0 0 0;
 }
 
 div#widgets-right .sidebar-description {
@@ -510,7 +444,7 @@ div#widgets-right .sidebar-description {
 
 div#widgets-right .sidebar-name h2,
 div#widgets-right .sidebar-name h3 {
-	padding: 15px 7px 15px 15px;
+	padding: 15px 7px;
 }
 
 div#widgets-right .widget-top {
@@ -537,16 +471,10 @@ div#widgets-right .closed .widgets-sortables {
 	margin: -5px 5px;
 }
 
-.sidebar-name .spinner {
-	position: absolute;
-	top: 18px;
-	left: 30px;
-}
-
 /* Dragging a widget over a closed sidebar */
 #widgets-right .widgets-holder-wrap.widget-hover {
-	border-color: #787c82;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	border-color: #72777c;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 /* Accessibility Mode */
@@ -567,34 +495,30 @@ div#widgets-right .closed .widgets-sortables {
 
 .widgets_access #widgets-left .widget .widget-top:hover,
 .widgets_access #widgets-right .widget .widget-top:hover {
-	border-color: #dcdcde;
+	border-color: #ddd;
 }
 
 #available-widgets .widget-control-edit .edit,
-#available-widgets .widget-action .edit,
 #widgets-left .inactive-sidebar .widget-control-edit .add,
-#widgets-left .inactive-sidebar .widget-action .add,
-#widgets-right .widget-control-edit .add,
-#widgets-right .widget-action .add {
+#widgets-right .widget-control-edit .add {
 	display: none;
 }
 
 .widget-control-edit {
 	display: block;
-	color: #646970;
-	background: #f0f0f1;
+	color: #666;
+	background: #EEE;
 	padding: 0 15px;
-	line-height: 3.30769230;
-	border-right: 1px solid #dcdcde;
-	margin-top: -3.3em;
+	line-height: 43px;
+	border-right: 1px solid #DDD;
 }
 
 #widgets-left .widget-control-edit:hover,
 #widgets-right .widget-control-edit:hover {
 	color: #fff;
-	background: #3c434a;
+	background: #444;
 	border-right: 0;
-	outline: 1px solid #3c434a;
+	outline: 1px solid #444;
 }
 
 .widgets-holder-wrap .sidebar-name,
@@ -617,10 +541,6 @@ div#widgets-right .closed .widgets-sortables {
 	margin-top: 20px;
 }
 
-#available-widgets .widget-control-actions {
-	display: none;
-}
-
 .js .widgets-holder-wrap.closed .widget,
 .js .widgets-holder-wrap.closed .sidebar-description,
 .js .widgets-holder-wrap.closed .remove-inactive-widgets,
@@ -633,18 +553,14 @@ div#widgets-right .closed .widgets-sortables {
 	display: block;
 }
 
-/* Hide Widget Description by Default */
+/* Hide Widget Settings by Default */
+.widget-inside,
 .widget-description {
 	display: none;
 }
 
 .widget-inside {
 	background: #fff;
-	font-weight: 500;
-}
-
-.widget-inside select {
-	max-width: 100%;
 }
 
 /* Dragging widgets over the available widget area show's a "Deactivate" message */
@@ -654,11 +570,11 @@ div#widgets-right .closed .widgets-sortables {
 	padding-right: 15px;
 	font-size: 12px;
 	line-height: 1;
-	color: #000;
+	color: black;
 }
 
 .js #removing-widget {
-	color: #72aee6;
+	color: #00a0d2;
 }
 
 .widget-control-noform,
@@ -666,6 +582,7 @@ div#widgets-right .closed .widgets-sortables {
 .widgets_access .widget-action,
 .widgets_access .handlediv,
 .widgets_access #access-on,
+.widgets_access .widget-holder .description,
 .no-js .widget-holder .description {
 	display: none;
 }
@@ -709,8 +626,8 @@ div#widgets-right .closed .widgets-sortables {
 #available-widgets .widget-top:hover,
 div#widgets-right .widget-top:hover,
 #widgets-left .widget-top:hover {
-	border-color: #8c8f94;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+	border-color: #999;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .widgets-chooser ul.widgets-chooser-sidebars {
@@ -724,46 +641,49 @@ div#widgets-right .widget-top:hover,
 	display: none;
 }
 
-#available-widgets .widgets-chooser {
-	display: block;
-	font-weight: 500;
+.widgets-chooser ul {
+	border: 1px solid #ccc;
 }
 
 .widgets-chooser li {
-	border-bottom: 1px solid #c3c4c7;
+	padding: 10px 35px 10px 15px;
+	border-bottom: 1px solid #ccc;
 	background: #fff;
 	margin: 0;
-	position: relative;
-}
-
-.widgets-chooser .widgets-chooser-button {
-	width: 100%;
-	padding: 10px 35px 10px 15px;
-	background: transparent;
-	border: 0;
-	box-sizing: border-box;
-	text-align: right;
 	cursor: pointer;
+	outline: none;
+	position: relative;
 	transition: background 0.2s ease-in-out;
 }
 
-/* @todo looks like these hover/focus states are overridden by .widgets-chooser-selected */
-.widgets-chooser .widgets-chooser-button:hover,
-.widgets-chooser .widgets-chooser-button:focus {
-	outline: none;
-	text-decoration: underline;
+ /* @todo looks like these hover/focus states are overridden by .widgets-chooser-selected */
+.widgets-chooser li:hover,
+.widgets-chooser li:focus {
+	background: rgba(255,255,255,0.7);
+}
+
+.widgets-chooser li:focus:before {
+	content: "\f147";
+	display: block;
+	-webkit-font-smoothing: antialiased;
+	font: normal 26px/1 dashicons;
+	color: #555d66;
+	position: absolute;
+	top: 7px;
+	right: 5px;
 }
 
 .widgets-chooser li:last-child {
 	border: none;
 }
 
-.widgets-chooser .widgets-chooser-selected .widgets-chooser-button {
-	background: #2271b1;
+.widgets-chooser li.widgets-chooser-selected {
+	background: #00a0d2;
 	color: #fff;
 }
 
-.widgets-chooser .widgets-chooser-selected:before {
+.widgets-chooser li.widgets-chooser-selected:before,
+.widgets-chooser li.widgets-chooser-selected:focus:before {
 	content: "\f147";
 	display: block;
 	-webkit-font-smoothing: antialiased;
@@ -775,8 +695,12 @@ div#widgets-right .widget-top:hover,
 }
 
 .widgets-chooser .widgets-chooser-actions {
-	padding: 10px 0 12px;
+	padding: 10px 0 12px 0;
 	text-align: center;
+}
+
+.widgets-chooser button {
+	margin-left: 5px;
 }
 
 #available-widgets .widget .widget-top {
@@ -807,11 +731,11 @@ div#widgets-right .widget-top:hover,
 	left: 15px;
 }
 .text-widget-fields .wp-pointer .wp-pointer-buttons {
-	line-height: 1.4;
+	line-height: 1.4em;
 }
 
 .custom-html-widget-fields > p > .CodeMirror {
-	border: 1px solid #dcdcde;
+	border: 1px solid #e5e5e5;
 }
 .custom-html-widget-fields code {
 	padding-top: 1px;
@@ -826,15 +750,6 @@ ul.CodeMirror-hints {
 
 /* =Media Queries
 -------------------------------------------------------------- */
-
-@media screen and (max-width: 782px) {
-	.widgets-holder-wrap .widget-inside input[type="checkbox"],
-	.widgets-holder-wrap .widget-inside input[type="radio"],
-	.editwidget .widget-inside input[type="checkbox"], /* Selectors for the "accessibility mode" page. */
-	.editwidget .widget-inside input[type="radio"] {
-		margin: 0.25rem 0 0.25rem 0.25rem;
-	}
-}
 
 @media screen and (max-width: 480px) {
 	div.widget-liquid-left {
@@ -862,12 +777,13 @@ ul.CodeMirror-hints {
 	}
 
 	div.widget {
+		margin: 0 auto !important;
 		max-width: 480px;
 	}
 
 	.widget-access-link {
 		float: none;
-		margin: 15px 0 0;
+		margin: 15px 0 0 0;
 	}
 }
 
@@ -878,7 +794,7 @@ ul.CodeMirror-hints {
 }
 
 @media only screen and (min-width: 1250px) {
-	#widgets-left #widget-list .widget {
+	#widgets-left #available-widgets .widget {
 		width: 49%;
 		float: right;
 	}
@@ -887,7 +803,7 @@ ul.CodeMirror-hints {
 		min-width: 49%;
 	}
 
-	#widgets-left #widget-list .widget:nth-child(even) {
+	#widgets-left #available-widgets .widget:nth-child(even) {
 		float: left;
 	}
 
