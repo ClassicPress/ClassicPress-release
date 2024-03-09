@@ -1,7 +1,5 @@
 /*
  * Script run inside a Customizer preview frame.
- *
- * @output wp-includes/js/customize-preview.js
  */
 (function( exports, $ ){
 	var api = wp.customize,
@@ -24,11 +22,11 @@
 		/**
 		 * Amend the supplied URL with the customized state.
 		 *
-		 * @since 4.7.0
+		 * @since WP-4.7.0
 		 * @access private
 		 *
 		 * @param {string} url URL.
-		 * @return {string} URL with customized state.
+		 * @returns {string} URL with customized state.
 		 */
 		injectUrlWithState = function( url ) {
 			var urlParser, oldQueryParams, newQueryParams;
@@ -102,8 +100,8 @@
 	 */
 	api.Preview = api.Messenger.extend(/** @lends wp.customize.Preview.prototype */{
 		/**
-		 * @param {Object} params  - Parameters to configure the messenger.
-		 * @param {Object} options - Extend any instance parameter or method with this object.
+		 * @param {object} params  - Parameters to configure the messenger.
+		 * @param {object} options - Extend any instance parameter or method with this object.
 		 */
 		initialize: function( params, options ) {
 			var preview = this, urlParser = document.createElement( 'a' );
@@ -139,7 +137,7 @@
 		/**
 		 * Handle link clicks in preview.
 		 *
-		 * @since 4.7.0
+		 * @since WP-4.7.0
 		 * @access public
 		 *
 		 * @param {jQuery.Event} event Event.
@@ -185,7 +183,7 @@
 		/**
 		 * Handle form submit.
 		 *
-		 * @since 4.7.0
+		 * @since WP-4.7.0
 		 * @access public
 		 *
 		 * @param {jQuery.Event} event Event.
@@ -230,14 +228,14 @@
 	/**
 	 * Inject the changeset UUID into links in the document.
 	 *
-	 * @since 4.7.0
+	 * @since WP-4.7.0
 	 * @access protected
-	 * @access private
 	 *
-	 * @return {void}
+	 * @access private
+	 * @returns {void}
 	 */
 	api.addLinkPreviewing = function addLinkPreviewing() {
-		var linkSelectors = 'a[href], area[href]';
+		var linkSelectors = 'a[href], area';
 
 		// Inject links into initial document.
 		$( document.body ).find( linkSelectors ).each( function() {
@@ -269,16 +267,16 @@
 	/**
 	 * Should the supplied link is previewable.
 	 *
-	 * @since 4.7.0
+	 * @since WP-4.7.0
 	 * @access public
 	 *
 	 * @param {HTMLAnchorElement|HTMLAreaElement} element Link element.
 	 * @param {string} element.search Query string.
 	 * @param {string} element.pathname Path.
 	 * @param {string} element.host Host.
-	 * @param {Object} [options]
-	 * @param {Object} [options.allowAdminAjax=false] Allow admin-ajax.php requests.
-	 * @return {boolean} Is appropriate for changeset link.
+	 * @param {object} [options]
+	 * @param {object} [options.allowAdminAjax=false] Allow admin-ajax.php requests.
+	 * @returns {boolean} Is appropriate for changeset link.
 	 */
 	api.isLinkPreviewable = function isLinkPreviewable( element, options ) {
 		var matchesAllowedUrl, parsedAllowedUrl, args, elementHost;
@@ -325,22 +323,17 @@
 	/**
 	 * Inject the customize_changeset_uuid query param into links on the frontend.
 	 *
-	 * @since 4.7.0
+	 * @since WP-4.7.0
 	 * @access protected
 	 *
 	 * @param {HTMLAnchorElement|HTMLAreaElement} element Link element.
 	 * @param {string} element.search Query string.
 	 * @param {string} element.host Host.
 	 * @param {string} element.protocol Protocol.
-	 * @return {void}
+	 * @returns {void}
 	 */
 	api.prepareLinkPreview = function prepareLinkPreview( element ) {
 		var queryParams, $element = $( element );
-
-        // Skip elements with no href attribute. Check first to avoid more expensive checks down the road.
-        if ( ! element.hasAttribute( 'href' ) ) {
-            return;
-        }
 
 		// Skip links in admin bar.
 		if ( $element.closest( '#wpadminbar' ).length ) {
@@ -357,7 +350,7 @@
 			element.protocol = 'https:';
 		}
 
-		// Ignore links with class wp-playlist-caption.
+		// Ignore links with class wp-playlist-caption
 		if ( $element.hasClass( 'wp-playlist-caption' ) ) {
 			return;
 		}
@@ -384,12 +377,17 @@
 			queryParams.customize_messenger_channel = api.settings.channel;
 		}
 		element.search = $.param( queryParams );
+
+		// Prevent links from breaking out of preview iframe.
+		if ( api.settings.channel ) {
+			element.target = '_self';
+		}
 	};
 
 	/**
 	 * Inject the changeset UUID into Ajax requests.
 	 *
-	 * @since 4.7.0
+	 * @since WP-4.7.0
 	 * @access protected
 	 *
 	 * @return {void}
@@ -399,14 +397,13 @@
 		/**
 		 * Rewrite Ajax requests to inject customizer state.
 		 *
-		 * @param {Object} options Options.
+		 * @param {object} options Options.
 		 * @param {string} options.type Type.
 		 * @param {string} options.url URL.
-		 * @param {Object} originalOptions Original options.
+		 * @param {object} originalOptions Original options.
 		 * @param {XMLHttpRequest} xhr XHR.
-		 * @return {void}
+		 * @returns {void}
 		 */
-		// eslint-disable-next-line func-style
 		var prefilterAjax = function( options, originalOptions, xhr ) {
 			var urlParser, queryParams, requestMethod, dirtyValues = {};
 			urlParser = document.createElement( 'a' );
@@ -468,10 +465,10 @@
 	/**
 	 * Inject changeset UUID into forms, allowing preview to persist through submissions.
 	 *
-	 * @since 4.7.0
+	 * @since WP-4.7.0
 	 * @access protected
 	 *
-	 * @return {void}
+	 * @returns {void}
 	 */
 	api.addFormPreviewing = function addFormPreviewing() {
 
@@ -499,11 +496,11 @@
 	/**
 	 * Inject changeset into form inputs.
 	 *
-	 * @since 4.7.0
+	 * @since WP-4.7.0
 	 * @access protected
 	 *
 	 * @param {HTMLFormElement} form Form.
-	 * @return {void}
+	 * @returns {void}
 	 */
 	api.prepareFormPreview = function prepareFormPreview( form ) {
 		var urlParser, stateParams = {};
@@ -567,7 +564,7 @@
 	 * Keep the customizer pane notified that the preview is still alive
 	 * and that the user hasn't navigated to a non-customized URL.
 	 *
-	 * @since 4.7.0
+	 * @since WP-4.7.0
 	 * @access protected
 	 */
 	api.keepAliveCurrentUrl = ( function() {
@@ -627,7 +624,7 @@
 		 * Preview changes to custom logo.
 		 *
 		 * @param {number} attachmentId Attachment ID for custom logo.
-		 * @return {void}
+		 * @returns {void}
 		 */
 		custom_logo: function( attachmentId ) {
 			$( 'body' ).toggleClass( 'wp-custom-logo', !! attachmentId );
@@ -637,7 +634,7 @@
 		 * Preview changes to custom css.
 		 *
 		 * @param {string} value Custom CSS..
-		 * @return {void}
+		 * @returns {void}
 		 */
 		custom_css: function( value ) {
 			$( '#wp-custom-css' ).text( value );
@@ -646,7 +643,7 @@
 		/**
 		 * Preview changes to any of the background settings.
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		background: function() {
 			var css = '', settings = {};
@@ -776,13 +773,13 @@
 		 * Handle update to changeset UUID.
 		 *
 		 * @param {string} uuid - UUID.
-		 * @return {void}
+		 * @returns {void}
 		 */
 		handleUpdatedChangesetUuid = function( uuid ) {
 			api.settings.changeset.uuid = uuid;
 
 			// Update UUIDs in links and forms.
-			$( document.body ).find( 'a[href], area[href]' ).each( function() {
+			$( document.body ).find( 'a[href], area' ).each( function() {
 				api.prepareLinkPreview( this );
 			} );
 			$( document.body ).find( 'form' ).each( function() {
@@ -816,7 +813,7 @@
 
 			api.settings.changeset.autosaved = true; // Start deferring to any autosave once changeset is updated.
 
-			$( document.body ).find( 'a[href], area[href]' ).each( function() {
+			$( document.body ).find( 'a[href], area' ).each( function() {
 				api.prepareLinkPreview( this );
 			} );
 			$( document.body ).find( 'form' ).each( function() {
@@ -883,7 +880,7 @@
 		 *
 		 * Toggle the wp-custom-logo body class when a logo is added or removed.
 		 *
-		 * @since 4.5.0
+		 * @since WP-4.5.0
 		 */
 		api( 'custom_logo', function ( setting ) {
 			api.settingPreviewHandlers.custom_logo.call( setting, setting.get() );

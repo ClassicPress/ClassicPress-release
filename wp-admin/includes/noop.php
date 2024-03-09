@@ -4,7 +4,7 @@
  *
  * @package ClassicPress
  * @subpackage Administration
- * @since 4.4.0
+ * @since WP-4.4.0
  */
 
 /**
@@ -94,9 +94,18 @@ function includes_url() {}
  */
 function wp_guess_url() {}
 
+if ( ! function_exists( 'json_encode' ) ) :
+	/**
+	 * @ignore
+	 */
+	function json_encode() {}
+endif;
+
 function get_file( $path ) {
 
-	$path = realpath( $path );
+	if ( function_exists( 'realpath' ) ) {
+		$path = realpath( $path );
+	}
 
 	if ( ! $path || ! @is_file( $path ) ) {
 		return '';

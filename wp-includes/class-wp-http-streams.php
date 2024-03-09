@@ -4,26 +4,25 @@
  *
  * @package ClassicPress
  * @subpackage HTTP
- * @since 4.4.0
+ * @since WP-4.4.0
  */
 
 /**
  * Core class used to integrate PHP Streams as an HTTP transport.
  *
- * @since 2.7.0
- * @since 3.7.0 Combined with the fsockopen transport and switched to `stream_socket_client()`.
+ * @since WP-2.7.0
+ * @since WP-3.7.0 Combined with the fsockopen transport and switched to `stream_socket_client()`.
  */
-#[AllowDynamicProperties]
 class WP_Http_Streams {
 	/**
 	 * Send a HTTP request to a URI using PHP Streams.
 	 *
-	 * @see WP_Http::request() For default options descriptions.
+	 * @see WP_Http::request For default options descriptions.
 	 *
-	 * @since 2.7.0
-	 * @since 3.7.0 Combined with the fsockopen transport and switched to stream_socket_client().
+	 * @since WP-2.7.0
+	 * @since WP-3.7.0 Combined with the fsockopen transport and switched to stream_socket_client().
 	 *
-	 * @param string       $url  The request URL.
+	 * @param string $url The request URL.
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'. A WP_Error instance upon error
 	 */
@@ -52,30 +51,30 @@ class WP_Http_Streams {
 		// Construct Cookie: header if any cookies are set.
 		WP_Http::buildCookieHeader( $parsed_args );
 
-		$parsed_url = parse_url( $url );
+		$arrURL = parse_url( $url );
 
-		$connect_host = $parsed_url['host'];
+		$connect_host = $arrURL['host'];
 
-		$secure_transport = ( 'ssl' === $parsed_url['scheme'] || 'https' === $parsed_url['scheme'] );
-		if ( ! isset( $parsed_url['port'] ) ) {
-			if ( 'ssl' === $parsed_url['scheme'] || 'https' === $parsed_url['scheme'] ) {
-				$parsed_url['port'] = 443;
-				$secure_transport   = true;
+		$secure_transport = ( 'ssl' === $arrURL['scheme'] || 'https' === $arrURL['scheme'] );
+		if ( ! isset( $arrURL['port'] ) ) {
+			if ( 'ssl' === $arrURL['scheme'] || 'https' === $arrURL['scheme'] ) {
+				$arrURL['port']   = 443;
+				$secure_transport = true;
 			} else {
-				$parsed_url['port'] = 80;
+				$arrURL['port'] = 80;
 			}
 		}
 
-		// Always pass a path, defaulting to the root in cases such as http://example.com.
-		if ( ! isset( $parsed_url['path'] ) ) {
-			$parsed_url['path'] = '/';
+		// Always pass a Path, defaulting to the root in cases such as http://example.com
+		if ( ! isset( $arrURL['path'] ) ) {
+			$arrURL['path'] = '/';
 		}
 
 		if ( isset( $parsed_args['headers']['Host'] ) || isset( $parsed_args['headers']['host'] ) ) {
 			if ( isset( $parsed_args['headers']['Host'] ) ) {
-				$parsed_url['host'] = $parsed_args['headers']['Host'];
+				$arrURL['host'] = $parsed_args['headers']['Host'];
 			} else {
-				$parsed_url['host'] = $parsed_args['headers']['host'];
+				$arrURL['host'] = $parsed_args['headers']['host'];
 			}
 			unset( $parsed_args['headers']['Host'], $parsed_args['headers']['host'] );
 		}
@@ -93,22 +92,24 @@ class WP_Http_Streams {
 
 		$is_local   = isset( $parsed_args['local'] ) && $parsed_args['local'];
 		$ssl_verify = isset( $parsed_args['sslverify'] ) && $parsed_args['sslverify'];
-
 		if ( $is_local ) {
 			/**
-			 * Filters whether SSL should be verified for local HTTP API requests.
+			 * Filters whether SSL should be verified for local requests.
 			 *
-			 * @since 2.8.0
-			 * @since 5.1.0 The `$url` parameter was added.
+			 * @since WP-2.8.0
 			 *
-			 * @param bool|string $ssl_verify Boolean to control whether to verify the SSL connection
-			 *                                or path to an SSL certificate.
-			 * @param string      $url        The request URL.
+			 * @param bool $ssl_verify Whether to verify the SSL connection. Default true.
 			 */
-			$ssl_verify = apply_filters( 'https_local_ssl_verify', $ssl_verify, $url );
+			$ssl_verify = apply_filters( 'https_local_ssl_verify', $ssl_verify );
 		} elseif ( ! $is_local ) {
-			/** This filter is documented in wp-includes/class-wp-http.php */
-			$ssl_verify = apply_filters( 'https_ssl_verify', $ssl_verify, $url );
+			/**
+			 * Filters whether SSL should be verified for non-local requests.
+			 *
+			 * @since WP-2.8.0
+			 *
+			 * @param bool $ssl_verify Whether to verify the SSL connection. Default true.
+			 */
+			$ssl_verify = apply_filters( 'https_ssl_verify', $ssl_verify );
 		}
 
 		$proxy = new WP_HTTP_Proxy();
@@ -117,7 +118,7 @@ class WP_Http_Streams {
 			array(
 				'ssl' => array(
 					'verify_peer'       => $ssl_verify,
-					// 'CN_match' => $parsed_url['host'], // This is handled by self::verify_ssl_certificate().
+					//'CN_match' => $arrURL['host'], // This is handled by self::verify_ssl_certificate()
 					'capture_peer_cert' => $ssl_verify,
 					'SNI_enabled'       => true,
 					'cafile'            => $parsed_args['sslcertificates'],
@@ -137,31 +138,17 @@ class WP_Http_Streams {
 		$connection_error_str = null;
 
 		if ( ! WP_DEBUG ) {
-			// In the event that the SSL connection fails, silence the many PHP warnings.
+			// In the event that the SSL connection fails, silence the many PHP Warnings.
 			if ( $secure_transport ) {
 				$error_reporting = error_reporting( 0 );
 			}
 
 			if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) {
 				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-				$handle = @stream_socket_client(
-					'tcp://' . $proxy->host() . ':' . $proxy->port(),
-					$connection_error,
-					$connection_error_str,
-					$connect_timeout,
-					STREAM_CLIENT_CONNECT,
-					$context
-				);
+				$handle = @stream_socket_client( 'tcp://' . $proxy->host() . ':' . $proxy->port(), $connection_error, $connection_error_str, $connect_timeout, STREAM_CLIENT_CONNECT, $context );
 			} else {
 				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-				$handle = @stream_socket_client(
-					$connect_host . ':' . $parsed_url['port'],
-					$connection_error,
-					$connection_error_str,
-					$connect_timeout,
-					STREAM_CLIENT_CONNECT,
-					$context
-				);
+				$handle = @stream_socket_client( $connect_host . ':' . $arrURL['port'], $connection_error, $connection_error_str, $connect_timeout, STREAM_CLIENT_CONNECT, $context );
 			}
 
 			if ( $secure_transport ) {
@@ -169,23 +156,9 @@ class WP_Http_Streams {
 			}
 		} else {
 			if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) {
-				$handle = stream_socket_client(
-					'tcp://' . $proxy->host() . ':' . $proxy->port(),
-					$connection_error,
-					$connection_error_str,
-					$connect_timeout,
-					STREAM_CLIENT_CONNECT,
-					$context
-				);
+				$handle = stream_socket_client( 'tcp://' . $proxy->host() . ':' . $proxy->port(), $connection_error, $connection_error_str, $connect_timeout, STREAM_CLIENT_CONNECT, $context );
 			} else {
-				$handle = stream_socket_client(
-					$connect_host . ':' . $parsed_url['port'],
-					$connection_error,
-					$connection_error_str,
-					$connect_timeout,
-					STREAM_CLIENT_CONNECT,
-					$context
-				);
+				$handle = stream_socket_client( $connect_host . ':' . $arrURL['port'], $connection_error, $connection_error_str, $connect_timeout, STREAM_CLIENT_CONNECT, $context );
 			}
 		}
 
@@ -200,56 +173,56 @@ class WP_Http_Streams {
 
 		// Verify that the SSL certificate is valid for this request.
 		if ( $secure_transport && $ssl_verify && ! $proxy->is_enabled() ) {
-			if ( ! self::verify_ssl_certificate( $handle, $parsed_url['host'] ) ) {
+			if ( ! self::verify_ssl_certificate( $handle, $arrURL['host'] ) ) {
 				return new WP_Error( 'http_request_failed', __( 'The SSL certificate for the host could not be verified.' ) );
 			}
 		}
 
 		stream_set_timeout( $handle, $timeout, $utimeout );
 
-		if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) { // Some proxies require full URL in this field.
-			$request_path = $url;
+		if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) { //Some proxies require full URL in this field.
+			$requestPath = $url;
 		} else {
-			$request_path = $parsed_url['path'] . ( isset( $parsed_url['query'] ) ? '?' . $parsed_url['query'] : '' );
+			$requestPath = $arrURL['path'] . ( isset( $arrURL['query'] ) ? '?' . $arrURL['query'] : '' );
 		}
 
-		$headers = strtoupper( $parsed_args['method'] ) . ' ' . $request_path . ' HTTP/' . $parsed_args['httpversion'] . "\r\n";
+		$strHeaders = strtoupper( $parsed_args['method'] ) . ' ' . $requestPath . ' HTTP/' . $parsed_args['httpversion'] . "\r\n";
 
 		$include_port_in_host_header = (
-			( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) )
-			|| ( 'http' === $parsed_url['scheme'] && 80 != $parsed_url['port'] )
-			|| ( 'https' === $parsed_url['scheme'] && 443 != $parsed_url['port'] )
+			( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) ||
+			( 'http' === $arrURL['scheme'] && 80 != $arrURL['port'] ) ||
+			( 'https' === $arrURL['scheme'] && 443 != $arrURL['port'] )
 		);
 
 		if ( $include_port_in_host_header ) {
-			$headers .= 'Host: ' . $parsed_url['host'] . ':' . $parsed_url['port'] . "\r\n";
+			$strHeaders .= 'Host: ' . $arrURL['host'] . ':' . $arrURL['port'] . "\r\n";
 		} else {
-			$headers .= 'Host: ' . $parsed_url['host'] . "\r\n";
+			$strHeaders .= 'Host: ' . $arrURL['host'] . "\r\n";
 		}
 
 		if ( isset( $parsed_args['user-agent'] ) ) {
-			$headers .= 'User-agent: ' . $parsed_args['user-agent'] . "\r\n";
+			$strHeaders .= 'User-agent: ' . $parsed_args['user-agent'] . "\r\n";
 		}
 
 		if ( is_array( $parsed_args['headers'] ) ) {
-			foreach ( (array) $parsed_args['headers'] as $header => $header_value ) {
-				$headers .= $header . ': ' . $header_value . "\r\n";
+			foreach ( (array) $parsed_args['headers'] as $header => $headerValue ) {
+				$strHeaders .= $header . ': ' . $headerValue . "\r\n";
 			}
 		} else {
-			$headers .= $parsed_args['headers'];
+			$strHeaders .= $parsed_args['headers'];
 		}
 
 		if ( $proxy->use_authentication() ) {
-			$headers .= $proxy->authentication_header() . "\r\n";
+			$strHeaders .= $proxy->authentication_header() . "\r\n";
 		}
 
-		$headers .= "\r\n";
+		$strHeaders .= "\r\n";
 
 		if ( ! is_null( $parsed_args['body'] ) ) {
-			$headers .= $parsed_args['body'];
+			$strHeaders .= $parsed_args['body'];
 		}
 
-		fwrite( $handle, $headers );
+		fwrite( $handle, $strHeaders );
 
 		if ( ! $parsed_args['blocking'] ) {
 			stream_set_blocking( $handle, 0 );
@@ -265,11 +238,10 @@ class WP_Http_Streams {
 			);
 		}
 
-		$response     = '';
-		$body_started = false;
+		$strResponse  = '';
+		$bodyStarted  = false;
 		$keep_reading = true;
 		$block_size   = 4096;
-
 		if ( isset( $parsed_args['limit_response_size'] ) ) {
 			$block_size = min( $block_size, $parsed_args['limit_response_size'] );
 		}
@@ -281,12 +253,11 @@ class WP_Http_Streams {
 			} else {
 				$stream_handle = fopen( $parsed_args['filename'], 'w+' );
 			}
-
 			if ( ! $stream_handle ) {
 				return new WP_Error(
 					'http_request_failed',
 					sprintf(
-						/* translators: 1: fopen(), 2: File name. */
+					/* translators: 1: fopen() 2: file name */
 						__( 'Could not open handle for %1$s to %2$s.' ),
 						'fopen()',
 						$parsed_args['filename']
@@ -295,25 +266,22 @@ class WP_Http_Streams {
 			}
 
 			$bytes_written = 0;
-
 			while ( ! feof( $handle ) && $keep_reading ) {
 				$block = fread( $handle, $block_size );
-				if ( ! $body_started ) {
-					$response .= $block;
-					if ( strpos( $response, "\r\n\r\n" ) ) {
-						$processed_response = WP_Http::processResponse( $response );
-						$body_started       = true;
-						$block              = $processed_response['body'];
-						unset( $response );
-						$processed_response['body'] = '';
+				if ( ! $bodyStarted ) {
+					$strResponse .= $block;
+					if ( strpos( $strResponse, "\r\n\r\n" ) ) {
+						$process     = WP_Http::processResponse( $strResponse );
+						$bodyStarted = true;
+						$block       = $process['body'];
+						unset( $strResponse );
+						$process['body'] = '';
 					}
 				}
 
 				$this_block_size = strlen( $block );
 
-				if ( isset( $parsed_args['limit_response_size'] )
-					&& ( $bytes_written + $this_block_size ) > $parsed_args['limit_response_size']
-				) {
+				if ( isset( $parsed_args['limit_response_size'] ) && ( $bytes_written + $this_block_size ) > $parsed_args['limit_response_size'] ) {
 					$this_block_size = ( $parsed_args['limit_response_size'] - $bytes_written );
 					$block           = substr( $block, 0, $this_block_size );
 				}
@@ -328,48 +296,38 @@ class WP_Http_Streams {
 
 				$bytes_written += $bytes_written_to_file;
 
-				$keep_reading = (
-					! isset( $parsed_args['limit_response_size'] )
-					|| $bytes_written < $parsed_args['limit_response_size']
-				);
+				$keep_reading = ! isset( $parsed_args['limit_response_size'] ) || $bytes_written < $parsed_args['limit_response_size'];
 			}
 
 			fclose( $stream_handle );
 
 		} else {
 			$header_length = 0;
-
 			while ( ! feof( $handle ) && $keep_reading ) {
-				$block     = fread( $handle, $block_size );
-				$response .= $block;
-
-				if ( ! $body_started && strpos( $response, "\r\n\r\n" ) ) {
-					$header_length = strpos( $response, "\r\n\r\n" ) + 4;
-					$body_started  = true;
+				$block        = fread( $handle, $block_size );
+				$strResponse .= $block;
+				if ( ! $bodyStarted && strpos( $strResponse, "\r\n\r\n" ) ) {
+					$header_length = strpos( $strResponse, "\r\n\r\n" ) + 4;
+					$bodyStarted   = true;
 				}
-
-				$keep_reading = (
-					! $body_started
-					|| ! isset( $parsed_args['limit_response_size'] )
-					|| strlen( $response ) < ( $header_length + $parsed_args['limit_response_size'] )
-				);
+				$keep_reading = ( ! $bodyStarted || ! isset( $parsed_args['limit_response_size'] ) || strlen( $strResponse ) < ( $header_length + $parsed_args['limit_response_size'] ) );
 			}
 
-			$processed_response = WP_Http::processResponse( $response );
-			unset( $response );
+			$process = WP_Http::processResponse( $strResponse );
+			unset( $strResponse );
 
 		}
 
 		fclose( $handle );
 
-		$processed_headers = WP_Http::processHeaders( $processed_response['headers'], $url );
+		$arrHeaders = WP_Http::processHeaders( $process['headers'], $url );
 
 		$response = array(
-			'headers'  => $processed_headers['headers'],
+			'headers'  => $arrHeaders['headers'],
 			// Not yet processed.
 			'body'     => null,
-			'response' => $processed_headers['response'],
-			'cookies'  => $processed_headers['cookies'],
+			'response' => $arrHeaders['response'],
+			'cookies'  => $arrHeaders['cookies'],
 			'filename' => $parsed_args['filename'],
 		);
 
@@ -380,26 +338,21 @@ class WP_Http_Streams {
 		}
 
 		// If the body was chunk encoded, then decode it.
-		if ( ! empty( $processed_response['body'] )
-			&& isset( $processed_headers['headers']['transfer-encoding'] )
-			&& 'chunked' === $processed_headers['headers']['transfer-encoding']
+		if ( ! empty( $process['body'] ) && isset( $arrHeaders['headers']['transfer-encoding'] )
+			&& 'chunked' === $arrHeaders['headers']['transfer-encoding']
 		) {
-			$processed_response['body'] = WP_Http::chunkTransferDecode( $processed_response['body'] );
+			$process['body'] = WP_Http::chunkTransferDecode( $process['body'] );
 		}
 
-		if ( true === $parsed_args['decompress']
-			&& true === WP_Http_Encoding::should_decode( $processed_headers['headers'] )
-		) {
-			$processed_response['body'] = WP_Http_Encoding::decompress( $processed_response['body'] );
+		if ( true === $parsed_args['decompress'] && true === WP_Http_Encoding::should_decode( $arrHeaders['headers'] ) ) {
+			$process['body'] = WP_Http_Encoding::decompress( $process['body'] );
 		}
 
-		if ( isset( $parsed_args['limit_response_size'] )
-			&& strlen( $processed_response['body'] ) > $parsed_args['limit_response_size']
-		) {
-			$processed_response['body'] = substr( $processed_response['body'], 0, $parsed_args['limit_response_size'] );
+		if ( isset( $parsed_args['limit_response_size'] ) && strlen( $process['body'] ) > $parsed_args['limit_response_size'] ) {
+			$process['body'] = substr( $process['body'], 0, $parsed_args['limit_response_size'] );
 		}
 
-		$response['body'] = $processed_response['body'];
+		$response['body'] = $process['body'];
 
 		return $response;
 	}
@@ -414,11 +367,12 @@ class WP_Http_Streams {
 	 *
 	 * IP Address support is included if the request is being made to an IP address.
 	 *
-	 * @since 3.7.0
+	 * @since WP-3.7.0
+	 * @static
 	 *
-	 * @param resource $stream The PHP Stream which the SSL request is being made over
-	 * @param string   $host   The hostname being requested
-	 * @return bool If the certificate presented in $stream is valid for $host
+	 * @param stream $stream The PHP Stream which the SSL request is being made over
+	 * @param string $host The hostname being requested
+	 * @return bool If the cerficiate presented in $stream is valid for $host
 	 */
 	public static function verify_ssl_certificate( $stream, $host ) {
 		$context_options = stream_context_get_options( $stream );
@@ -476,8 +430,9 @@ class WP_Http_Streams {
 	/**
 	 * Determines whether this class can be used for retrieving a URL.
 	 *
-	 * @since 2.7.0
-	 * @since 3.7.0 Combined with the fsockopen transport and switched to stream_socket_client().
+	 * @static
+	 * @since WP-2.7.0
+	 * @since WP-3.7.0 Combined with the fsockopen transport and switched to stream_socket_client().
 	 *
 	 * @param array $args Optional. Array of request arguments. Default empty array.
 	 * @return bool False means this class can not be used, true means it can.
@@ -501,7 +456,7 @@ class WP_Http_Streams {
 		/**
 		 * Filters whether streams can be used as a transport for retrieving a URL.
 		 *
-		 * @since 2.7.0
+		 * @since WP-2.7.0
 		 *
 		 * @param bool  $use_class Whether the class can be used. Default true.
 		 * @param array $args      Request arguments.
@@ -518,10 +473,9 @@ class WP_Http_Streams {
  *
  * @see WP_HTTP::request
  *
- * @since 2.7.0
- * @deprecated 3.7.0 Please use WP_HTTP::request() directly
+ * @since WP-2.7.0
+ * @deprecated WP-3.7.0 Please use WP_HTTP::request() directly
  */
-//phpcs:ignore Generic.Files.OneObjectStructurePerFile
-class WP_HTTP_Fsockopen extends WP_Http_Streams {
+class WP_HTTP_Fsockopen extends WP_HTTP_Streams {
 	// For backward compatibility for users who are using the class directly.
 }

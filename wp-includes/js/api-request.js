@@ -8,10 +8,7 @@
  * - Sends the REST API nonce as a request header.
  * - Allows specifying only an endpoint namespace/path instead of a full URL.
  *
- * @since 4.9.0
- * @since 5.6.0 Added overriding of the "PUT" and "DELETE" methods with "POST".
- *              Added an "application/json" Accept header to all requests.
- * @output wp-includes/js/api-request.js
+ * @since     WP-4.9.0
  */
 
 ( function( $ ) {
@@ -25,9 +22,8 @@
 	apiRequest.buildAjaxOptions = function( options ) {
 		var url = options.url;
 		var path = options.path;
-		var method = options.method;
-		var namespaceTrimmed, endpointTrimmed, apiRoot;
-		var headers, addNonceHeader, addAcceptHeader, headerName;
+		var namespaceTrimmed, endpointTrimmed;
+		var headers, addNonceHeader, headerName;
 
 		if (
 			typeof options.namespace === 'string' &&
@@ -42,38 +38,24 @@
 			}
 		}
 		if ( typeof path === 'string' ) {
-			apiRoot = wpApiSettings.root;
-			path = path.replace( /^\//, '' );
-
-			// API root may already include query parameter prefix
-			// if site is configured to use plain permalinks.
-			if ( 'string' === typeof apiRoot && -1 !== apiRoot.indexOf( '?' ) ) {
-				path = path.replace( '?', '&' );
-			}
-
-			url = apiRoot + path;
+			url = wpApiSettings.root + path.replace( /^\//, '' );
 		}
 
 		// If ?_wpnonce=... is present, no need to add a nonce header.
 		addNonceHeader = ! ( options.data && options.data._wpnonce );
-		addAcceptHeader = true;
 
 		headers = options.headers || {};
 
-		for ( headerName in headers ) {
-			if ( ! headers.hasOwnProperty( headerName ) ) {
-				continue;
-			}
-
-			// If an 'X-WP-Nonce' or 'Accept' header (or any case-insensitive variation
-			// thereof) was specified, no need to add the header again.
-			switch ( headerName.toLowerCase() ) {
-				case 'x-wp-nonce':
-					addNonceHeader = false;
-					break;
-				case 'accept':
-					addAcceptHeader = false;
-					break;
+		// If an 'X-WP-Nonce' header (or any case-insensitive variation
+		// thereof) was specified, no need to add a nonce header.
+		if ( addNonceHeader ) {
+			for ( headerName in headers ) {
+				if ( headers.hasOwnProperty( headerName ) ) {
+					if ( headerName.toLowerCase() === 'x-wp-nonce' ) {
+						addNonceHeader = false;
+						break;
+					}
+				}
 			}
 		}
 
@@ -84,29 +66,10 @@
 			}, headers );
 		}
 
-		if ( addAcceptHeader ) {
-			headers = $.extend( {
-				'Accept': 'application/json, */*;q=0.1'
-			}, headers );
-		}
-
-		if ( typeof method === 'string' ) {
-			method = method.toUpperCase();
-
-			if ( 'PUT' === method || 'DELETE' === method ) {
-				headers = $.extend( {
-					'X-HTTP-Method-Override': method
-				}, headers );
-
-				method = 'POST';
-			}
-		}
-
 		// Do not mutate the original options object.
 		options = $.extend( {}, options, {
 			headers: headers,
-			url: url,
-			method: method
+			url: url
 		} );
 
 		delete options.path;

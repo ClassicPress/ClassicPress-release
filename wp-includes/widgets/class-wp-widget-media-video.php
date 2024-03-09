@@ -4,15 +4,14 @@
  *
  * @package ClassicPress
  * @subpackage Widgets
- * @since 4.8.0
+ * @since WP-4.8.0
  */
 
 /**
  * Core class that implements a video widget.
  *
- * @since 4.8.0
+ * @since WP-4.8.0
  *
- * @see WP_Widget_Media
  * @see WP_Widget
  */
 class WP_Widget_Media_Video extends WP_Widget_Media {
@@ -20,7 +19,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	/**
 	 * Constructor.
 	 *
-	 * @since 4.8.0
+	 * @since  WP-4.8.0
 	 */
 	public function __construct() {
 		parent::__construct(
@@ -40,15 +39,15 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 				'replace_media'              => _x( 'Replace Video', 'label for button in the video widget; should preferably not be longer than ~13 characters long' ),
 				'edit_media'                 => _x( 'Edit Video', 'label for button in the video widget; should preferably not be longer than ~13 characters long' ),
 				'missing_attachment'         => sprintf(
-					/* translators: %s: URL to media library. */
-					__( 'That video cannot be found. Check your <a href="%s">media library</a> and make sure it was not deleted.' ),
+					/* translators: %s: URL to media library */
+					__( 'We can&#8217;t find that video. Check your <a href="%s">media library</a> and make sure it wasn&#8217;t deleted.' ),
 					esc_url( admin_url( 'upload.php' ) )
 				),
-				/* translators: %d: Widget count. */
+				/* translators: %d: widget count */
 				'media_library_state_multi'  => _n_noop( 'Video Widget (%d)', 'Video Widget (%d)' ),
 				'media_library_state_single' => __( 'Video Widget' ),
-				/* translators: %s: A list of valid video file extensions. */
-				'unsupported_file_type'      => sprintf( __( 'Sorry, the video at the supplied URL cannot be loaded. Please check that the URL is for a supported video file (%s) or stream (e.g. YouTube and Vimeo).' ), '<code>.' . implode( '</code>, <code>.', wp_get_video_extensions() ) . '</code>' ),
+				/* translators: %s: a list of valid video file extensions */
+				'unsupported_file_type'      => sprintf( __( 'Sorry, we can&#8217;t load the video at the supplied URL. Please check that the URL is for a supported video file (%s) or stream (e.g. YouTube and Vimeo).' ), '<code>.' . implode( '</code>, <code>.', wp_get_video_extensions() ) . '</code>' ),
 			)
 		);
 	}
@@ -56,37 +55,38 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	/**
 	 * Get schema for properties of a widget instance (item).
 	 *
-	 * @since 4.8.0
+	 * @since  WP-4.8.0
 	 *
 	 * @see WP_REST_Controller::get_item_schema()
 	 * @see WP_REST_Controller::get_additional_fields()
 	 * @link https://core.trac.wordpress.org/ticket/35574
-	 *
 	 * @return array Schema for properties.
 	 */
 	public function get_instance_schema() {
-
-		$schema = array(
-			'preload' => array(
-				'type'                  => 'string',
-				'enum'                  => array( 'none', 'auto', 'metadata' ),
-				'default'               => 'metadata',
-				'description'           => __( 'Preload' ),
-				'should_preview_update' => false,
-			),
-			'loop'    => array(
-				'type'                  => 'boolean',
-				'default'               => false,
-				'description'           => __( 'Loop' ),
-				'should_preview_update' => false,
-			),
-			'content' => array(
-				'type'                  => 'string',
-				'default'               => '',
-				'sanitize_callback'     => 'wp_kses_post',
-				'description'           => __( 'Tracks (subtitles, captions, descriptions, chapters, or metadata)' ),
-				'should_preview_update' => false,
-			),
+		$schema = array_merge(
+			parent::get_instance_schema(),
+			array(
+				'preload' => array(
+					'type'                  => 'string',
+					'enum'                  => array( 'none', 'auto', 'metadata' ),
+					'default'               => 'metadata',
+					'description'           => __( 'Preload' ),
+					'should_preview_update' => false,
+				),
+				'loop'    => array(
+					'type'                  => 'boolean',
+					'default'               => false,
+					'description'           => __( 'Loop' ),
+					'should_preview_update' => false,
+				),
+				'content' => array(
+					'type'                  => 'string',
+					'default'               => '',
+					'sanitize_callback'     => 'wp_kses_post',
+					'description'           => __( 'Tracks (subtitles, captions, descriptions, chapters, or metadata)' ),
+					'should_preview_update' => false,
+				),
+			)
 		);
 
 		foreach ( wp_get_video_extensions() as $video_extension ) {
@@ -94,20 +94,22 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 				'type'        => 'string',
 				'default'     => '',
 				'format'      => 'uri',
-				/* translators: %s: Video extension. */
+				/* translators: %s: video extension */
 				'description' => sprintf( __( 'URL to the %s video source file' ), $video_extension ),
 			);
 		}
 
-		return array_merge( $schema, parent::get_instance_schema() );
+		return $schema;
 	}
 
 	/**
 	 * Render the media on the frontend.
 	 *
-	 * @since 4.8.0
+	 * @since  WP-4.8.0
 	 *
 	 * @param array $instance Widget instance props.
+	 *
+	 * @return void
 	 */
 	public function render_media( $instance ) {
 		$instance   = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
@@ -149,7 +151,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	/**
 	 * Inject max-width and remove height for videos too constrained to fit inside sidebars on frontend.
 	 *
-	 * @since 4.8.0
+	 * @since WP-4.8.0
 	 *
 	 * @param string $html Video shortcode HTML output.
 	 * @return string HTML Output.
@@ -169,7 +171,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	 * selective refresh, and so it is important to unconditionally enqueue them in
 	 * case a widget does get added.
 	 *
-	 * @since 4.8.0
+	 * @since WP-4.8.0
 	 */
 	public function enqueue_preview_scripts() {
 		/** This filter is documented in wp-includes/media.php */
@@ -183,7 +185,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	/**
 	 * Loads the required scripts and styles for the widget control.
 	 *
-	 * @since 4.8.0
+	 * @since WP-4.8.0
 	 */
 	public function enqueue_admin_scripts() {
 		parent::enqueue_admin_scripts();
@@ -221,7 +223,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	/**
 	 * Render form template scripts.
 	 *
-	 * @since 4.8.0
+	 * @since WP-4.8.0
 	 */
 	public function render_control_template_scripts() {
 		parent::render_control_template_scripts()
@@ -241,7 +243,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 				</div>
 			<# } else if ( data.is_oembed && data.model.poster ) { #>
 				<a href="{{ data.model.src }}" target="_blank" class="media-widget-video-link">
-					<img src="{{ data.model.poster }}">
+					<img src="{{ data.model.poster }}" />
 				</a>
 			<# } else if ( data.is_oembed ) { #>
 				<a href="{{ data.model.src }}" target="_blank" class="media-widget-video-link no-poster">

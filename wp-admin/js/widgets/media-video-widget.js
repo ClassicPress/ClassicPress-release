@@ -1,7 +1,3 @@
-/**
- * @output wp-admin/js/widgets/media-video-widget.js
- */
-
 /* eslint consistent-this: [ "error", "control" ] */
 (function( component ) {
 	'use strict';
@@ -11,17 +7,15 @@
 	/**
 	 * Custom video details frame that removes the replace-video state.
 	 *
-	 * @class    wp.mediaWidgets.controlConstructors~VideoDetailsMediaFrame
-	 * @augments wp.media.view.MediaFrame.VideoDetails
-	 *
-	 * @private
+	 * @class VideoDetailsMediaFrame
+	 * @constructor
 	 */
-	VideoDetailsMediaFrame = wp.media.view.MediaFrame.VideoDetails.extend(/** @lends wp.mediaWidgets.controlConstructors~VideoDetailsMediaFrame.prototype */{
+	VideoDetailsMediaFrame = wp.media.view.MediaFrame.VideoDetails.extend({
 
 		/**
 		 * Create the default states.
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		createStates: function createStates() {
 			this.states.add([
@@ -55,8 +49,8 @@
 	 *
 	 * See WP_Widget_Video::enqueue_admin_scripts() for amending prototype from PHP exports.
 	 *
-	 * @class    wp.mediaWidgets.modelConstructors.media_video
-	 * @augments wp.mediaWidgets.MediaWidgetModel
+	 * @class VideoWidgetModel
+	 * @constructor
 	 */
 	VideoWidgetModel = component.MediaWidgetModel.extend({});
 
@@ -65,10 +59,10 @@
 	 *
 	 * See WP_Widget_Video::enqueue_admin_scripts() for amending prototype from PHP exports.
 	 *
-	 * @class    wp.mediaWidgets.controlConstructors.media_video
-	 * @augments wp.mediaWidgets.MediaWidgetControl
+	 * @class VideoWidgetControl
+	 * @constructor
 	 */
-	VideoWidgetControl = component.MediaWidgetControl.extend(/** @lends wp.mediaWidgets.controlConstructors.media_video.prototype */{
+	VideoWidgetControl = component.MediaWidgetControl.extend({
 
 		/**
 		 * Show display settings.
@@ -88,7 +82,7 @@
 		 * Map model props to media frame props.
 		 *
 		 * @param {Object} modelProps - Model props.
-		 * @return {Object} Media frame props.
+		 * @returns {Object} Media frame props.
 		 */
 		mapModelToMediaFrameProps: function mapModelToMediaFrameProps( modelProps ) {
 			var control = this, mediaFrameProps;
@@ -100,7 +94,7 @@
 		/**
 		 * Fetches embed data for external videos.
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		fetchEmbed: function fetchEmbed() {
 			var control = this, url;
@@ -142,9 +136,9 @@
 		/**
 		 * Whether a url is a supported external host.
 		 *
-		 * @deprecated since 4.9.
+		 * @deprecated since WP-4.9.
 		 *
-		 * @return {boolean} Whether url is a supported video host.
+		 * @returns {boolean} Whether url is a supported video host.
 		 */
 		isHostedVideo: function isHostedVideo() {
 			return true;
@@ -153,7 +147,7 @@
 		/**
 		 * Render preview.
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		renderPreview: function renderPreview() {
 			var control = this, previewContainer, previewTemplate, attachmentId, attachmentUrl, poster, html = '', isOEmbed = false, mime, error, urlParser, matches;
@@ -211,7 +205,7 @@
 		/**
 		 * Open the media image-edit frame to modify the selected item.
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
 		editMedia: function editMedia() {
 			var control = this, mediaFrame, metadata, updateCallback;

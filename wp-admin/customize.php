@@ -4,13 +4,13 @@
  *
  * @package ClassicPress
  * @subpackage Customize
- * @since 3.4.0
+ * @since WP-3.4.0
  */
 
 define( 'IFRAME_REQUEST', true );
 
 /** Load ClassicPress Administration Bootstrap */
-require_once __DIR__ . '/admin.php';
+require_once dirname( __FILE__ ) . '/admin.php';
 
 if ( ! current_user_can( 'customize' ) ) {
 	wp_die(
@@ -49,7 +49,7 @@ if ( $wp_customize->changeset_post_id() ) {
 		 * argument, settings cannot be reliably saved. Some logic short-circuits if the current value is the
 		 * same as the value being saved. This is particularly true for options via `update_option()`.
 		 *
-		 * By opening an Ajax request, this is avoided and the changeset is published. See #39221.
+		 * By opening an Ajax request, this is avoided and the changeset is published. See https://core.trac.wordpress.org/ticket/39221.
 		 */
 		$nonces       = $wp_customize->get_nonces();
 		$request_args = array(
@@ -97,7 +97,7 @@ if ( ! empty( $autofocus ) && is_array( $autofocus ) ) {
 }
 
 $registered             = $wp_scripts->registered;
-$wp_scripts             = new WP_Scripts();
+$wp_scripts             = new WP_Scripts;
 $wp_scripts->registered = $registered;
 
 add_action( 'customize_controls_print_scripts', 'print_head_scripts', 20 );
@@ -107,7 +107,7 @@ add_action( 'customize_controls_print_styles', 'print_admin_styles', 20 );
 /**
  * Fires when Customizer controls are initialized, before scripts are enqueued.
  *
- * @since 3.4.0
+ * @since WP-3.4.0
  */
 do_action( 'customize_controls_init' );
 
@@ -118,7 +118,7 @@ wp_enqueue_style( 'customize-controls' );
 /**
  * Enqueue Customizer control scripts.
  *
- * @since 3.4.0
+ * @since WP-3.4.0
  */
 do_action( 'customize_controls_enqueue_scripts' );
 
@@ -132,7 +132,10 @@ $body_class = 'wp-core-ui wp-customizer js';
 
 if ( wp_is_mobile() ) :
 	$body_class .= ' mobile';
-	add_filter( 'admin_viewport_meta', '_customizer_mobile_viewport_meta' );
+
+	?>
+	<meta name="viewport" id="viewport-meta" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=1.2" />
+	<?php
 endif;
 
 if ( $wp_customize->is_ios() ) {
@@ -147,9 +150,9 @@ $body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '
 $admin_title = sprintf( $wp_customize->get_document_title_template(), __( 'Loading&hellip;' ) );
 
 ?>
-<title><?php echo esc_html( $admin_title ); ?></title>
+<title><?php echo $admin_title; ?></title>
 
-<script>
+<script type="text/javascript">
 var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php', 'relative' ) ); ?>,
 	pagenow = 'customize';
 </script>
@@ -158,23 +161,16 @@ var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php', 'relative'
 /**
  * Fires when Customizer control styles are printed.
  *
- * @since 3.4.0
+ * @since WP-3.4.0
  */
 do_action( 'customize_controls_print_styles' );
 
 /**
  * Fires when Customizer control scripts are printed.
  *
- * @since 3.4.0
+ * @since WP-3.4.0
  */
 do_action( 'customize_controls_print_scripts' );
-
-/**
- * Fires in head section of Customizer controls.
- *
- * @since 5.5.0
- */
-do_action( 'customize_controls_head' );
 ?>
 </head>
 <body class="<?php echo esc_attr( $body_class ); ?>">
@@ -203,18 +199,13 @@ do_action( 'customize_controls_head' );
 				<span class="preview"><?php _e( 'Preview' ); ?></span>
 			</button>
 			<a class="customize-controls-close" href="<?php echo esc_url( $wp_customize->get_return_url() ); ?>">
-				<span class="screen-reader-text">
-					<?php
-					/* translators: Hidden accessibility text. */
-					_e( 'Close the Customizer and go back to the previous page' );
-					?>
-				</span>
+				<span class="screen-reader-text"><?php _e( 'Close the Customizer and go back to the previous page' ); ?></span>
 			</a>
 		</div>
 
 		<div id="customize-sidebar-outer-content">
 			<div id="customize-outer-theme-controls">
-				<ul class="customize-outer-pane-parent"><!-- Outer panel and sections are not implemented, but its here as a placeholder to avoid any side-effect in api.Section. --></ul>
+				<ul class="customize-outer-pane-parent"><?php // Outer panel and sections are not implemented, but its here as a placeholder to avoid any side-effect in api.Section. ?></ul>
 			</div>
 		</div>
 
@@ -231,24 +222,12 @@ do_action( 'customize_controls_head' );
 							printf( __( 'You are customizing %s' ), '<strong class="panel-title site-title">' . get_bloginfo( 'name', 'display' ) . '</strong>' );
 						?>
 						</span>
-						<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
-							<?php
-							/* translators: Hidden accessibility text. */
-							_e( 'Help' );
-							?>
-						</span></button>
+						<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text"><?php _e( 'Help' ); ?></span></button>
 					</div>
 					<div class="customize-panel-description">
-						<p>
-							<?php
-							_e( 'The Customizer allows you to preview changes to your site before publishing them. You can navigate to different pages on your site within the preview. Edit shortcuts are shown for some editable elements. The Customizer is intended for use with non-block themes.' );
-							?>
-						</p>
-						<p>
-							<?php
-							_e( '<a href="https://wordpress.org/documentation/article/customizer/">Documentation on Customizer</a>' );
-							?>
-						</p>
+					<?php
+						_e( 'The Customizer allows you to preview changes to your site before publishing them. You can navigate to different pages on your site within the preview. Edit shortcuts are shown for some editable elements.' );
+					?>
 					</div>
 				</div>
 
@@ -259,7 +238,7 @@ do_action( 'customize_controls_head' );
 		</div>
 
 		<div id="customize-footer-actions" class="wp-full-overlay-footer">
-			<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php echo esc_attr_x( 'Hide Controls', 'label for hide controls button without length constraints' ); ?>">
+			<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php echo esc_attr( _x( 'Hide Controls', 'label for hide controls button without length constraints' ) ); ?>">
 				<span class="collapse-sidebar-arrow"></span>
 				<span class="collapse-sidebar-label"><?php _ex( 'Hide Controls', 'short (~12 characters) label for hide controls button' ); ?></span>
 			</button>
@@ -293,7 +272,7 @@ do_action( 'customize_controls_head' );
 	/**
 	 * Prints templates, control scripts, and settings in the footer.
 	 *
-	 * @since 3.4.0
+	 * @since WP-3.4.0
 	 */
 	do_action( 'customize_controls_print_footer_scripts' );
 	?>
