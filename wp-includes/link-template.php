@@ -9,8 +9,8 @@
 /**
  * Displays the permalink for the current post.
  *
- * @since WP-1.2.0
- * @since WP-4.4.0 Added the `$post` parameter.
+ * @since 1.2.0
+ * @since 4.4.0 Added the `$post` parameter.
  *
  * @param int|WP_Post $post Optional. Post ID or post object. Default is the global `$post`.
  */
@@ -18,8 +18,8 @@ function the_permalink( $post = 0 ) {
 	/**
 	 * Filters the display of the permalink for the current post.
 	 *
-	 * @since WP-1.5.0
-	 * @since WP-4.4.0 Added the `$post` parameter.
+	 * @since 1.5.0
+	 * @since 4.4.0 Added the `$post` parameter.
 	 *
 	 * @param string      $permalink The permalink for the current post.
 	 * @param int|WP_Post $post      Post ID, WP_Post object, or 0. Default 0.
@@ -35,34 +35,34 @@ function the_permalink( $post = 0 ) {
  * {@see 'user_trailingslashit'} filter. Will remove trailing slash from string, if
  * site is not set to have them.
  *
- * @since WP-2.2.0
+ * @since 2.2.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param string $string      URL with or without a trailing slash.
+ * @param string $url         URL with or without a trailing slash.
  * @param string $type_of_url Optional. The type of URL being considered (e.g. single, category, etc)
  *                            for use in the filter. Default empty string.
  * @return string The URL with the trailing slash appended or stripped.
  */
-function user_trailingslashit( $string, $type_of_url = '' ) {
+function user_trailingslashit( $url, $type_of_url = '' ) {
 	global $wp_rewrite;
 	if ( $wp_rewrite->use_trailing_slashes ) {
-		$string = trailingslashit( $string );
+		$url = trailingslashit( $url );
 	} else {
-		$string = untrailingslashit( $string );
+		$url = untrailingslashit( $url );
 	}
 
 	/**
 	 * Filters the trailing-slashed string, depending on whether the site is set to use trailing slashes.
 	 *
-	 * @since WP-2.2.0
+	 * @since 2.2.0
 	 *
-	 * @param string $string      URL with or without a trailing slash.
+	 * @param string $url         URL with or without a trailing slash.
 	 * @param string $type_of_url The type of URL being considered. Accepts 'single', 'single_trackback',
 	 *                            'single_feed', 'single_paged', 'commentpaged', 'paged', 'home', 'feed',
 	 *                            'category', 'page', 'year', 'month', 'day', 'post_type_archive'.
 	 */
-	return apply_filters( 'user_trailingslashit', $string, $type_of_url );
+	return apply_filters( 'user_trailingslashit', $url, $type_of_url );
 }
 
 /**
@@ -71,7 +71,7 @@ function user_trailingslashit( $string, $type_of_url = '' ) {
  * The permalink mode title will use the post title for the 'a' element 'id'
  * attribute. The id mode uses 'post-' with the post ID for the 'id' attribute.
  *
- * @since WP-0.71
+ * @since 0.71
  *
  * @param string $mode Optional. Permalink mode. Accepts 'title' or 'id'. Default 'id'.
  */
@@ -90,11 +90,63 @@ function permalink_anchor( $mode = 'id' ) {
 }
 
 /**
+ * Determine whether post should always use a plain permalink structure.
+ *
+ * @since 5.7.0
+ *
+ * @param WP_Post|int|null $post   Optional. Post ID or post object. Defaults to global $post.
+ * @param bool|null        $sample Optional. Whether to force consideration based on sample links.
+ *                                 If omitted, a sample link is generated if a post object is passed
+ *                                 with the filter property set to 'sample'.
+ * @return bool Whether to use a plain permalink structure.
+ */
+function wp_force_plain_post_permalink( $post = null, $sample = null ) {
+	if (
+		null === $sample &&
+		is_object( $post ) &&
+		isset( $post->filter ) &&
+		'sample' === $post->filter
+	) {
+		$sample = true;
+	} else {
+		$post   = get_post( $post );
+		$sample = null !== $sample ? $sample : false;
+	}
+
+	if ( ! $post ) {
+		return true;
+	}
+
+	$post_status_obj = get_post_status_object( get_post_status( $post ) );
+	$post_type_obj   = get_post_type_object( get_post_type( $post ) );
+
+	if ( ! $post_status_obj || ! $post_type_obj ) {
+		return true;
+	}
+
+	if (
+		// Publicly viewable links never have plain permalinks.
+		is_post_status_viewable( $post_status_obj ) ||
+		(
+			// Private posts don't have plain permalinks if the user can read them.
+			$post_status_obj->private &&
+			current_user_can( 'read_post', $post->ID )
+		) ||
+		// Protected posts don't have plain links if getting a sample URL.
+		( $post_status_obj->protected && $sample )
+	) {
+		return false;
+	}
+
+	return true;
+}
+
+/**
  * Retrieves the full permalink for the current post or post ID.
  *
  * This function is an alias for get_permalink().
  *
- * @since WP-3.9.0
+ * @since 3.9.0
  *
  * @see get_permalink()
  *
@@ -109,7 +161,7 @@ function get_the_permalink( $post = 0, $leavename = false ) {
 /**
  * Retrieves the full permalink for the current post or post ID.
  *
- * @since WP-1.0.0
+ * @since 1.0.0
  *
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name or page name. Default false.
@@ -156,7 +208,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 	 *
 	 * Only applies to posts with post_type of 'post'.
 	 *
-	 * @since WP-3.0.0
+	 * @since 3.0.0
 	 *
 	 * @param string  $permalink The site's permalink structure.
 	 * @param WP_Post $post      The post in question.
@@ -164,11 +216,13 @@ function get_permalink( $post = 0, $leavename = false ) {
 	 */
 	$permalink = apply_filters( 'pre_post_link', $permalink, $post, $leavename );
 
-	if ( $permalink && ! in_array( $post->post_status, array( 'draft', 'pending', 'auto-draft', 'future' ), true ) ) {
-		$unixtime = strtotime( $post->post_date );
+	if (
+		$permalink &&
+		! wp_force_plain_post_permalink( $post )
+	) {
 
 		$category = '';
-		if ( strpos( $permalink, '%category%' ) !== false ) {
+		if ( str_contains( $permalink, '%category%' ) ) {
 			$cats = get_the_category( $post->ID );
 			if ( $cats ) {
 				$cats = wp_list_sort(
@@ -181,7 +235,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 				/**
 				 * Filters the category that gets used in the %category% permalink token.
 				 *
-				 * @since WP-3.5.0
+				 * @since 3.5.0
 				 *
 				 * @param WP_Term  $cat  The category to use in the permalink.
 				 * @param array    $cats Array of all categories (WP_Term objects) associated with the post.
@@ -191,12 +245,12 @@ function get_permalink( $post = 0, $leavename = false ) {
 
 				$category_object = get_term( $category_object, 'category' );
 				$category        = $category_object->slug;
-				if ( $parent = $category_object->parent ) {
-					$category = get_category_parents( $parent, false, '/', true ) . $category;
+				if ( $category_object->parent ) {
+					$category = get_category_parents( $category_object->parent, false, '/', true ) . $category;
 				}
 			}
-			// show default category in permalinks, without
-			// having to assign it explicitly
+			// Show default category in permalinks,
+			// without having to assign it explicitly.
 			if ( empty( $category ) ) {
 				$default_category = get_term( get_option( 'default_category' ), 'category' );
 				if ( $default_category && ! is_wp_error( $default_category ) ) {
@@ -206,14 +260,16 @@ function get_permalink( $post = 0, $leavename = false ) {
 		}
 
 		$author = '';
-		if ( strpos( $permalink, '%author%' ) !== false ) {
+		if ( str_contains( $permalink, '%author%' ) ) {
 			$authordata = get_userdata( $post->post_author );
 			$author     = $authordata->user_nicename;
 		}
 
-		$date           = explode( ' ', date( 'Y m d H i s', $unixtime ) );
-		$rewritereplace =
-		array(
+		// This is not an API call because the permalink is based on the stored post_date value,
+		// which should be parsed as local time regardless of the default PHP timezone.
+		$date = explode( ' ', str_replace( array( '-', ':' ), ' ', $post->post_date ) );
+
+		$rewritereplace = array(
 			$date[0],
 			$date[1],
 			$date[2],
@@ -226,9 +282,11 @@ function get_permalink( $post = 0, $leavename = false ) {
 			$author,
 			$post->post_name,
 		);
-		$permalink      = home_url( str_replace( $rewritecode, $rewritereplace, $permalink ) );
-		$permalink      = user_trailingslashit( $permalink, 'single' );
-	} else { // if they're not using the fancy permalink option
+
+		$permalink = home_url( str_replace( $rewritecode, $rewritereplace, $permalink ) );
+		$permalink = user_trailingslashit( $permalink, 'single' );
+
+	} else { // If they're not using the fancy permalink option.
 		$permalink = home_url( '?p=' . $post->ID );
 	}
 
@@ -237,7 +295,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 	 *
 	 * Only applies to posts with post_type of 'post'.
 	 *
-	 * @since WP-1.5.0
+	 * @since 1.5.0
 	 *
 	 * @param string  $permalink The post's permalink.
 	 * @param WP_Post $post      The post in question.
@@ -249,20 +307,20 @@ function get_permalink( $post = 0, $leavename = false ) {
 /**
  * Retrieves the permalink for a post of a custom post type.
  *
- * @since WP-3.0.0
- * @since WP-6.1.0 Returns false if the post does not exist.
+ * @since 3.0.0
+ * @since 6.1.0 Returns false if the post does not exist.
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param int|WP_Post $id        Optional. Post ID or post object. Default is the global `$post`.
+ * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name. Default false.
  * @param bool        $sample    Optional. Is it a sample permalink. Default false.
  * @return string|false The post permalink URL. False if the post does not exist.
  */
-function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
+function get_post_permalink( $post = 0, $leavename = false, $sample = false ) {
 	global $wp_rewrite;
 
-	$post = get_post( $id );
+	$post = get_post( $post );
 
 	if ( ! $post ) {
 		return false;
@@ -272,7 +330,7 @@ function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
 
 	$slug = $post->post_name;
 
-	$draft_or_pending = get_post_status( $post ) && in_array( get_post_status( $post ), array( 'draft', 'pending', 'auto-draft', 'future' ), true );
+	$force_plain_link = wp_force_plain_post_permalink( $post );
 
 	$post_type = get_post_type_object( $post->post_type );
 
@@ -280,13 +338,13 @@ function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
 		$slug = get_page_uri( $post );
 	}
 
-	if ( ! empty( $post_link ) && ( ! $draft_or_pending || $sample ) ) {
+	if ( ! empty( $post_link ) && ( ! $force_plain_link || $sample ) ) {
 		if ( ! $leavename ) {
 			$post_link = str_replace( "%$post->post_type%", $slug, $post_link );
 		}
 		$post_link = home_url( user_trailingslashit( $post_link ) );
 	} else {
-		if ( $post_type->query_var && ( isset( $post->post_status ) && ! $draft_or_pending ) ) {
+		if ( $post_type->query_var && ( isset( $post->post_status ) && ! $force_plain_link ) ) {
 			$post_link = add_query_arg( $post_type->query_var, $slug, '' );
 		} else {
 			$post_link = add_query_arg(
@@ -303,7 +361,7 @@ function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
 	/**
 	 * Filters the permalink for a post of a custom post type.
 	 *
-	 * @since WP-3.0.0
+	 * @since 3.0.0
 	 *
 	 * @param string  $post_link The post's permalink.
 	 * @param WP_Post $post      The post in question.
@@ -318,7 +376,7 @@ function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
  *
  * Respects page_on_front. Use this one.
  *
- * @since WP-1.5.0
+ * @since 1.5.0
  *
  * @param int|WP_Post $post      Optional. Post ID or object. Default uses the global `$post`.
  * @param bool        $leavename Optional. Whether to keep the page name. Default false.
@@ -338,7 +396,7 @@ function get_page_link( $post = false, $leavename = false, $sample = false ) {
 	/**
 	 * Filters the permalink for a page.
 	 *
-	 * @since WP-1.5.0
+	 * @since 1.5.0
 	 *
 	 * @param string $link    The page's permalink.
 	 * @param int    $post_id The ID of the page.
@@ -352,10 +410,10 @@ function get_page_link( $post = false, $leavename = false, $sample = false ) {
  *
  * Ignores page_on_front. Internal use only.
  *
- * @since WP-2.1.0
+ * @since 2.1.0
  * @access private
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param int|WP_Post $post      Optional. Post ID or object. Default uses the global `$post`.
  * @param bool        $leavename Optional. Whether to keep the page name. Default false.
@@ -368,11 +426,11 @@ function _get_page_link( $post = false, $leavename = false, $sample = false ) {
 
 	$post = get_post( $post );
 
-	$draft_or_pending = in_array( $post->post_status, array( 'draft', 'pending', 'auto-draft' ), true );
+	$force_plain_link = wp_force_plain_post_permalink( $post );
 
 	$link = $wp_rewrite->get_page_permastruct();
 
-	if ( ! empty( $link ) && ( ( isset( $post->post_status ) && ! $draft_or_pending ) || $sample ) ) {
+	if ( ! empty( $link ) && ( ( isset( $post->post_status ) && ! $force_plain_link ) || $sample ) ) {
 		if ( ! $leavename ) {
 			$link = str_replace( '%pagename%', get_page_uri( $post ), $link );
 		}
@@ -386,7 +444,7 @@ function _get_page_link( $post = false, $leavename = false, $sample = false ) {
 	/**
 	 * Filters the permalink for a non-page_on_front page.
 	 *
-	 * @since WP-2.1.0
+	 * @since 2.1.0
 	 *
 	 * @param string $link    The page's permalink.
 	 * @param int    $post_id The ID of the page.
@@ -397,11 +455,11 @@ function _get_page_link( $post = false, $leavename = false, $sample = false ) {
 /**
  * Retrieves the permalink for an attachment.
  *
- * This can be used in the ClassicPress Loop or outside of it.
+ * This can be used in the WordPress Loop or outside of it.
  *
- * @since WP-2.0.0
+ * @since 2.0.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param int|object $post      Optional. Post ID or object. Default uses the global `$post`.
  * @param bool       $leavename Optional. Whether to keep the page name. Default false.
@@ -412,26 +470,39 @@ function get_attachment_link( $post = null, $leavename = false ) {
 
 	$link = false;
 
-	$post   = get_post( $post );
-	$parent = ( $post->post_parent > 0 && $post->post_parent != $post->ID ) ? get_post( $post->post_parent ) : false;
-	if ( $parent && ! in_array( $parent->post_type, get_post_types(), true ) ) {
-		$parent = false;
+	$post             = get_post( $post );
+	$force_plain_link = wp_force_plain_post_permalink( $post );
+	$parent_id        = $post->post_parent;
+	$parent           = $parent_id ? get_post( $parent_id ) : false;
+	$parent_valid     = true; // Default for no parent.
+	if (
+		$parent_id &&
+		(
+			$post->post_parent === $post->ID ||
+			! $parent ||
+			! is_post_type_viewable( get_post_type( $parent ) )
+		)
+	) {
+		// Post is either its own parent or parent post unavailable.
+		$parent_valid = false;
 	}
 
-	if ( $wp_rewrite->using_permalinks() && $parent ) {
+	if ( $force_plain_link || ! $parent_valid ) {
+		$link = false;
+	} elseif ( $wp_rewrite->using_permalinks() && $parent ) {
 		if ( 'page' === $parent->post_type ) {
 			$parentlink = _get_page_link( $post->post_parent ); // Ignores page_on_front.
 		} else {
 			$parentlink = get_permalink( $post->post_parent );
 		}
 
-		if ( is_numeric( $post->post_name ) || false !== strpos( get_option( 'permalink_structure' ), '%category%' ) ) {
-			$name = 'attachment/' . $post->post_name; // <permalink>/<int>/ is paged so we use the explicit attachment marker
+		if ( is_numeric( $post->post_name ) || str_contains( get_option( 'permalink_structure' ), '%category%' ) ) {
+			$name = 'attachment/' . $post->post_name; // <permalink>/<int>/ is paged so we use the explicit attachment marker.
 		} else {
 			$name = $post->post_name;
 		}
 
-		if ( strpos( $parentlink, '?' ) === false ) {
+		if ( ! str_contains( $parentlink, '?' ) ) {
 			$link = user_trailingslashit( trailingslashit( $parentlink ) . '%postname%' );
 		}
 
@@ -449,7 +520,9 @@ function get_attachment_link( $post = null, $leavename = false ) {
 	/**
 	 * Filters the permalink for an attachment.
 	 *
-	 * @since WP-2.0.0
+	 * @since 2.0.0
+	 * @since 5.6.0 Providing an empty string will now disable
+	 *              the view attachment page link on the media modal.
 	 *
 	 * @param string $link    The attachment's permalink.
 	 * @param int    $post_id Attachment ID.
@@ -460,17 +533,17 @@ function get_attachment_link( $post = null, $leavename = false ) {
 /**
  * Retrieves the permalink for the year archives.
  *
- * @since WP-1.5.0
+ * @since 1.5.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param int|bool $year False for current year or year for permalink.
+ * @param int|false $year Integer of year. False for current year.
  * @return string The permalink for the specified year archive.
  */
 function get_year_link( $year ) {
 	global $wp_rewrite;
 	if ( ! $year ) {
-		$year = gmdate( 'Y', current_time( 'timestamp' ) );
+		$year = current_time( 'Y' );
 	}
 	$yearlink = $wp_rewrite->get_year_permastruct();
 	if ( ! empty( $yearlink ) ) {
@@ -483,7 +556,7 @@ function get_year_link( $year ) {
 	/**
 	 * Filters the year archive permalink.
 	 *
-	 * @since WP-1.5.0
+	 * @since 1.5.0
 	 *
 	 * @param string $yearlink Permalink for the year archive.
 	 * @param int    $year     Year for the archive.
@@ -494,26 +567,26 @@ function get_year_link( $year ) {
 /**
  * Retrieves the permalink for the month archives with year.
  *
- * @since WP-1.0.0
+ * @since 1.0.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param bool|int $year  False for current year. Integer of year.
- * @param bool|int $month False for current month. Integer of month.
+ * @param int|false $year  Integer of year. False for current year.
+ * @param int|false $month Integer of month. False for current month.
  * @return string The permalink for the specified month and year archive.
  */
 function get_month_link( $year, $month ) {
 	global $wp_rewrite;
 	if ( ! $year ) {
-		$year = gmdate( 'Y', current_time( 'timestamp' ) );
+		$year = current_time( 'Y' );
 	}
 	if ( ! $month ) {
-		$month = gmdate( 'm', current_time( 'timestamp' ) );
+		$month = current_time( 'm' );
 	}
 	$monthlink = $wp_rewrite->get_month_permastruct();
 	if ( ! empty( $monthlink ) ) {
 		$monthlink = str_replace( '%year%', $year, $monthlink );
-		$monthlink = str_replace( '%monthnum%', zeroise( intval( $month ), 2 ), $monthlink );
+		$monthlink = str_replace( '%monthnum%', zeroise( (int) $month, 2 ), $monthlink );
 		$monthlink = home_url( user_trailingslashit( $monthlink, 'month' ) );
 	} else {
 		$monthlink = home_url( '?m=' . $year . zeroise( $month, 2 ) );
@@ -522,7 +595,7 @@ function get_month_link( $year, $month ) {
 	/**
 	 * Filters the month archive permalink.
 	 *
-	 * @since WP-1.5.0
+	 * @since 1.5.0
 	 *
 	 * @param string $monthlink Permalink for the month archive.
 	 * @param int    $year      Year for the archive.
@@ -534,32 +607,32 @@ function get_month_link( $year, $month ) {
 /**
  * Retrieves the permalink for the day archives with year and month.
  *
- * @since WP-1.0.0
+ * @since 1.0.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param bool|int $year  False for current year. Integer of year.
- * @param bool|int $month False for current month. Integer of month.
- * @param bool|int $day   False for current day. Integer of day.
+ * @param int|false $year  Integer of year. False for current year.
+ * @param int|false $month Integer of month. False for current month.
+ * @param int|false $day   Integer of day. False for current day.
  * @return string The permalink for the specified day, month, and year archive.
  */
 function get_day_link( $year, $month, $day ) {
 	global $wp_rewrite;
 	if ( ! $year ) {
-		$year = gmdate( 'Y', current_time( 'timestamp' ) );
+		$year = current_time( 'Y' );
 	}
 	if ( ! $month ) {
-		$month = gmdate( 'm', current_time( 'timestamp' ) );
+		$month = current_time( 'm' );
 	}
 	if ( ! $day ) {
-		$day = gmdate( 'j', current_time( 'timestamp' ) );
+		$day = current_time( 'j' );
 	}
 
 	$daylink = $wp_rewrite->get_day_permastruct();
 	if ( ! empty( $daylink ) ) {
 		$daylink = str_replace( '%year%', $year, $daylink );
-		$daylink = str_replace( '%monthnum%', zeroise( intval( $month ), 2 ), $daylink );
-		$daylink = str_replace( '%day%', zeroise( intval( $day ), 2 ), $daylink );
+		$daylink = str_replace( '%monthnum%', zeroise( (int) $month, 2 ), $daylink );
+		$daylink = str_replace( '%day%', zeroise( (int) $day, 2 ), $daylink );
 		$daylink = home_url( user_trailingslashit( $daylink, 'day' ) );
 	} else {
 		$daylink = home_url( '?m=' . $year . zeroise( $month, 2 ) . zeroise( $day, 2 ) );
@@ -568,7 +641,7 @@ function get_day_link( $year, $month, $day ) {
 	/**
 	 * Filters the day archive permalink.
 	 *
-	 * @since WP-1.5.0
+	 * @since 1.5.0
 	 *
 	 * @param string $daylink Permalink for the day archive.
 	 * @param int    $year    Year for the archive.
@@ -581,10 +654,11 @@ function get_day_link( $year, $month, $day ) {
 /**
  * Displays the permalink for the feed type.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
  * @param string $anchor The link's anchor text.
- * @param string $feed   Optional. Feed type. Default empty.
+ * @param string $feed   Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                       Default is the value of get_default_feed().
  */
 function the_feed_link( $anchor, $feed = '' ) {
 	$link = '<a href="' . esc_url( get_feed_link( $feed ) ) . '">' . $anchor . '</a>';
@@ -592,11 +666,11 @@ function the_feed_link( $anchor, $feed = '' ) {
 	/**
 	 * Filters the feed link anchor tag.
 	 *
-	 * @since WP-3.0.0
+	 * @since 3.0.0
 	 *
 	 * @param string $link The complete anchor tag for a feed link.
-	 * @param string $feed The feed type, or an empty string for the
-	 *                     default feed type.
+	 * @param string $feed The feed type. Possible values include 'rss2', 'atom',
+	 *                     or an empty string for the default feed type.
 	 */
 	echo apply_filters( 'the_feed_link', $link, $feed );
 }
@@ -604,11 +678,12 @@ function the_feed_link( $anchor, $feed = '' ) {
 /**
  * Retrieves the permalink for the feed type.
  *
- * @since WP-1.5.0
+ * @since 1.5.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param string $feed Optional. Feed type. Default empty.
+ * @param string $feed Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                     Default is the value of get_default_feed().
  * @return string The feed permalink.
  */
 function get_feed_link( $feed = '' ) {
@@ -616,8 +691,8 @@ function get_feed_link( $feed = '' ) {
 
 	$permalink = $wp_rewrite->get_feed_permastruct();
 
-	if ( '' !== $permalink ) {
-		if ( false !== strpos( $feed, 'comments_' ) ) {
+	if ( $permalink ) {
+		if ( str_contains( $feed, 'comments_' ) ) {
 			$feed      = str_replace( 'comments_', '', $feed );
 			$permalink = $wp_rewrite->get_comment_feed_permastruct();
 		}
@@ -634,7 +709,7 @@ function get_feed_link( $feed = '' ) {
 			$feed = get_default_feed();
 		}
 
-		if ( false !== strpos( $feed, 'comments_' ) ) {
+		if ( str_contains( $feed, 'comments_' ) ) {
 			$feed = str_replace( 'comments_', 'comments-', $feed );
 		}
 
@@ -644,10 +719,11 @@ function get_feed_link( $feed = '' ) {
 	/**
 	 * Filters the feed type permalink.
 	 *
-	 * @since WP-1.5.0
+	 * @since 1.5.0
 	 *
 	 * @param string $output The feed permalink.
-	 * @param string $feed   Feed type.
+	 * @param string $feed   The feed type. Possible values include 'rss2', 'atom',
+	 *                       or an empty string for the default feed type.
 	 */
 	return apply_filters( 'feed_link', $output, $feed );
 }
@@ -655,11 +731,12 @@ function get_feed_link( $feed = '' ) {
 /**
  * Retrieves the permalink for the post comments feed.
  *
- * @since WP-2.2.0
+ * @since 2.2.0
  *
  * @param int    $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @param string $feed    Optional. Feed type. Default empty.
- * @return string The permalink for the comments feed for the given post.
+ * @param string $feed    Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                        Default is the value of get_default_feed().
+ * @return string The permalink for the comments feed for the given post on success, empty string on failure.
  */
 function get_post_comments_feed_link( $post_id = 0, $feed = '' ) {
 	$post_id = absint( $post_id );
@@ -672,7 +749,13 @@ function get_post_comments_feed_link( $post_id = 0, $feed = '' ) {
 		$feed = get_default_feed();
 	}
 
-	$post       = get_post( $post_id );
+	$post = get_post( $post_id );
+
+	// Bail out if the post does not exist.
+	if ( ! $post instanceof WP_Post ) {
+		return '';
+	}
+
 	$unattached = 'attachment' === $post->post_type && 0 === (int) $post->post_parent;
 
 	if ( get_option( 'permalink_structure' ) ) {
@@ -726,7 +809,7 @@ function get_post_comments_feed_link( $post_id = 0, $feed = '' ) {
 	/**
 	 * Filters the post comments feed permalink.
 	 *
-	 * @since WP-1.5.1
+	 * @since 1.5.1
 	 *
 	 * @param string $url Post comments feed permalink.
 	 */
@@ -740,11 +823,12 @@ function get_post_comments_feed_link( $post_id = 0, $feed = '' ) {
  * anchor. If no link text is specified, default text is used. If no post ID is
  * specified, the current post is used.
  *
- * @since WP-2.5.0
+ * @since 2.5.0
  *
  * @param string $link_text Optional. Descriptive link text. Default 'Comments Feed'.
  * @param int    $post_id   Optional. Post ID. Default is the ID of the global `$post`.
- * @param string $feed      Optional. Feed format. Default empty.
+ * @param string $feed      Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                          Default is the value of get_default_feed().
  */
 function post_comments_feed_link( $link_text = '', $post_id = '', $feed = '' ) {
 	$url = get_post_comments_feed_link( $post_id, $feed );
@@ -756,11 +840,12 @@ function post_comments_feed_link( $link_text = '', $post_id = '', $feed = '' ) {
 	/**
 	 * Filters the post comment feed link anchor tag.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param string $link    The complete anchor tag for the comment feed link.
 	 * @param int    $post_id Post ID.
-	 * @param string $feed    The feed type, or an empty string for the default feed type.
+	 * @param string $feed    The feed type. Possible values include 'rss2', 'atom',
+	 *                        or an empty string for the default feed type.
 	 */
 	echo apply_filters( 'post_comments_feed_link_html', $link, $post_id, $feed );
 }
@@ -771,10 +856,11 @@ function post_comments_feed_link( $link_text = '', $post_id = '', $feed = '' ) {
  * Returns a link to the feed for all posts by a given author. A specific feed
  * can be requested or left blank to get the default feed.
  *
- * @since WP-2.5.0
+ * @since 2.5.0
  *
  * @param int    $author_id Author ID.
- * @param string $feed      Optional. Feed type. Default empty.
+ * @param string $feed      Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                          Default is the value of get_default_feed().
  * @return string Link to the feed for the author specified by $author_id.
  */
 function get_author_feed_link( $author_id, $feed = '' ) {
@@ -801,10 +887,10 @@ function get_author_feed_link( $author_id, $feed = '' ) {
 	/**
 	 * Filters the feed link for a given author.
 	 *
-	 * @since WP-1.5.1
+	 * @since 1.5.1
 	 *
 	 * @param string $link The author feed link.
-	 * @param string $feed Feed type.
+	 * @param string $feed Feed type. Possible values include 'rss2', 'atom'.
 	 */
 	$link = apply_filters( 'author_feed_link', $link, $feed );
 
@@ -817,14 +903,15 @@ function get_author_feed_link( $author_id, $feed = '' ) {
  * Returns a link to the feed for all posts in a given category. A specific feed
  * can be requested or left blank to get the default feed.
  *
- * @since WP-2.5.0
+ * @since 2.5.0
  *
- * @param int    $cat_id Category ID.
- * @param string $feed   Optional. Feed type. Default empty.
- * @return string Link to the feed for the category specified by $cat_id.
+ * @param int|WP_Term|object $cat  The ID or category object whose feed link will be retrieved.
+ * @param string             $feed Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                                 Default is the value of get_default_feed().
+ * @return string Link to the feed for the category specified by `$cat`.
  */
-function get_category_feed_link( $cat_id, $feed = '' ) {
-	return get_term_feed_link( $cat_id, 'category', $feed );
+function get_category_feed_link( $cat, $feed = '' ) {
+	return get_term_feed_link( $cat, 'category', $feed );
 }
 
 /**
@@ -833,21 +920,26 @@ function get_category_feed_link( $cat_id, $feed = '' ) {
  * Returns a link to the feed for all posts in a given term. A specific feed
  * can be requested or left blank to get the default feed.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
- * @param int    $term_id  Term ID.
- * @param string $taxonomy Optional. Taxonomy of `$term_id`. Default 'category'.
- * @param string $feed     Optional. Feed type. Default empty.
- * @return string|false Link to the feed for the term specified by $term_id and $taxonomy.
+ * @param int|WP_Term|object $term     The ID or term object whose feed link will be retrieved.
+ * @param string             $taxonomy Optional. Taxonomy of `$term_id`.
+ * @param string             $feed     Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                                     Default is the value of get_default_feed().
+ * @return string|false Link to the feed for the term specified by `$term` and `$taxonomy`.
  */
-function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
-	$term_id = (int) $term_id;
+function get_term_feed_link( $term, $taxonomy = '', $feed = '' ) {
+	if ( ! is_object( $term ) ) {
+		$term = (int) $term;
+	}
 
-	$term = get_term( $term_id, $taxonomy );
+	$term = get_term( $term, $taxonomy );
 
 	if ( empty( $term ) || is_wp_error( $term ) ) {
 		return false;
 	}
+
+	$taxonomy = $term->taxonomy;
 
 	if ( empty( $feed ) ) {
 		$feed = get_default_feed();
@@ -857,7 +949,7 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
 
 	if ( ! $permalink_structure ) {
 		if ( 'category' === $taxonomy ) {
-			$link = home_url( "?feed=$feed&amp;cat=$term_id" );
+			$link = home_url( "?feed=$feed&amp;cat=$term->term_id" );
 		} elseif ( 'post_tag' === $taxonomy ) {
 			$link = home_url( "?feed=$feed&amp;tag=$term->slug" );
 		} else {
@@ -865,7 +957,7 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
 			$link = home_url( "?feed=$feed&amp;$t->query_var=$term->slug" );
 		}
 	} else {
-		$link = get_term_link( $term_id, $term->taxonomy );
+		$link = get_term_link( $term, $term->taxonomy );
 		if ( get_default_feed() == $feed ) {
 			$feed_link = 'feed';
 		} else {
@@ -879,30 +971,30 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
 		/**
 		 * Filters the category feed link.
 		 *
-		 * @since WP-1.5.1
+		 * @since 1.5.1
 		 *
 		 * @param string $link The category feed link.
-		 * @param string $feed Feed type.
+		 * @param string $feed Feed type. Possible values include 'rss2', 'atom'.
 		 */
 		$link = apply_filters( 'category_feed_link', $link, $feed );
 	} elseif ( 'post_tag' === $taxonomy ) {
 		/**
 		 * Filters the post tag feed link.
 		 *
-		 * @since WP-2.3.0
+		 * @since 2.3.0
 		 *
 		 * @param string $link The tag feed link.
-		 * @param string $feed Feed type.
+		 * @param string $feed Feed type. Possible values include 'rss2', 'atom'.
 		 */
 		$link = apply_filters( 'tag_feed_link', $link, $feed );
 	} else {
 		/**
 		 * Filters the feed link for a taxonomy other than 'category' or 'post_tag'.
 		 *
-		 * @since WP-3.0.0
+		 * @since 3.0.0
 		 *
-		 * @param string $link The taxonomy feed link.
-		 * @param string $feed Feed type.
+		 * @param string $link     The taxonomy feed link.
+		 * @param string $feed     Feed type. Possible values include 'rss2', 'atom'.
 		 * @param string $taxonomy The taxonomy name.
 		 */
 		$link = apply_filters( 'taxonomy_feed_link', $link, $feed, $taxonomy );
@@ -914,42 +1006,43 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
 /**
  * Retrieves the permalink for a tag feed.
  *
- * @since WP-2.3.0
+ * @since 2.3.0
  *
- * @param int    $tag_id Tag ID.
- * @param string $feed   Optional. Feed type. Default empty.
- * @return string The feed permalink for the given tag.
+ * @param int|WP_Term|object $tag  The ID or term object whose feed link will be retrieved.
+ * @param string             $feed Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                                 Default is the value of get_default_feed().
+ * @return string                  The feed permalink for the given tag.
  */
-function get_tag_feed_link( $tag_id, $feed = '' ) {
-	return get_term_feed_link( $tag_id, 'post_tag', $feed );
+function get_tag_feed_link( $tag, $feed = '' ) {
+	return get_term_feed_link( $tag, 'post_tag', $feed );
 }
 
 /**
  * Retrieves the edit link for a tag.
  *
- * @since WP-2.7.0
+ * @since 2.7.0
  *
- * @param int    $tag_id   Tag ID.
- * @param string $taxonomy Optional. Taxonomy slug. Default 'post_tag'.
+ * @param int|WP_Term|object $tag      The ID or term object whose edit link will be retrieved.
+ * @param string             $taxonomy Optional. Taxonomy slug. Default 'post_tag'.
  * @return string The edit tag link URL for the given tag.
  */
-function get_edit_tag_link( $tag_id, $taxonomy = 'post_tag' ) {
+function get_edit_tag_link( $tag, $taxonomy = 'post_tag' ) {
 	/**
 	 * Filters the edit link for a tag (or term in another taxonomy).
 	 *
-	 * @since WP-2.7.0
+	 * @since 2.7.0
 	 *
 	 * @param string $link The term edit link.
 	 */
-	return apply_filters( 'get_edit_tag_link', get_edit_term_link( $tag_id, $taxonomy ) );
+	return apply_filters( 'get_edit_tag_link', get_edit_term_link( $tag, $taxonomy ) );
 }
 
 /**
  * Displays or retrieves the edit link for a tag with formatting.
  *
- * @since WP-2.7.0
+ * @since 2.7.0
  *
- * @param string  $link   Optional. Anchor text. Default empty.
+ * @param string  $link   Optional. Anchor text. If empty, default is 'Edit This'. Default empty.
  * @param string  $before Optional. Display before edit link. Default empty.
  * @param string  $after  Optional. Display after edit link. Default empty.
  * @param WP_Term $tag    Optional. Term object. If null, the queried object will be inspected.
@@ -961,7 +1054,7 @@ function edit_tag_link( $link = '', $before = '', $after = '', $tag = null ) {
 	/**
 	 * Filters the anchor tag for the edit link for a tag (or term in another taxonomy).
 	 *
-	 * @since WP-2.7.0
+	 * @since 2.7.0
 	 *
 	 * @param string $link The anchor tag for the edit link.
 	 */
@@ -971,31 +1064,32 @@ function edit_tag_link( $link = '', $before = '', $after = '', $tag = null ) {
 /**
  * Retrieves the URL for editing a given term.
  *
- * @since WP-3.1.0
- * @since WP-4.5.0 The `$taxonomy` argument was made optional.
+ * @since 3.1.0
+ * @since 4.5.0 The `$taxonomy` parameter was made optional.
  *
- * @param int    $term_id     Term ID.
- * @param string $taxonomy    Optional. Taxonomy. Defaults to the taxonomy of the term identified
- *                            by `$term_id`.
- * @param string $object_type Optional. The object type. Used to highlight the proper post type
- *                            menu on the linked page. Defaults to the first object_type associated
- *                            with the taxonomy.
+ * @param int|WP_Term|object $term        The ID or term object whose edit link will be retrieved.
+ * @param string             $taxonomy    Optional. Taxonomy. Defaults to the taxonomy of the term identified
+ *                                        by `$term`.
+ * @param string             $object_type Optional. The object type. Used to highlight the proper post type
+ *                                        menu on the linked page. Defaults to the first object_type associated
+ *                                        with the taxonomy.
  * @return string|null The edit term link URL for the given term, or null on failure.
  */
-function get_edit_term_link( $term_id, $taxonomy = '', $object_type = '' ) {
-	$term = get_term( $term_id, $taxonomy );
+function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
+	$term = get_term( $term, $taxonomy );
 	if ( ! $term || is_wp_error( $term ) ) {
 		return;
 	}
 
-	$tax = get_taxonomy( $term->taxonomy );
-	if ( ! $tax || ! current_user_can( 'edit_term', $term->term_id ) ) {
+	$tax     = get_taxonomy( $term->taxonomy );
+	$term_id = $term->term_id;
+	if ( ! $tax || ! current_user_can( 'edit_term', $term_id ) ) {
 		return;
 	}
 
 	$args = array(
 		'taxonomy' => $taxonomy,
-		'tag_ID'   => $term->term_id,
+		'tag_ID'   => $term_id,
 	);
 
 	if ( $object_type ) {
@@ -1013,12 +1107,12 @@ function get_edit_term_link( $term_id, $taxonomy = '', $object_type = '' ) {
 	/**
 	 * Filters the edit link for a term.
 	 *
-	 * @since WP-3.1.0
+	 * @since 3.1.0
 	 *
 	 * @param string $location    The edit link.
 	 * @param int    $term_id     Term ID.
 	 * @param string $taxonomy    Taxonomy name.
-	 * @param string $object_type The object type (eg. the post type).
+	 * @param string $object_type The object type.
 	 */
 	return apply_filters( 'get_edit_term_link', $location, $term_id, $taxonomy, $object_type );
 }
@@ -1026,18 +1120,20 @@ function get_edit_term_link( $term_id, $taxonomy = '', $object_type = '' ) {
 /**
  * Displays or retrieves the edit term link with formatting.
  *
- * @since WP-3.1.0
+ * @since 3.1.0
  *
- * @param string $link   Optional. Anchor text. Default empty.
- * @param string $before Optional. Display before edit link. Default empty.
- * @param string $after  Optional. Display after edit link. Default empty.
- * @param object $term   Optional. Term object. If null, the queried object will be inspected. Default null.
- * @param bool   $echo   Optional. Whether or not to echo the return. Default true.
+ * @param string           $link    Optional. Anchor text. If empty, default is 'Edit This'. Default empty.
+ * @param string           $before  Optional. Display before edit link. Default empty.
+ * @param string           $after   Optional. Display after edit link. Default empty.
+ * @param int|WP_Term|null $term    Optional. Term ID or object. If null, the queried object will be inspected. Default null.
+ * @param bool             $display Optional. Whether or not to echo the return. Default true.
  * @return string|void HTML content.
  */
-function edit_term_link( $link = '', $before = '', $after = '', $term = null, $echo = true ) {
+function edit_term_link( $link = '', $before = '', $after = '', $term = null, $display = true ) {
 	if ( is_null( $term ) ) {
 		$term = get_queried_object();
+	} else {
+		$term = get_term( $term );
 	}
 
 	if ( ! $term ) {
@@ -1058,14 +1154,14 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $e
 	/**
 	 * Filters the anchor tag for the edit link of a term.
 	 *
-	 * @since WP-3.1.0
+	 * @since 3.1.0
 	 *
 	 * @param string $link    The anchor tag for the edit link.
 	 * @param int    $term_id Term ID.
 	 */
 	$link = $before . apply_filters( 'edit_term_link', $link, $term->term_id ) . $after;
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $link;
 	} else {
 		return $link;
@@ -1075,9 +1171,9 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $e
 /**
  * Retrieves the permalink for a search.
  *
- * @since  WP-3.0.0
+ * @since 3.0.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string $query Optional. The query string to use. If empty the current query is used. Default empty.
  * @return string The search permalink.
@@ -1105,7 +1201,7 @@ function get_search_link( $query = '' ) {
 	/**
 	 * Filters the search permalink.
 	 *
-	 * @since WP-3.0.0
+	 * @since 3.0.0
 	 *
 	 * @param string $link   Search permalink.
 	 * @param string $search The URL-encoded search term.
@@ -1116,12 +1212,13 @@ function get_search_link( $query = '' ) {
 /**
  * Retrieves the permalink for the search results feed.
  *
- * @since WP-2.5.0
+ * @since 2.5.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string $search_query Optional. Search query. Default empty.
- * @param string $feed         Optional. Feed type. Default empty.
+ * @param string $feed         Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                             Default is the value of get_default_feed().
  * @return string The search results feed permalink.
  */
 function get_search_feed_link( $search_query = '', $feed = '' ) {
@@ -1144,10 +1241,10 @@ function get_search_feed_link( $search_query = '', $feed = '' ) {
 	/**
 	 * Filters the search feed link.
 	 *
-	 * @since WP-2.5.0
+	 * @since 2.5.0
 	 *
 	 * @param string $link Search feed link.
-	 * @param string $feed Feed type.
+	 * @param string $feed Feed type. Possible values include 'rss2', 'atom'.
 	 * @param string $type The search type. One of 'posts' or 'comments'.
 	 */
 	return apply_filters( 'search_feed_link', $link, $feed, 'posts' );
@@ -1156,12 +1253,13 @@ function get_search_feed_link( $search_query = '', $feed = '' ) {
 /**
  * Retrieves the permalink for the search results comments feed.
  *
- * @since WP-2.5.0
+ * @since 2.5.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string $search_query Optional. Search query. Default empty.
- * @param string $feed         Optional. Feed type. Default empty.
+ * @param string $feed         Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                             Default is the value of get_default_feed().
  * @return string The comments feed search results permalink.
  */
 function get_search_comments_feed_link( $search_query = '', $feed = '' ) {
@@ -1188,18 +1286,20 @@ function get_search_comments_feed_link( $search_query = '', $feed = '' ) {
 /**
  * Retrieves the permalink for a post type archive.
  *
- * @since WP-3.1.0
- * @since WP-4.5.0 Support for posts was added.
+ * @since 3.1.0
+ * @since 4.5.0 Support for posts was added.
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string $post_type Post type.
- * @return string|false The post type archive permalink.
+ * @return string|false The post type archive permalink. False if the post type
+ *                      does not exist or does not have an archive.
  */
 function get_post_type_archive_link( $post_type ) {
 	global $wp_rewrite;
 
 	$post_type_obj = get_post_type_object( $post_type );
+
 	if ( ! $post_type_obj ) {
 		return false;
 	}
@@ -1236,7 +1336,7 @@ function get_post_type_archive_link( $post_type ) {
 	/**
 	 * Filters the post type archive permalink.
 	 *
-	 * @since WP-3.1.0
+	 * @since 3.1.0
 	 *
 	 * @param string $link      The post type archive permalink.
 	 * @param string $post_type Post type name.
@@ -1247,11 +1347,13 @@ function get_post_type_archive_link( $post_type ) {
 /**
  * Retrieves the permalink for a post type archive feed.
  *
- * @since WP-3.1.0
+ * @since 3.1.0
  *
- * @param string $post_type Post type
- * @param string $feed      Optional. Feed type. Default empty.
- * @return string|false The post type feed permalink.
+ * @param string $post_type Post type.
+ * @param string $feed      Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                          Default is the value of get_default_feed().
+ * @return string|false The post type feed permalink. False if the post type
+ *                      does not exist or does not have an archive.
  */
 function get_post_type_archive_feed_link( $post_type, $feed = '' ) {
 	$default_feed = get_default_feed();
@@ -1278,10 +1380,10 @@ function get_post_type_archive_feed_link( $post_type, $feed = '' ) {
 	/**
 	 * Filters the post type archive feed link.
 	 *
-	 * @since WP-3.1.0
+	 * @since 3.1.0
 	 *
 	 * @param string $link The post type archive feed link.
-	 * @param string $feed Feed type.
+	 * @param string $feed Feed type. Possible values include 'rss2', 'atom'.
 	 */
 	return apply_filters( 'post_type_archive_feed_link', $link, $feed );
 }
@@ -1291,7 +1393,7 @@ function get_post_type_archive_feed_link( $post_type, $feed = '' ) {
  *
  * Allows additional query args to be appended.
  *
- * @since WP-4.4.0
+ * @since 4.4.0
  *
  * @param int|WP_Post $post         Optional. Post ID or `WP_Post` object. Defaults to global `$post`.
  * @param array       $query_args   Optional. Array of additional query args to be appended to the link.
@@ -1302,6 +1404,7 @@ function get_post_type_archive_feed_link( $post_type, $feed = '' ) {
  */
 function get_preview_post_link( $post = null, $query_args = array(), $preview_link = '' ) {
 	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return;
 	}
@@ -1319,8 +1422,8 @@ function get_preview_post_link( $post = null, $query_args = array(), $preview_li
 	/**
 	 * Filters the URL used for a post preview.
 	 *
-	 * @since WP-2.0.5
-	 * @since WP-4.0.0 Added the `$post` parameter.
+	 * @since 2.0.5
+	 * @since 4.0.0 Added the `$post` parameter.
 	 *
 	 * @param string  $preview_link URL used for the post preview.
 	 * @param WP_Post $post         Post object.
@@ -1331,18 +1434,19 @@ function get_preview_post_link( $post = null, $query_args = array(), $preview_li
 /**
  * Retrieves the edit post link for post.
  *
- * Can be used within the ClassicPress loop or outside of it. Can be used with
+ * Can be used within the WordPress loop or outside of it. Can be used with
  * pages, posts, attachments, and revisions.
  *
- * @since WP-2.3.0
+ * @since 2.3.0
  *
- * @param int|WP_Post $id      Optional. Post ID or post object. Default is the global `$post`.
+ * @param int|WP_Post $post    Optional. Post ID or post object. Default is the global `$post`.
  * @param string      $context Optional. How to output the '&' character. Default '&amp;'.
- * @return string|null The edit post link for the given post. null if the post type is invalid or does
- *                     not allow an editing UI.
+ * @return string|null The edit post link for the given post. Null if the post type does not exist
+ *                     or does not allow an editing UI.
  */
-function get_edit_post_link( $id = 0, $context = 'display' ) {
-	$post = get_post( $id );
+function get_edit_post_link( $post = 0, $context = 'display' ) {
+	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return;
 	}
@@ -1356,6 +1460,7 @@ function get_edit_post_link( $id = 0, $context = 'display' ) {
 	}
 
 	$post_type_object = get_post_type_object( $post->post_type );
+
 	if ( ! $post_type_object ) {
 		return;
 	}
@@ -1373,7 +1478,7 @@ function get_edit_post_link( $id = 0, $context = 'display' ) {
 	/**
 	 * Filters the post edit link.
 	 *
-	 * @since WP-2.3.0
+	 * @since 2.3.0
 	 *
 	 * @param string $link    The edit link.
 	 * @param int    $post_id Post ID.
@@ -1386,22 +1491,24 @@ function get_edit_post_link( $id = 0, $context = 'display' ) {
 /**
  * Displays the edit post link for post.
  *
- * @since WP-1.0.0
- * @since WP-4.4.0 The `$class` argument was added.
+ * @since 1.0.0
+ * @since 4.4.0 The `$css_class` argument was added.
  *
- * @param string      $text   Optional. Anchor text. If null, default is 'Edit This'. Default null.
- * @param string      $before Optional. Display before edit link. Default empty.
- * @param string      $after  Optional. Display after edit link. Default empty.
- * @param int|WP_Post $id     Optional. Post ID or post object. Default is the global `$post`.
- * @param string      $class  Optional. Add custom class to link. Default 'post-edit-link'.
+ * @param string      $text      Optional. Anchor text. If null, default is 'Edit This'. Default null.
+ * @param string      $before    Optional. Display before edit link. Default empty.
+ * @param string      $after     Optional. Display after edit link. Default empty.
+ * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
+ * @param string      $css_class Optional. Add custom class to link. Default 'post-edit-link'.
  */
-function edit_post_link( $text = null, $before = '', $after = '', $id = 0, $class = 'post-edit-link' ) {
-	$post = get_post( $id );
+function edit_post_link( $text = null, $before = '', $after = '', $post = 0, $css_class = 'post-edit-link' ) {
+	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return;
 	}
 
 	$url = get_edit_post_link( $post->ID );
+
 	if ( ! $url ) {
 		return;
 	}
@@ -1410,12 +1517,12 @@ function edit_post_link( $text = null, $before = '', $after = '', $id = 0, $clas
 		$text = __( 'Edit This' );
 	}
 
-	$link = '<a class="' . esc_attr( $class ) . '" href="' . esc_url( $url ) . '">' . $text . '</a>';
+	$link = '<a class="' . esc_attr( $css_class ) . '" href="' . esc_url( $url ) . '">' . $text . '</a>';
 
 	/**
 	 * Filters the post edit link anchor tag.
 	 *
-	 * @since WP-2.3.0
+	 * @since 2.3.0
 	 *
 	 * @param string $link    Anchor tag for the edit link.
 	 * @param int    $post_id Post ID.
@@ -1427,26 +1534,28 @@ function edit_post_link( $text = null, $before = '', $after = '', $id = 0, $clas
 /**
  * Retrieves the delete posts link for post.
  *
- * Can be used within the ClassicPress loop or outside of it, with any post type.
+ * Can be used within the WordPress loop or outside of it, with any post type.
  *
- * @since WP-2.9.0
+ * @since 2.9.0
  *
- * @param int|WP_Post $id           Optional. Post ID or post object. Default is the global `$post`.
+ * @param int|WP_Post $post         Optional. Post ID or post object. Default is the global `$post`.
  * @param string      $deprecated   Not used.
- * @param bool        $force_delete Optional. Whether to bypass trash and force deletion. Default false.
+ * @param bool        $force_delete Optional. Whether to bypass Trash and force deletion. Default false.
  * @return string|void The delete post link URL for the given post.
  */
-function get_delete_post_link( $id = 0, $deprecated = '', $force_delete = false ) {
+function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = false ) {
 	if ( ! empty( $deprecated ) ) {
-		_deprecated_argument( __FUNCTION__, 'WP-3.0.0' );
+		_deprecated_argument( __FUNCTION__, '3.0.0' );
 	}
 
-	$post = get_post( $id );
+	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return;
 	}
 
 	$post_type_object = get_post_type_object( $post->post_type );
+
 	if ( ! $post_type_object ) {
 		return;
 	}
@@ -1462,11 +1571,11 @@ function get_delete_post_link( $id = 0, $deprecated = '', $force_delete = false 
 	/**
 	 * Filters the post delete link.
 	 *
-	 * @since WP-2.9.0
+	 * @since 2.9.0
 	 *
 	 * @param string $link         The delete link.
 	 * @param int    $post_id      Post ID.
-	 * @param bool   $force_delete Whether to bypass the trash and force deletion. Default false.
+	 * @param bool   $force_delete Whether to bypass the Trash and force deletion. Default false.
 	 */
 	return apply_filters( 'get_delete_post_link', wp_nonce_url( $delete_link, "$action-post_{$post->ID}" ), $post->ID, $force_delete );
 }
@@ -1474,7 +1583,7 @@ function get_delete_post_link( $id = 0, $deprecated = '', $force_delete = false 
 /**
  * Retrieves the edit comment link.
  *
- * @since WP-2.3.0
+ * @since 2.3.0
  *
  * @param int|WP_Comment $comment_id Optional. Comment ID or WP_Comment object.
  * @return string|void The edit comment link URL for the given comment.
@@ -1491,7 +1600,7 @@ function get_edit_comment_link( $comment_id = 0 ) {
 	/**
 	 * Filters the comment edit link.
 	 *
-	 * @since WP-2.3.0
+	 * @since 2.3.0
 	 *
 	 * @param string $location The edit link.
 	 */
@@ -1501,7 +1610,7 @@ function get_edit_comment_link( $comment_id = 0 ) {
 /**
  * Displays the edit comment link with formatting.
  *
- * @since WP-1.0.0
+ * @since 1.0.0
  *
  * @param string $text   Optional. Anchor text. If null, default is 'Edit This'. Default null.
  * @param string $before Optional. Display before edit link. Default empty.
@@ -1523,10 +1632,10 @@ function edit_comment_link( $text = null, $before = '', $after = '' ) {
 	/**
 	 * Filters the comment edit link anchor tag.
 	 *
-	 * @since WP-2.3.0
+	 * @since 2.3.0
 	 *
 	 * @param string $link       Anchor tag for the edit link.
-	 * @param int    $comment_id Comment ID.
+	 * @param string $comment_id Comment ID as a numeric string.
 	 * @param string $text       Anchor text.
 	 */
 	echo $before . apply_filters( 'edit_comment_link', $link, $comment->comment_ID, $text ) . $after;
@@ -1535,9 +1644,9 @@ function edit_comment_link( $text = null, $before = '', $after = '' ) {
 /**
  * Displays the edit bookmark link.
  *
- * @since WP-2.7.0
+ * @since 2.7.0
  *
- * @param int|stdClass $link Optional. Bookmark ID. Default is the id of the current bookmark.
+ * @param int|stdClass $link Optional. Bookmark ID. Default is the ID of the current bookmark.
  * @return string|void The edit bookmark link URL.
  */
 function get_edit_bookmark_link( $link = 0 ) {
@@ -1552,7 +1661,7 @@ function get_edit_bookmark_link( $link = 0 ) {
 	/**
 	 * Filters the bookmark edit link.
 	 *
-	 * @since WP-2.7.0
+	 * @since 2.7.0
 	 *
 	 * @param string $location The edit link.
 	 * @param int    $link_id  Bookmark ID.
@@ -1563,9 +1672,9 @@ function get_edit_bookmark_link( $link = 0 ) {
 /**
  * Displays the edit bookmark link anchor content.
  *
- * @since WP-2.7.0
+ * @since 2.7.0
  *
- * @param string $link     Optional. Anchor text. Default empty.
+ * @param string $link     Optional. Anchor text. If empty, default is 'Edit This'. Default empty.
  * @param string $before   Optional. Display before edit link. Default empty.
  * @param string $after    Optional. Display after edit link. Default empty.
  * @param int    $bookmark Optional. Bookmark ID. Default is the current bookmark.
@@ -1586,7 +1695,7 @@ function edit_bookmark_link( $link = '', $before = '', $after = '', $bookmark = 
 	/**
 	 * Filters the bookmark edit link anchor tag.
 	 *
-	 * @since WP-2.7.0
+	 * @since 2.7.0
 	 *
 	 * @param string $link    Anchor tag for the edit link.
 	 * @param int    $link_id Bookmark ID.
@@ -1597,7 +1706,7 @@ function edit_bookmark_link( $link = '', $before = '', $after = '', $bookmark = 
 /**
  * Retrieves the edit user link.
  *
- * @since WP-3.5.0
+ * @since 3.5.0
  *
  * @param int $user_id Optional. User ID. Defaults to the current user.
  * @return string URL to edit user page or empty string.
@@ -1626,7 +1735,7 @@ function get_edit_user_link( $user_id = null ) {
 	/**
 	 * Filters the user edit link.
 	 *
-	 * @since WP-3.5.0
+	 * @since 3.5.0
 	 *
 	 * @param string $link    The edit link.
 	 * @param int    $user_id User ID.
@@ -1634,18 +1743,22 @@ function get_edit_user_link( $user_id = null ) {
 	return apply_filters( 'get_edit_user_link', $link, $user->ID );
 }
 
-// Navigation links
+//
+// Navigation links.
+//
 
 /**
  * Retrieves the previous post that is adjacent to the current post.
  *
- * @since WP-1.5.0
+ * @since 1.5.0
  *
- * @param bool         $in_same_term   Optional. Whether post should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
- * @return null|string|WP_Post Post object if successful. Null if global $post is not set. Empty string if no
- *                             corresponding post exists.
+ * @param bool         $in_same_term   Optional. Whether post should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ *                                     Default empty.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
+ * @return WP_Post|null|string Post object if successful. Null if global `$post` is not set.
+ *                             Empty string if no corresponding post exists.
  */
 function get_previous_post( $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
 	return get_adjacent_post( $in_same_term, $excluded_terms, true, $taxonomy );
@@ -1654,13 +1767,15 @@ function get_previous_post( $in_same_term = false, $excluded_terms = '', $taxono
 /**
  * Retrieves the next post that is adjacent to the current post.
  *
- * @since WP-1.5.0
+ * @since 1.5.0
  *
- * @param bool         $in_same_term   Optional. Whether post should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
- * @return null|string|WP_Post Post object if successful. Null if global $post is not set. Empty string if no
- *                             corresponding post exists.
+ * @param bool         $in_same_term   Optional. Whether post should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ *                                     Default empty.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
+ * @return WP_Post|null|string Post object if successful. Null if global `$post` is not set.
+ *                             Empty string if no corresponding post exists.
  */
 function get_next_post( $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
 	return get_adjacent_post( $in_same_term, $excluded_terms, false, $taxonomy );
@@ -1671,21 +1786,25 @@ function get_next_post( $in_same_term = false, $excluded_terms = '', $taxonomy =
  *
  * Can either be next or previous post.
  *
- * @since WP-2.5.0
+ * @since 2.5.0
  *
- * @global wpdb $wpdb ClassicPress database abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param bool         $in_same_term   Optional. Whether post should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
- * @param bool         $previous       Optional. Whether to retrieve previous post. Default true
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
- * @return null|string|WP_Post Post object if successful. Null if global $post is not set. Empty string if no
- *                             corresponding post exists.
+ * @param bool         $in_same_term   Optional. Whether post should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ *                                     Default empty string.
+ * @param bool         $previous       Optional. Whether to retrieve previous post.
+ *                                     Default true.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
+ * @return WP_Post|null|string Post object if successful. Null if global `$post` is not set.
+ *                             Empty string if no corresponding post exists.
  */
 function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previous = true, $taxonomy = 'category' ) {
 	global $wpdb;
 
 	$post = get_post();
+
 	if ( ! $post || ! taxonomy_exists( $taxonomy ) ) {
 		return null;
 	}
@@ -1696,21 +1815,46 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	$where    = '';
 	$adjacent = $previous ? 'previous' : 'next';
 
-	if ( $in_same_term || ! empty( $excluded_terms ) ) {
-		if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
-			// back-compat, $excluded_terms used to be $excluded_terms with IDs separated by " and "
-			if ( false !== strpos( $excluded_terms, ' and ' ) ) {
-				_deprecated_argument( __FUNCTION__, 'WP-3.3.0', sprintf( __( 'Use commas instead of %s to separate excluded terms.' ), "'and'" ) );
-				$excluded_terms = explode( ' and ', $excluded_terms );
-			} else {
-				$excluded_terms = explode( ',', $excluded_terms );
-			}
-
-			$excluded_terms = array_map( 'intval', $excluded_terms );
+	if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
+		// Back-compat, $excluded_terms used to be $excluded_categories with IDs separated by " and ".
+		if ( str_contains( $excluded_terms, ' and ' ) ) {
+			_deprecated_argument(
+				__FUNCTION__,
+				'3.3.0',
+				sprintf(
+					/* translators: %s: The word 'and'. */
+					__( 'Use commas instead of %s to separate excluded terms.' ),
+					"'and'"
+				)
+			);
+			$excluded_terms = explode( ' and ', $excluded_terms );
+		} else {
+			$excluded_terms = explode( ',', $excluded_terms );
 		}
 
+		$excluded_terms = array_map( 'intval', $excluded_terms );
+	}
+
+	/**
+	 * Filters the IDs of terms excluded from adjacent post queries.
+	 *
+	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
+	 * of adjacency, 'next' or 'previous'.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `get_next_post_excluded_terms`
+	 *  - `get_previous_post_excluded_terms`
+	 *
+	 * @since 4.4.0
+	 *
+	 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
+	 */
+	$excluded_terms = apply_filters( "get_{$adjacent}_post_excluded_terms", $excluded_terms );
+
+	if ( $in_same_term || ! empty( $excluded_terms ) ) {
 		if ( $in_same_term ) {
-			$join  .= " INNER JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id INNER JOIN $wpdb->term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
+			$join  .= " INNER JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
 			$where .= $wpdb->prepare( 'AND tt.taxonomy = %s', $taxonomy );
 
 			if ( ! is_object_in_taxonomy( $post->post_type, $taxonomy ) ) {
@@ -1728,18 +1872,6 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 			$where .= ' AND tt.term_id IN (' . implode( ',', $term_array ) . ')';
 		}
-
-		/**
-		 * Filters the IDs of terms excluded from adjacent post queries.
-		 *
-		 * The dynamic portion of the hook name, `$adjacent`, refers to the type
-		 * of adjacency, 'next' or 'previous'.
-		 *
-		 * @since WP-4.4.0
-		 *
-		 * @param string $excluded_terms Array of excluded term IDs.
-		 */
-		$excluded_terms = apply_filters( "get_{$adjacent}_post_excluded_terms", $excluded_terms );
 
 		if ( ! empty( $excluded_terms ) ) {
 			$where .= " AND p.ID NOT IN ( SELECT tr.object_id FROM $wpdb->term_relationships tr LEFT JOIN $wpdb->term_taxonomy tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id) WHERE tt.term_id IN (" . implode( ',', array_map( 'intval', $excluded_terms ) ) . ') )';
@@ -1764,7 +1896,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		 */
 		$private_states = get_post_stati( array( 'private' => true ) );
 		$where         .= " AND ( p.post_status = 'publish'";
-		foreach ( (array) $private_states as $state ) {
+		foreach ( $private_states as $state ) {
 			if ( current_user_can( $read_private_cap ) ) {
 				$where .= $wpdb->prepare( ' OR p.post_status = %s', $state );
 			} else {
@@ -1785,14 +1917,19 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
 	 * of adjacency, 'next' or 'previous'.
 	 *
-	 * @since WP-2.5.0
-	 * @since WP-4.4.0 Added the `$taxonomy` and `$post` parameters.
+	 * Possible hook names include:
 	 *
-	 * @param string  $join           The JOIN clause in the SQL.
-	 * @param bool    $in_same_term   Whether post should be in a same taxonomy term.
-	 * @param array   $excluded_terms Array of excluded term IDs.
-	 * @param string  $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
-	 * @param WP_Post $post           WP_Post object.
+	 *  - `get_next_post_join`
+	 *  - `get_previous_post_join`
+	 *
+	 * @since 2.5.0
+	 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
+	 *
+	 * @param string       $join           The JOIN clause in the SQL.
+	 * @param bool         $in_same_term   Whether post should be in the same taxonomy term.
+	 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
+	 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
+	 * @param WP_Post      $post           WP_Post object.
 	 */
 	$join = apply_filters( "get_{$adjacent}_post_join", $join, $in_same_term, $excluded_terms, $taxonomy, $post );
 
@@ -1802,14 +1939,19 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
 	 * of adjacency, 'next' or 'previous'.
 	 *
-	 * @since WP-2.5.0
-	 * @since WP-4.4.0 Added the `$taxonomy` and `$post` parameters.
+	 * Possible hook names include:
 	 *
-	 * @param string  $where          The `WHERE` clause in the SQL.
-	 * @param bool    $in_same_term   Whether post should be in a same taxonomy term.
-	 * @param array   $excluded_terms Array of excluded term IDs.
-	 * @param string  $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
-	 * @param WP_Post $post           WP_Post object.
+	 *  - `get_next_post_where`
+	 *  - `get_previous_post_where`
+	 *
+	 * @since 2.5.0
+	 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
+	 *
+	 * @param string       $where          The `WHERE` clause in the SQL.
+	 * @param bool         $in_same_term   Whether post should be in the same taxonomy term.
+	 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
+	 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
+	 * @param WP_Post      $post           WP_Post object.
 	 */
 	$where = apply_filters( "get_{$adjacent}_post_where", $wpdb->prepare( "WHERE p.post_date $op %s AND p.post_type = %s $where", $current_post_date, $post->post_type ), $in_same_term, $excluded_terms, $taxonomy, $post );
 
@@ -1819,9 +1961,14 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
 	 * of adjacency, 'next' or 'previous'.
 	 *
-	 * @since WP-2.5.0
-	 * @since WP-4.4.0 Added the `$post` parameter.
-	 * @since WP-4.9.0 Added the `$order` parameter.
+	 * Possible hook names include:
+	 *
+	 *  - `get_next_post_sort`
+	 *  - `get_previous_post_sort`
+	 *
+	 * @since 2.5.0
+	 * @since 4.4.0 Added the `$post` parameter.
+	 * @since 4.9.0 Added the `$order` parameter.
 	 *
 	 * @param string $order_by The `ORDER BY` clause in the SQL.
 	 * @param WP_Post $post    WP_Post object.
@@ -1829,9 +1976,15 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 */
 	$sort = apply_filters( "get_{$adjacent}_post_sort", "ORDER BY p.post_date $order LIMIT 1", $post, $order );
 
-	$query     = "SELECT p.ID FROM $wpdb->posts AS p $join $where $sort";
-	$query_key = 'adjacent_post_' . md5( $query );
-	$result    = wp_cache_get( $query_key, 'counts' );
+	$query        = "SELECT p.ID FROM $wpdb->posts AS p $join $where $sort";
+	$key          = md5( $query );
+	$last_changed = wp_cache_get_last_changed( 'posts' );
+	if ( $in_same_term || ! empty( $excluded_terms ) ) {
+		$last_changed .= wp_cache_get_last_changed( 'terms' );
+	}
+	$cache_key = "adjacent_post:$key:$last_changed";
+
+	$result = wp_cache_get( $cache_key, 'posts' );
 	if ( false !== $result ) {
 		if ( $result ) {
 			$result = get_post( $result );
@@ -1844,7 +1997,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		$result = '';
 	}
 
-	wp_cache_set( $query_key, $result, 'counts' );
+	wp_cache_set( $cache_key, $result, 'posts' );
 
 	if ( $result ) {
 		$result = get_post( $result );
@@ -1858,13 +2011,16 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
  *
  * Can either be next or previous post relational link.
  *
- * @since WP-2.8.0
+ * @since 2.8.0
  *
  * @param string       $title          Optional. Link title format. Default '%title'.
- * @param bool         $in_same_term   Optional. Whether link should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
- * @param bool         $previous       Optional. Whether to display link to previous or next post. Default true.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
+ * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ *                                     Default empty.
+ * @param bool         $previous       Optional. Whether to display link to previous or next post.
+ *                                     Default true.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
  * @return string|void The adjacent post relational link URL.
  */
 function get_adjacent_post_rel_link( $title = '%title', $in_same_term = false, $excluded_terms = '', $previous = true, $taxonomy = 'category' ) {
@@ -1897,7 +2053,7 @@ function get_adjacent_post_rel_link( $title = '%title', $in_same_term = false, $
 
 	$link  = $previous ? "<link rel='prev' title='" : "<link rel='next' title='";
 	$link .= esc_attr( $title );
-	$link .= "' href='" . get_permalink( $post ) . "' />\n";
+	$link .= "' href='" . get_permalink( $post ) . "'>\n";
 
 	$adjacent = $previous ? 'previous' : 'next';
 
@@ -1907,7 +2063,12 @@ function get_adjacent_post_rel_link( $title = '%title', $in_same_term = false, $
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
 	 * of adjacency, 'next' or 'previous'.
 	 *
-	 * @since WP-2.8.0
+	 * Possible hook names include:
+	 *
+	 *  - `next_post_rel_link`
+	 *  - `previous_post_rel_link`
+	 *
+	 * @since 2.8.0
 	 *
 	 * @param string $link The relational link.
 	 */
@@ -1917,12 +2078,14 @@ function get_adjacent_post_rel_link( $title = '%title', $in_same_term = false, $
 /**
  * Displays the relational links for the posts adjacent to the current post.
  *
- * @since WP-2.8.0
+ * @since 2.8.0
  *
  * @param string       $title          Optional. Link title format. Default '%title'.
- * @param bool         $in_same_term   Optional. Whether link should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
+ * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ *                                     Default empty.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
  */
 function adjacent_posts_rel_link( $title = '%title', $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
 	echo get_adjacent_post_rel_link( $title, $in_same_term, $excluded_terms, true, $taxonomy );
@@ -1935,7 +2098,8 @@ function adjacent_posts_rel_link( $title = '%title', $in_same_term = false, $exc
  * This is meant to be attached to actions like 'wp_head'. Do not call this directly in plugins
  * or theme templates.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
+ * @since 5.6.0 No longer used in core.
  *
  * @see adjacent_posts_rel_link()
  */
@@ -1949,14 +2113,16 @@ function adjacent_posts_rel_link_wp_head() {
 /**
  * Displays the relational link for the next post adjacent to the current post.
  *
- * @since WP-2.8.0
+ * @since 2.8.0
  *
  * @see get_adjacent_post_rel_link()
  *
  * @param string       $title          Optional. Link title format. Default '%title'.
- * @param bool         $in_same_term   Optional. Whether link should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
+ * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ *                                     Default empty.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
  */
 function next_post_rel_link( $title = '%title', $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
 	echo get_adjacent_post_rel_link( $title, $in_same_term, $excluded_terms, false, $taxonomy );
@@ -1965,14 +2131,16 @@ function next_post_rel_link( $title = '%title', $in_same_term = false, $excluded
 /**
  * Displays the relational link for the previous post adjacent to the current post.
  *
- * @since WP-2.8.0
+ * @since 2.8.0
  *
  * @see get_adjacent_post_rel_link()
  *
  * @param string       $title          Optional. Link title format. Default '%title'.
- * @param bool         $in_same_term   Optional. Whether link should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default true.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
+ * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ *                                     Default true.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
  */
 function prev_post_rel_link( $title = '%title', $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
 	echo get_adjacent_post_rel_link( $title, $in_same_term, $excluded_terms, true, $taxonomy );
@@ -1982,20 +2150,22 @@ function prev_post_rel_link( $title = '%title', $in_same_term = false, $excluded
  * Retrieves the boundary post.
  *
  * Boundary being either the first or last post by publish date within the constraints specified
- * by $in_same_term or $excluded_terms.
+ * by `$in_same_term` or `$excluded_terms`.
  *
- * @since WP-2.8.0
+ * @since 2.8.0
  *
- * @param bool         $in_same_term   Optional. Whether returned post should be in a same taxonomy term.
+ * @param bool         $in_same_term   Optional. Whether returned post should be in the same taxonomy term.
  *                                     Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
  *                                     Default empty.
- * @param bool         $start          Optional. Whether to retrieve first or last post. Default true
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
- * @return null|array Array containing the boundary post object if successful, null otherwise.
+ * @param bool         $start          Optional. Whether to retrieve first or last post.
+ *                                     Default true.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
+ * @return array|null Array containing the boundary post object if successful, null otherwise.
  */
 function get_boundary_post( $in_same_term = false, $excluded_terms = '', $start = true, $taxonomy = 'category' ) {
 	$post = get_post();
+
 	if ( ! $post || ! is_single() || is_attachment() || ! taxonomy_exists( $taxonomy ) ) {
 		return null;
 	}
@@ -2047,13 +2217,15 @@ function get_boundary_post( $in_same_term = false, $excluded_terms = '', $start 
 /**
  * Retrieves the previous post link that is adjacent to the current post.
  *
- * @since WP-3.7.0
+ * @since 3.7.0
  *
  * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
  * @param string       $link           Optional. Link permalink format. Default '%title'.
- * @param bool         $in_same_term   Optional. Whether link should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
+ * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ *                                     Default empty.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
  * @return string The link URL of the previous post in relation to the current post.
  */
 function get_previous_post_link( $format = '&laquo; %link', $link = '%title', $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
@@ -2063,15 +2235,17 @@ function get_previous_post_link( $format = '&laquo; %link', $link = '%title', $i
 /**
  * Displays the previous post link that is adjacent to the current post.
  *
- * @since WP-1.5.0
+ * @since 1.5.0
  *
  * @see get_previous_post_link()
  *
  * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
  * @param string       $link           Optional. Link permalink format. Default '%title'.
- * @param bool         $in_same_term   Optional. Whether link should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
+ * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ *                                     Default empty.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
  */
 function previous_post_link( $format = '&laquo; %link', $link = '%title', $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
 	echo get_previous_post_link( $format, $link, $in_same_term, $excluded_terms, $taxonomy );
@@ -2080,13 +2254,15 @@ function previous_post_link( $format = '&laquo; %link', $link = '%title', $in_sa
 /**
  * Retrieves the next post link that is adjacent to the current post.
  *
- * @since WP-3.7.0
+ * @since 3.7.0
  *
  * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
  * @param string       $link           Optional. Link permalink format. Default '%title'.
- * @param bool         $in_same_term   Optional. Whether link should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
+ * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ *                                     Default empty.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
  * @return string The link URL of the next post in relation to the current post.
  */
 function get_next_post_link( $format = '%link &raquo;', $link = '%title', $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
@@ -2096,17 +2272,20 @@ function get_next_post_link( $format = '%link &raquo;', $link = '%title', $in_sa
 /**
  * Displays the next post link that is adjacent to the current post.
  *
- * @since WP-1.5.0
+ * @since 1.5.0
+ *
  * @see get_next_post_link()
  *
  * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
- * @param string       $link           Optional. Link permalink format. Default '%title'
- * @param bool         $in_same_term   Optional. Whether link should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
+ * @param string       $link           Optional. Link permalink format. Default '%title'.
+ * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
+ *                                     Default empty.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
  */
 function next_post_link( $format = '%link &raquo;', $link = '%title', $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
-	 echo get_next_post_link( $format, $link, $in_same_term, $excluded_terms, $taxonomy );
+	echo get_next_post_link( $format, $link, $in_same_term, $excluded_terms, $taxonomy );
 }
 
 /**
@@ -2114,14 +2293,17 @@ function next_post_link( $format = '%link &raquo;', $link = '%title', $in_same_t
  *
  * Can be either next post link or previous.
  *
- * @since WP-3.7.0
+ * @since 3.7.0
  *
  * @param string       $format         Link anchor format.
  * @param string       $link           Link permalink format.
- * @param bool         $in_same_term   Optional. Whether link should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded terms IDs. Default empty.
- * @param bool         $previous       Optional. Whether to display link to previous or next post. Default true.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
+ * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded terms IDs.
+ *                                     Default empty.
+ * @param bool         $previous       Optional. Whether to display link to previous or next post.
+ *                                     Default true.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
  * @return string The link URL of the previous or next post in relation to the current post.
  */
 function get_adjacent_post_link( $format, $link, $in_same_term = false, $excluded_terms = '', $previous = true, $taxonomy = 'category' ) {
@@ -2162,14 +2344,19 @@ function get_adjacent_post_link( $format, $link, $in_same_term = false, $exclude
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
 	 * of adjacency, 'next' or 'previous'.
 	 *
-	 * @since WP-2.6.0
-	 * @since WP-4.2.0 Added the `$adjacent` parameter.
+	 * Possible hook names include:
 	 *
-	 * @param string  $output   The adjacent post link.
-	 * @param string  $format   Link anchor format.
-	 * @param string  $link     Link permalink format.
-	 * @param WP_Post $post     The adjacent post.
-	 * @param string  $adjacent Whether the post is previous or next.
+	 *  - `next_post_link`
+	 *  - `previous_post_link`
+	 *
+	 * @since 2.6.0
+	 * @since 4.2.0 Added the `$adjacent` parameter.
+	 *
+	 * @param string         $output   The adjacent post link.
+	 * @param string         $format   Link anchor format.
+	 * @param string         $link     Link permalink format.
+	 * @param WP_Post|string $post     The adjacent post. Empty string if no corresponding post exists.
+	 * @param string         $adjacent Whether the post is previous or next.
 	 */
 	return apply_filters( "{$adjacent}_post_link", $output, $format, $link, $post, $adjacent );
 }
@@ -2179,14 +2366,17 @@ function get_adjacent_post_link( $format, $link, $in_same_term = false, $exclude
  *
  * Can be either next post link or previous.
  *
- * @since WP-2.5.0
+ * @since 2.5.0
  *
  * @param string       $format         Link anchor format.
  * @param string       $link           Link permalink format.
- * @param bool         $in_same_term   Optional. Whether link should be in a same taxonomy term. Default false.
- * @param array|string $excluded_terms Optional. Array or comma-separated list of excluded category IDs. Default empty.
- * @param bool         $previous       Optional. Whether to display link to previous or next post. Default true.
- * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
+ * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
+ *                                     Default false.
+ * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded category IDs.
+ *                                     Default empty.
+ * @param bool         $previous       Optional. Whether to display link to previous or next post.
+ *                                     Default true.
+ * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
  */
 function adjacent_post_link( $format, $link, $in_same_term = false, $excluded_terms = '', $previous = true, $taxonomy = 'category' ) {
 	echo get_adjacent_post_link( $format, $link, $in_same_term, $excluded_terms, $previous, $taxonomy );
@@ -2195,13 +2385,13 @@ function adjacent_post_link( $format, $link, $in_same_term = false, $excluded_te
 /**
  * Retrieves the link for a page number.
  *
- * @since WP-1.5.0
+ * @since 1.5.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param int  $pagenum Optional. Page ID. Default 1.
- * @param bool $escape  Optional. Whether to escape the URL for display, with esc_url(). Defaults to true.
- *                      Otherwise, prepares the URL with esc_url_raw().
+ * @param int  $pagenum Optional. Page number. Default 1.
+ * @param bool $escape  Optional. Whether to escape the URL for display, with esc_url().
+ *                      If set to false, prepares the URL with sanitize_url(). Default true.
  * @return string The link URL for the given page number.
  */
 function get_pagenum_link( $pagenum = 1, $escape = true ) {
@@ -2257,25 +2447,27 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 	/**
 	 * Filters the page number link for the current request.
 	 *
-	 * @since WP-2.5.0
+	 * @since 2.5.0
+	 * @since 5.2.0 Added the `$pagenum` argument.
 	 *
-	 * @param string $result The page number link.
+	 * @param string $result  The page number link.
+	 * @param int    $pagenum The page number.
 	 */
-	$result = apply_filters( 'get_pagenum_link', $result );
+	$result = apply_filters( 'get_pagenum_link', $result, $pagenum );
 
 	if ( $escape ) {
 		return esc_url( $result );
 	} else {
-		return esc_url_raw( $result );
+		return sanitize_url( $result );
 	}
 }
 
 /**
  * Retrieves the next posts page link.
  *
- * Backported from WP-2.1.3 to WP-2.0.10.
+ * Backported from 2.1.3 to 2.0.10.
  *
- * @since WP-2.0.10
+ * @since 2.0.10
  *
  * @global int $paged
  *
@@ -2289,9 +2481,11 @@ function get_next_posts_page_link( $max_page = 0 ) {
 		if ( ! $paged ) {
 			$paged = 1;
 		}
-		$nextpage = intval( $paged ) + 1;
-		if ( ! $max_page || $max_page >= $nextpage ) {
-			return get_pagenum_link( $nextpage );
+
+		$next_page = (int) $paged + 1;
+
+		if ( ! $max_page || $max_page >= $next_page ) {
+			return get_pagenum_link( $next_page );
 		}
 	}
 }
@@ -2299,16 +2493,16 @@ function get_next_posts_page_link( $max_page = 0 ) {
 /**
  * Displays or retrieves the next posts page link.
  *
- * @since WP-0.71
+ * @since 0.71
  *
- * @param int   $max_page Optional. Max pages. Default 0.
- * @param bool  $echo     Optional. Whether to echo the link. Default true.
- * @return string|void The link URL for next posts page if `$echo = false`.
+ * @param int  $max_page Optional. Max pages. Default 0.
+ * @param bool $display  Optional. Whether to echo the link. Default true.
+ * @return string|void The link URL for next posts page if `$display = false`.
  */
-function next_posts( $max_page = 0, $echo = true ) {
+function next_posts( $max_page = 0, $display = true ) {
 	$output = esc_url( get_next_posts_page_link( $max_page ) );
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $output;
 	} else {
 		return $output;
@@ -2318,10 +2512,10 @@ function next_posts( $max_page = 0, $echo = true ) {
 /**
  * Retrieves the next posts page link.
  *
- * @since WP-2.7.0
+ * @since 2.7.0
  *
  * @global int      $paged
- * @global WP_Query $wp_query
+ * @global WP_Query $wp_query WordPress Query object.
  *
  * @param string $label    Content for link text.
  * @param int    $max_page Optional. Max pages. Default 0.
@@ -2338,30 +2532,35 @@ function get_next_posts_link( $label = null, $max_page = 0 ) {
 		$paged = 1;
 	}
 
-	$nextpage = intval( $paged ) + 1;
+	$next_page = (int) $paged + 1;
 
 	if ( null === $label ) {
 		$label = __( 'Next Page &raquo;' );
 	}
 
-	if ( ! is_single() && ( $nextpage <= $max_page ) ) {
+	if ( ! is_single() && ( $next_page <= $max_page ) ) {
 		/**
 		 * Filters the anchor tag attributes for the next posts page link.
 		 *
-		 * @since WP-2.7.0
+		 * @since 2.7.0
 		 *
 		 * @param string $attributes Attributes for the anchor tag.
 		 */
 		$attr = apply_filters( 'next_posts_link_attributes', '' );
 
-		return '<a href="' . next_posts( $max_page, false ) . "\" $attr>" . preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label ) . '</a>';
+		return sprintf(
+			'<a href="%1$s" %2$s>%3$s</a>',
+			next_posts( $max_page, false ),
+			$attr,
+			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
+		);
 	}
 }
 
 /**
  * Displays the next posts page link.
  *
- * @since WP-0.71
+ * @since 0.71
  *
  * @param string $label    Content for link text.
  * @param int    $max_page Optional. Max pages. Default 0.
@@ -2375,9 +2574,9 @@ function next_posts_link( $label = null, $max_page = 0 ) {
  *
  * Will only return string, if not on a single page or post.
  *
- * Backported from WP-2.1.3 to WP-2.0.10.
+ * Backported to 2.0.10 from 2.1.3.
  *
- * @since WP-2.0.10
+ * @since 2.0.10
  *
  * @global int $paged
  *
@@ -2387,26 +2586,28 @@ function get_previous_posts_page_link() {
 	global $paged;
 
 	if ( ! is_single() ) {
-		$nextpage = intval( $paged ) - 1;
-		if ( $nextpage < 1 ) {
-			$nextpage = 1;
+		$previous_page = (int) $paged - 1;
+
+		if ( $previous_page < 1 ) {
+			$previous_page = 1;
 		}
-		return get_pagenum_link( $nextpage );
+
+		return get_pagenum_link( $previous_page );
 	}
 }
 
 /**
  * Displays or retrieves the previous posts page link.
  *
- * @since WP-0.71
+ * @since 0.71
  *
- * @param bool $echo Optional. Whether to echo the link. Default true.
- * @return string|void The previous posts page link if `$echo = false`.
+ * @param bool $display Optional. Whether to echo the link. Default true.
+ * @return string|void The previous posts page link if `$display = false`.
  */
-function previous_posts( $echo = true ) {
+function previous_posts( $display = true ) {
 	$output = esc_url( get_previous_posts_page_link() );
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $output;
 	} else {
 		return $output;
@@ -2416,7 +2617,7 @@ function previous_posts( $echo = true ) {
 /**
  * Retrieves the previous posts page link.
  *
- * @since WP-2.7.0
+ * @since 2.7.0
  *
  * @global int $paged
  *
@@ -2434,19 +2635,25 @@ function get_previous_posts_link( $label = null ) {
 		/**
 		 * Filters the anchor tag attributes for the previous posts page link.
 		 *
-		 * @since WP-2.7.0
+		 * @since 2.7.0
 		 *
 		 * @param string $attributes Attributes for the anchor tag.
 		 */
 		$attr = apply_filters( 'previous_posts_link_attributes', '' );
-		return '<a href="' . previous_posts( false ) . "\" $attr>" . preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label ) . '</a>';
+
+		return sprintf(
+			'<a href="%1$s" %2$s>%3$s</a>',
+			previous_posts( false ),
+			$attr,
+			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
+		);
 	}
 }
 
 /**
  * Displays the previous posts page link.
  *
- * @since WP-0.71
+ * @since 0.71
  *
  * @param string $label Optional. Previous page link text.
  */
@@ -2457,9 +2664,9 @@ function previous_posts_link( $label = null ) {
 /**
  * Retrieves the post pages link navigation for previous and next pages.
  *
- * @since WP-2.8.0
+ * @since 2.8.0
  *
- * @global WP_Query $wp_query
+ * @global WP_Query $wp_query WordPress Query object.
  *
  * @param string|array $args {
  *     Optional. Arguments to build the post pages link navigation.
@@ -2488,7 +2695,7 @@ function get_posts_nav_link( $args = array() ) {
 		$max_num_pages = $wp_query->max_num_pages;
 		$paged         = get_query_var( 'paged' );
 
-		//only have sep if there's both prev and next results
+		// Only have sep if there's both prev and next results.
 		if ( $paged < 2 || $paged >= $max_num_pages ) {
 			$args['sep'] = '';
 		}
@@ -2500,13 +2707,12 @@ function get_posts_nav_link( $args = array() ) {
 		}
 	}
 	return $return;
-
 }
 
 /**
  * Displays the post pages link navigation for previous and next pages.
  *
- * @since WP-0.71
+ * @since 0.71
  *
  * @param string $sep      Optional. Separator for posts navigation links. Default empty.
  * @param string $prelabel Optional. Label for previous pages. Default empty.
@@ -2520,22 +2726,36 @@ function posts_nav_link( $sep = '', $prelabel = '', $nxtlabel = '' ) {
 /**
  * Retrieves the navigation to next/previous post, when applicable.
  *
- * @since WP-4.1.0
- * @since WP-4.4.0 Introduced the `in_same_term`, `excluded_terms`, and `taxonomy` arguments.
+ * @since 4.1.0
+ * @since 4.4.0 Introduced the `in_same_term`, `excluded_terms`, and `taxonomy` arguments.
+ * @since 5.3.0 Added the `aria_label` parameter.
+ * @since 5.5.0 Added the `class` parameter.
  *
  * @param array $args {
  *     Optional. Default post navigation arguments. Default empty array.
  *
- *     @type string       $prev_text          Anchor text to display in the previous post link. Default '%title'.
- *     @type string       $next_text          Anchor text to display in the next post link. Default '%title'.
- *     @type bool         $in_same_term       Whether link should be in a same taxonomy term. Default false.
- *     @type array|string $excluded_terms     Array or comma-separated list of excluded term IDs. Default empty.
+ *     @type string       $prev_text          Anchor text to display in the previous post link.
+ *                                            Default '%title'.
+ *     @type string       $next_text          Anchor text to display in the next post link.
+ *                                            Default '%title'.
+ *     @type bool         $in_same_term       Whether link should be in the same taxonomy term.
+ *                                            Default false.
+ *     @type int[]|string $excluded_terms     Array or comma-separated list of excluded term IDs.
+ *                                            Default empty.
  *     @type string       $taxonomy           Taxonomy, if `$in_same_term` is true. Default 'category'.
- *     @type string       $screen_reader_text Screen reader text for nav element. Default 'Post navigation'.
+ *     @type string       $screen_reader_text Screen reader text for the nav element.
+ *                                            Default 'Post navigation'.
+ *     @type string       $aria_label         ARIA label text for the nav element. Default 'Posts'.
+ *     @type string       $class              Custom class for the nav element. Default 'post-navigation'.
  * }
  * @return string Markup for post links.
  */
 function get_the_post_navigation( $args = array() ) {
+	// Make sure the nav element has an aria-label attribute: fallback to the screen reader text.
+	if ( ! empty( $args['screen_reader_text'] ) && empty( $args['aria_label'] ) ) {
+		$args['aria_label'] = $args['screen_reader_text'];
+	}
+
 	$args = wp_parse_args(
 		$args,
 		array(
@@ -2545,6 +2765,8 @@ function get_the_post_navigation( $args = array() ) {
 			'excluded_terms'     => '',
 			'taxonomy'           => 'category',
 			'screen_reader_text' => __( 'Post navigation' ),
+			'aria_label'         => __( 'Posts' ),
+			'class'              => 'post-navigation',
 		)
 	);
 
@@ -2568,7 +2790,7 @@ function get_the_post_navigation( $args = array() ) {
 
 	// Only add markup if there's somewhere to navigate to.
 	if ( $previous || $next ) {
-		$navigation = _navigation_markup( $previous . $next, 'post-navigation', $args['screen_reader_text'] );
+		$navigation = _navigation_markup( $previous . $next, $args['class'], $args['screen_reader_text'], $args['aria_label'] );
 	}
 
 	return $navigation;
@@ -2577,7 +2799,7 @@ function get_the_post_navigation( $args = array() ) {
 /**
  * Displays the navigation to next/previous post, when applicable.
  *
- * @since WP-4.1.0
+ * @since 4.1.0
  *
  * @param array $args Optional. See get_the_post_navigation() for available arguments.
  *                    Default empty array.
@@ -2589,9 +2811,11 @@ function the_post_navigation( $args = array() ) {
 /**
  * Returns the navigation to next/previous set of posts, when applicable.
  *
- * @since WP-4.1.0
+ * @since 4.1.0
+ * @since 5.3.0 Added the `aria_label` parameter.
+ * @since 5.5.0 Added the `class` parameter.
  *
- * @global WP_Query $wp_query ClassicPress Query object.
+ * @global WP_Query $wp_query WordPress Query object.
  *
  * @param array $args {
  *     Optional. Default posts navigation arguments. Default empty array.
@@ -2600,22 +2824,33 @@ function the_post_navigation( $args = array() ) {
  *                                      Default 'Older posts'.
  *     @type string $next_text          Anchor text to display in the next posts link.
  *                                      Default 'Newer posts'.
- *     @type string $screen_reader_text Screen reader text for nav element.
+ *     @type string $screen_reader_text Screen reader text for the nav element.
  *                                      Default 'Posts navigation'.
+ *     @type string $aria_label         ARIA label text for the nav element. Default 'Posts'.
+ *     @type string $class              Custom class for the nav element. Default 'posts-navigation'.
  * }
  * @return string Markup for posts links.
  */
 function get_the_posts_navigation( $args = array() ) {
+	global $wp_query;
+
 	$navigation = '';
 
 	// Don't print empty markup if there's only one page.
-	if ( $GLOBALS['wp_query']->max_num_pages > 1 ) {
+	if ( $wp_query->max_num_pages > 1 ) {
+		// Make sure the nav element has an aria-label attribute: fallback to the screen reader text.
+		if ( ! empty( $args['screen_reader_text'] ) && empty( $args['aria_label'] ) ) {
+			$args['aria_label'] = $args['screen_reader_text'];
+		}
+
 		$args = wp_parse_args(
 			$args,
 			array(
 				'prev_text'          => __( 'Older posts' ),
 				'next_text'          => __( 'Newer posts' ),
 				'screen_reader_text' => __( 'Posts navigation' ),
+				'aria_label'         => __( 'Posts' ),
+				'class'              => 'posts-navigation',
 			)
 		);
 
@@ -2630,7 +2865,7 @@ function get_the_posts_navigation( $args = array() ) {
 			$navigation .= '<div class="nav-next">' . $next_link . '</div>';
 		}
 
-		$navigation = _navigation_markup( $navigation, 'posts-navigation', $args['screen_reader_text'] );
+		$navigation = _navigation_markup( $navigation, $args['class'], $args['screen_reader_text'], $args['aria_label'] );
 	}
 
 	return $navigation;
@@ -2639,7 +2874,7 @@ function get_the_posts_navigation( $args = array() ) {
 /**
  * Displays the navigation to next/previous set of posts, when applicable.
  *
- * @since WP-4.1.0
+ * @since 4.1.0
  *
  * @param array $args Optional. See get_the_posts_navigation() for available arguments.
  *                    Default empty array.
@@ -2651,21 +2886,34 @@ function the_posts_navigation( $args = array() ) {
 /**
  * Retrieves a paginated navigation to next/previous set of posts, when applicable.
  *
- * @since WP-4.1.0
+ * @since 4.1.0
+ * @since 5.3.0 Added the `aria_label` parameter.
+ * @since 5.5.0 Added the `class` parameter.
+ *
+ * @global WP_Query $wp_query WordPress Query object.
  *
  * @param array $args {
  *     Optional. Default pagination arguments, see paginate_links().
  *
  *     @type string $screen_reader_text Screen reader text for navigation element.
  *                                      Default 'Posts navigation'.
+ *     @type string $aria_label         ARIA label text for the nav element. Default 'Posts'.
+ *     @type string $class              Custom class for the nav element. Default 'pagination'.
  * }
  * @return string Markup for pagination links.
  */
 function get_the_posts_pagination( $args = array() ) {
+	global $wp_query;
+
 	$navigation = '';
 
 	// Don't print empty markup if there's only one page.
-	if ( $GLOBALS['wp_query']->max_num_pages > 1 ) {
+	if ( $wp_query->max_num_pages > 1 ) {
+		// Make sure the nav element has an aria-label attribute: fallback to the screen reader text.
+		if ( ! empty( $args['screen_reader_text'] ) && empty( $args['aria_label'] ) ) {
+			$args['aria_label'] = $args['screen_reader_text'];
+		}
+
 		$args = wp_parse_args(
 			$args,
 			array(
@@ -2673,8 +2921,26 @@ function get_the_posts_pagination( $args = array() ) {
 				'prev_text'          => _x( 'Previous', 'previous set of posts' ),
 				'next_text'          => _x( 'Next', 'next set of posts' ),
 				'screen_reader_text' => __( 'Posts navigation' ),
+				'aria_label'         => __( 'Posts' ),
+				'class'              => 'pagination',
 			)
 		);
+
+		/**
+		 * Filters the arguments for posts pagination links.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param array $args {
+		 *     Optional. Default pagination arguments, see paginate_links().
+		 *
+		 *     @type string $screen_reader_text Screen reader text for navigation element.
+		 *                                      Default 'Posts navigation'.
+		 *     @type string $aria_label         ARIA label text for the nav element. Default 'Posts'.
+		 *     @type string $class              Custom class for the nav element. Default 'pagination'.
+		 * }
+		 */
+		$args = apply_filters( 'the_posts_pagination_args', $args );
 
 		// Make sure we get a string back. Plain is the next best thing.
 		if ( isset( $args['type'] ) && 'array' === $args['type'] ) {
@@ -2685,7 +2951,7 @@ function get_the_posts_pagination( $args = array() ) {
 		$links = paginate_links( $args );
 
 		if ( $links ) {
-			$navigation = _navigation_markup( $links, 'pagination', $args['screen_reader_text'] );
+			$navigation = _navigation_markup( $links, $args['class'], $args['screen_reader_text'], $args['aria_label'] );
 		}
 	}
 
@@ -2695,7 +2961,7 @@ function get_the_posts_pagination( $args = array() ) {
 /**
  * Displays a paginated navigation to next/previous set of posts, when applicable.
  *
- * @since WP-4.1.0
+ * @since 4.1.0
  *
  * @param array $args Optional. See get_the_posts_pagination() for available arguments.
  *                    Default empty array.
@@ -2707,21 +2973,29 @@ function the_posts_pagination( $args = array() ) {
 /**
  * Wraps passed links in navigational markup.
  *
- * @since WP-4.1.0
+ * @since 4.1.0
+ * @since 5.3.0 Added the `aria_label` parameter.
  * @access private
  *
  * @param string $links              Navigational links.
- * @param string $class              Optional. Custom class for nav element. Default: 'posts-navigation'.
- * @param string $screen_reader_text Optional. Screen reader text for nav element. Default: 'Posts navigation'.
+ * @param string $css_class          Optional. Custom class for the nav element.
+ *                                   Default 'posts-navigation'.
+ * @param string $screen_reader_text Optional. Screen reader text for the nav element.
+ *                                   Default 'Posts navigation'.
+ * @param string $aria_label         Optional. ARIA label for the nav element.
+ *                                   Defaults to the value of `$screen_reader_text`.
  * @return string Navigation template tag.
  */
-function _navigation_markup( $links, $class = 'posts-navigation', $screen_reader_text = '' ) {
+function _navigation_markup( $links, $css_class = 'posts-navigation', $screen_reader_text = '', $aria_label = '' ) {
 	if ( empty( $screen_reader_text ) ) {
-		$screen_reader_text = __( 'Posts navigation' );
+		$screen_reader_text = /* translators: Hidden accessibility text. */ __( 'Posts navigation' );
+	}
+	if ( empty( $aria_label ) ) {
+		$aria_label = $screen_reader_text;
 	}
 
 	$template = '
-	<nav class="navigation %1$s">
+	<nav class="navigation %1$s" aria-label="%4$s">
 		<h2 class="screen-reader-text">%2$s</h2>
 		<div class="nav-links">%3$s</div>
 	</nav>';
@@ -2730,31 +3004,31 @@ function _navigation_markup( $links, $class = 'posts-navigation', $screen_reader
 	 * Filters the navigation markup template.
 	 *
 	 * Note: The filtered template HTML must contain specifiers for the navigation
-	 * class (%1$s), the screen-reader-text value (%2$s), and placement of the
-	 * navigation links (%3$s):
+	 * class (%1$s), the screen-reader-text value (%2$s), placement of the navigation
+	 * links (%3$s), and ARIA label text if screen-reader-text does not fit that (%4$s):
 	 *
-	 *     <nav class="navigation %1$s" role="navigation">
+	 *     <nav class="navigation %1$s" aria-label="%4$s">
 	 *         <h2 class="screen-reader-text">%2$s</h2>
 	 *         <div class="nav-links">%3$s</div>
 	 *     </nav>
 	 *
-	 * @since WP-4.4.0
+	 * @since 4.4.0
 	 *
-	 * @param string $template The default template.
-	 * @param string $class    The class passed by the calling function.
+	 * @param string $template  The default template.
+	 * @param string $css_class The class passed by the calling function.
 	 * @return string Navigation template.
 	 */
-	$template = apply_filters( 'navigation_markup_template', $template, $class );
+	$template = apply_filters( 'navigation_markup_template', $template, $css_class );
 
-	return sprintf( $template, sanitize_html_class( $class ), esc_html( $screen_reader_text ), $links );
+	return sprintf( $template, sanitize_html_class( $css_class ), esc_html( $screen_reader_text ), $links, esc_html( $aria_label ) );
 }
 
 /**
  * Retrieves the comments page number link.
  *
- * @since WP-2.7.0
+ * @since 2.7.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param int $pagenum  Optional. Page number. Default 1.
  * @param int $max_page Optional. The maximum number of comment pages. Default 0.
@@ -2788,7 +3062,7 @@ function get_comments_pagenum_link( $pagenum = 1, $max_page = 0 ) {
 	/**
 	 * Filters the comments page number link for the current request.
 	 *
-	 * @since WP-2.7.0
+	 * @since 2.7.0
 	 *
 	 * @param string $result The comments page number link.
 	 */
@@ -2798,9 +3072,9 @@ function get_comments_pagenum_link( $pagenum = 1, $max_page = 0 ) {
 /**
  * Retrieves the link to the next comments page.
  *
- * @since WP-2.7.1
+ * @since 2.7.1
  *
- * @global WP_Query $wp_query
+ * @global WP_Query $wp_query WordPress Query object.
  *
  * @param string $label    Optional. Label for link text. Default empty.
  * @param int    $max_page Optional. Max page. Default 0.
@@ -2819,7 +3093,7 @@ function get_next_comments_link( $label = '', $max_page = 0 ) {
 		$page = 1;
 	}
 
-	$nextpage = intval( $page ) + 1;
+	$next_page = (int) $page + 1;
 
 	if ( empty( $max_page ) ) {
 		$max_page = $wp_query->max_num_comment_pages;
@@ -2829,7 +3103,7 @@ function get_next_comments_link( $label = '', $max_page = 0 ) {
 		$max_page = get_comment_pages_count();
 	}
 
-	if ( $nextpage > $max_page ) {
+	if ( $next_page > $max_page ) {
 		return;
 	}
 
@@ -2840,17 +3114,24 @@ function get_next_comments_link( $label = '', $max_page = 0 ) {
 	/**
 	 * Filters the anchor tag attributes for the next comments page link.
 	 *
-	 * @since WP-2.7.0
+	 * @since 2.7.0
 	 *
 	 * @param string $attributes Attributes for the anchor tag.
 	 */
-	return '<a href="' . esc_url( get_comments_pagenum_link( $nextpage, $max_page ) ) . '" ' . apply_filters( 'next_comments_link_attributes', '' ) . '>' . preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label ) . '</a>';
+	$attr = apply_filters( 'next_comments_link_attributes', '' );
+
+	return sprintf(
+		'<a href="%1$s" %2$s>%3$s</a>',
+		esc_url( get_comments_pagenum_link( $next_page, $max_page ) ),
+		$attr,
+		preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
+	);
 }
 
 /**
  * Displays the link to the next comments page.
  *
- * @since WP-2.7.0
+ * @since 2.7.0
  *
  * @param string $label    Optional. Label for link text. Default empty.
  * @param int    $max_page Optional. Max page. Default 0.
@@ -2862,7 +3143,7 @@ function next_comments_link( $label = '', $max_page = 0 ) {
 /**
  * Retrieves the link to the previous comments page.
  *
- * @since WP-2.7.1
+ * @since 2.7.1
  *
  * @param string $label Optional. Label for comments link text. Default empty.
  * @return string|void HTML-formatted link for the previous page of comments.
@@ -2874,11 +3155,11 @@ function get_previous_comments_link( $label = '' ) {
 
 	$page = get_query_var( 'cpage' );
 
-	if ( intval( $page ) <= 1 ) {
+	if ( (int) $page <= 1 ) {
 		return;
 	}
 
-	$prevpage = intval( $page ) - 1;
+	$previous_page = (int) $page - 1;
 
 	if ( empty( $label ) ) {
 		$label = __( '&laquo; Older Comments' );
@@ -2887,17 +3168,24 @@ function get_previous_comments_link( $label = '' ) {
 	/**
 	 * Filters the anchor tag attributes for the previous comments page link.
 	 *
-	 * @since WP-2.7.0
+	 * @since 2.7.0
 	 *
 	 * @param string $attributes Attributes for the anchor tag.
 	 */
-	return '<a href="' . esc_url( get_comments_pagenum_link( $prevpage ) ) . '" ' . apply_filters( 'previous_comments_link_attributes', '' ) . '>' . preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label ) . '</a>';
+	$attr = apply_filters( 'previous_comments_link_attributes', '' );
+
+	return sprintf(
+		'<a href="%1$s" %2$s>%3$s</a>',
+		esc_url( get_comments_pagenum_link( $previous_page ) ),
+		$attr,
+		preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
+	);
 }
 
 /**
  * Displays the link to the previous comments page.
  *
- * @since WP-2.7.0
+ * @since 2.7.0
  *
  * @param string $label Optional. Label for comments link text. Default empty.
  */
@@ -2909,12 +3197,15 @@ function previous_comments_link( $label = '' ) {
  * Displays or retrieves pagination links for the comments on the current post.
  *
  * @see paginate_links()
- * @since WP-2.7.0
+ * @since 2.7.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string|array $args Optional args. See paginate_links(). Default empty array.
- * @return string|void Markup for pagination links.
+ * @return void|string|array Void if 'echo' argument is true and 'type' is not an array,
+ *                           or if the query is not for an existing single post of any post type.
+ *                           Otherwise, markup for comment page links or array of comment page links,
+ *                           depending on 'type' argument.
  */
 function paginate_comments_links( $args = array() ) {
 	global $wp_rewrite;
@@ -2934,6 +3225,7 @@ function paginate_comments_links( $args = array() ) {
 		'total'        => $max_page,
 		'current'      => $page,
 		'echo'         => true,
+		'type'         => 'plain',
 		'add_fragment' => '#comments',
 	);
 	if ( $wp_rewrite->using_permalinks() ) {
@@ -2943,7 +3235,7 @@ function paginate_comments_links( $args = array() ) {
 	$args       = wp_parse_args( $args, $defaults );
 	$page_links = paginate_links( $args );
 
-	if ( $args['echo'] ) {
+	if ( $args['echo'] && 'array' !== $args['type'] ) {
 		echo $page_links;
 	} else {
 		return $page_links;
@@ -2953,7 +3245,9 @@ function paginate_comments_links( $args = array() ) {
 /**
  * Retrieves navigation to next/previous set of comments, when applicable.
  *
- * @since WP-4.4.0
+ * @since 4.4.0
+ * @since 5.3.0 Added the `aria_label` parameter.
+ * @since 5.5.0 Added the `class` parameter.
  *
  * @param array $args {
  *     Optional. Default comments navigation arguments.
@@ -2962,7 +3256,9 @@ function paginate_comments_links( $args = array() ) {
  *                                      Default 'Older comments'.
  *     @type string $next_text          Anchor text to display in the next comments link.
  *                                      Default 'Newer comments'.
- *     @type string $screen_reader_text Screen reader text for nav element. Default 'Comments navigation'.
+ *     @type string $screen_reader_text Screen reader text for the nav element. Default 'Comments navigation'.
+ *     @type string $aria_label         ARIA label text for the nav element. Default 'Comments'.
+ *     @type string $class              Custom class for the nav element. Default 'comment-navigation'.
  * }
  * @return string Markup for comments links.
  */
@@ -2971,12 +3267,19 @@ function get_the_comments_navigation( $args = array() ) {
 
 	// Are there comments to navigate through?
 	if ( get_comment_pages_count() > 1 ) {
+		// Make sure the nav element has an aria-label attribute: fallback to the screen reader text.
+		if ( ! empty( $args['screen_reader_text'] ) && empty( $args['aria_label'] ) ) {
+			$args['aria_label'] = $args['screen_reader_text'];
+		}
+
 		$args = wp_parse_args(
 			$args,
 			array(
 				'prev_text'          => __( 'Older comments' ),
 				'next_text'          => __( 'Newer comments' ),
 				'screen_reader_text' => __( 'Comments navigation' ),
+				'aria_label'         => __( 'Comments' ),
+				'class'              => 'comment-navigation',
 			)
 		);
 
@@ -2991,7 +3294,7 @@ function get_the_comments_navigation( $args = array() ) {
 			$navigation .= '<div class="nav-next">' . $next_link . '</div>';
 		}
 
-		$navigation = _navigation_markup( $navigation, 'comment-navigation', $args['screen_reader_text'] );
+		$navigation = _navigation_markup( $navigation, $args['class'], $args['screen_reader_text'], $args['aria_label'] );
 	}
 
 	return $navigation;
@@ -3000,7 +3303,7 @@ function get_the_comments_navigation( $args = array() ) {
 /**
  * Displays navigation to next/previous set of comments, when applicable.
  *
- * @since WP-4.4.0
+ * @since 4.4.0
  *
  * @param array $args See get_the_comments_navigation() for available arguments. Default empty array.
  */
@@ -3011,23 +3314,35 @@ function the_comments_navigation( $args = array() ) {
 /**
  * Retrieves a paginated navigation to next/previous set of comments, when applicable.
  *
- * @since WP-4.4.0
+ * @since 4.4.0
+ * @since 5.3.0 Added the `aria_label` parameter.
+ * @since 5.5.0 Added the `class` parameter.
  *
  * @see paginate_comments_links()
  *
  * @param array $args {
  *     Optional. Default pagination arguments.
  *
- *     @type string $screen_reader_text Screen reader text for nav element. Default 'Comments navigation'.
+ *     @type string $screen_reader_text Screen reader text for the nav element. Default 'Comments navigation'.
+ *     @type string $aria_label         ARIA label text for the nav element. Default 'Comments'.
+ *     @type string $class              Custom class for the nav element. Default 'comments-pagination'.
  * }
  * @return string Markup for pagination links.
  */
 function get_the_comments_pagination( $args = array() ) {
-	$navigation   = '';
+	$navigation = '';
+
+	// Make sure the nav element has an aria-label attribute: fallback to the screen reader text.
+	if ( ! empty( $args['screen_reader_text'] ) && empty( $args['aria_label'] ) ) {
+		$args['aria_label'] = $args['screen_reader_text'];
+	}
+
 	$args         = wp_parse_args(
 		$args,
 		array(
 			'screen_reader_text' => __( 'Comments navigation' ),
+			'aria_label'         => __( 'Comments' ),
+			'class'              => 'comments-pagination',
 		)
 	);
 	$args['echo'] = false;
@@ -3040,7 +3355,7 @@ function get_the_comments_pagination( $args = array() ) {
 	$links = paginate_comments_links( $args );
 
 	if ( $links ) {
-		$navigation = _navigation_markup( $links, 'comments-pagination', $args['screen_reader_text'] );
+		$navigation = _navigation_markup( $links, $args['class'], $args['screen_reader_text'], $args['aria_label'] );
 	}
 
 	return $navigation;
@@ -3049,7 +3364,7 @@ function get_the_comments_pagination( $args = array() ) {
 /**
  * Displays a paginated navigation to next/previous set of comments, when applicable.
  *
- * @since WP-4.4.0
+ * @since 4.4.0
  *
  * @param array $args See get_the_comments_pagination() for available arguments. Default empty array.
  */
@@ -3064,11 +3379,11 @@ function the_comments_pagination( $args = array() ) {
  * if is_ssl() evaluates to true; otherwise, it will be the same as the 'home' option.
  * If `$scheme` is 'http' or 'https', is_ssl() is overridden.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
- * @param  string      $path   Optional. Path relative to the home URL. Default empty.
- * @param  string|null $scheme Optional. Scheme to give the home URL context. Accepts
- *                             'http', 'https', 'relative', 'rest', or null. Default null.
+ * @param string      $path   Optional. Path relative to the home URL. Default empty.
+ * @param string|null $scheme Optional. Scheme to give the home URL context. Accepts
+ *                            'http', 'https', 'relative', 'rest', or null. Default null.
  * @return string Home URL link with optional path appended.
  */
 function home_url( $path = '', $scheme = null ) {
@@ -3082,19 +3397,15 @@ function home_url( $path = '', $scheme = null ) {
  * if is_ssl() evaluates to true; otherwise, it will be the same as the 'home' option.
  * If `$scheme` is 'http' or 'https', is_ssl() is overridden.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
- * @global string $pagenow
- *
- * @param  int         $blog_id Optional. Site ID. Default null (current site).
- * @param  string      $path    Optional. Path relative to the home URL. Default empty.
- * @param  string|null $scheme  Optional. Scheme to give the home URL context. Accepts
- *                              'http', 'https', 'relative', 'rest', or null. Default null.
+ * @param int|null    $blog_id Optional. Site ID. Default null (current site).
+ * @param string      $path    Optional. Path relative to the home URL. Default empty.
+ * @param string|null $scheme  Optional. Scheme to give the home URL context. Accepts
+ *                             'http', 'https', 'relative', 'rest', or null. Default null.
  * @return string Home URL link with optional path appended.
  */
 function get_home_url( $blog_id = null, $path = '', $scheme = null ) {
-	global $pagenow;
-
 	$orig_scheme = $scheme;
 
 	if ( empty( $blog_id ) || ! is_multisite() ) {
@@ -3106,7 +3417,7 @@ function get_home_url( $blog_id = null, $path = '', $scheme = null ) {
 	}
 
 	if ( ! in_array( $scheme, array( 'http', 'https', 'relative' ), true ) ) {
-		if ( is_ssl() && ! is_admin() && 'wp-login.php' !== $pagenow ) {
+		if ( is_ssl() ) {
 			$scheme = 'https';
 		} else {
 			$scheme = parse_url( $url, PHP_URL_SCHEME );
@@ -3122,7 +3433,7 @@ function get_home_url( $blog_id = null, $path = '', $scheme = null ) {
 	/**
 	 * Filters the home URL.
 	 *
-	 * @since WP-3.0.0
+	 * @since 3.0.0
 	 *
 	 * @param string      $url         The complete home URL including scheme and path.
 	 * @param string      $path        Path relative to the home URL. Blank string if no path is specified.
@@ -3134,17 +3445,17 @@ function get_home_url( $blog_id = null, $path = '', $scheme = null ) {
 }
 
 /**
- * Retrieves the URL for the current site where ClassicPress application files
+ * Retrieves the URL for the current site where WordPress application files
  * (e.g. wp-blog-header.php or the wp-admin/ folder) are accessible.
  *
  * Returns the 'site_url' option with the appropriate protocol, 'https' if
  * is_ssl() and 'http' otherwise. If $scheme is 'http' or 'https', is_ssl() is
  * overridden.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
- * @param string $path   Optional. Path relative to the site URL. Default empty.
- * @param string $scheme Optional. Scheme to give the site URL context. See set_url_scheme().
+ * @param string      $path   Optional. Path relative to the site URL. Default empty.
+ * @param string|null $scheme Optional. Scheme to give the site URL context. See set_url_scheme().
  * @return string Site URL link with optional path appended.
  */
 function site_url( $path = '', $scheme = null ) {
@@ -3152,20 +3463,20 @@ function site_url( $path = '', $scheme = null ) {
 }
 
 /**
- * Retrieves the URL for a given site where ClassicPress application files
+ * Retrieves the URL for a given site where WordPress application files
  * (e.g. wp-blog-header.php or the wp-admin/ folder) are accessible.
  *
  * Returns the 'site_url' option with the appropriate protocol, 'https' if
  * is_ssl() and 'http' otherwise. If `$scheme` is 'http' or 'https',
  * `is_ssl()` is overridden.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
- * @param int    $blog_id Optional. Site ID. Default null (current site).
- * @param string $path    Optional. Path relative to the site URL. Default empty.
- * @param string $scheme  Optional. Scheme to give the site URL context. Accepts
- *                        'http', 'https', 'login', 'login_post', 'admin', or
- *                        'relative'. Default null.
+ * @param int|null    $blog_id Optional. Site ID. Default null (current site).
+ * @param string      $path    Optional. Path relative to the site URL. Default empty.
+ * @param string|null $scheme  Optional. Scheme to give the site URL context. Accepts
+ *                             'http', 'https', 'login', 'login_post', 'admin', or
+ *                             'relative'. Default null.
  * @return string Site URL link with optional path appended.
  */
 function get_site_url( $blog_id = null, $path = '', $scheme = null ) {
@@ -3186,7 +3497,7 @@ function get_site_url( $blog_id = null, $path = '', $scheme = null ) {
 	/**
 	 * Filters the site URL.
 	 *
-	 * @since WP-2.7.0
+	 * @since 2.7.0
 	 *
 	 * @param string      $url     The complete site URL including scheme and path.
 	 * @param string      $path    Path relative to the site URL. Blank string if no path is specified.
@@ -3200,9 +3511,9 @@ function get_site_url( $blog_id = null, $path = '', $scheme = null ) {
 /**
  * Retrieves the URL to the admin area for the current site.
  *
- * @since WP-2.6.0
+ * @since 2.6.0
  *
- * @param string $path   Optional path relative to the admin URL.
+ * @param string $path   Optional. Path relative to the admin URL. Default empty.
  * @param string $scheme The scheme to use. Default is 'admin', which obeys force_ssl_admin() and is_ssl().
  *                       'http' or 'https' can be passed to force those schemes.
  * @return string Admin URL link with optional path appended.
@@ -3214,13 +3525,13 @@ function admin_url( $path = '', $scheme = 'admin' ) {
 /**
  * Retrieves the URL to the admin area for a given site.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
- * @param int    $blog_id Optional. Site ID. Default null (current site).
- * @param string $path    Optional. Path relative to the admin URL. Default empty.
- * @param string $scheme  Optional. The scheme to use. Accepts 'http' or 'https',
- *                        to force those schemes. Default 'admin', which obeys
- *                        force_ssl_admin() and is_ssl().
+ * @param int|null $blog_id Optional. Site ID. Default null (current site).
+ * @param string   $path    Optional. Path relative to the admin URL. Default empty.
+ * @param string   $scheme  Optional. The scheme to use. Accepts 'http' or 'https',
+ *                          to force those schemes. Default 'admin', which obeys
+ *                          force_ssl_admin() and is_ssl().
  * @return string Admin URL link with optional path appended.
  */
 function get_admin_url( $blog_id = null, $path = '', $scheme = 'admin' ) {
@@ -3233,23 +3544,26 @@ function get_admin_url( $blog_id = null, $path = '', $scheme = 'admin' ) {
 	/**
 	 * Filters the admin area URL.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
+	 * @since 5.8.0 The `$scheme` parameter was added.
 	 *
-	 * @param string   $url     The complete admin area URL including scheme and path.
-	 * @param string   $path    Path relative to the admin area URL. Blank string if no path is specified.
-	 * @param int|null $blog_id Site ID, or null for the current site.
+	 * @param string      $url     The complete admin area URL including scheme and path.
+	 * @param string      $path    Path relative to the admin area URL. Blank string if no path is specified.
+	 * @param int|null    $blog_id Site ID, or null for the current site.
+	 * @param string|null $scheme  The scheme to use. Accepts 'http', 'https',
+	 *                             'admin', or null. Default 'admin', which obeys force_ssl_admin() and is_ssl().
 	 */
-	return apply_filters( 'admin_url', $url, $path, $blog_id );
+	return apply_filters( 'admin_url', $url, $path, $blog_id, $scheme );
 }
 
 /**
  * Retrieves the URL to the includes directory.
  *
- * @since WP-2.6.0
+ * @since 2.6.0
  *
- * @param string $path   Optional. Path relative to the includes URL. Default empty.
- * @param string $scheme Optional. Scheme to give the includes URL context. Accepts
- *                       'http', 'https', or 'relative'. Default null.
+ * @param string      $path   Optional. Path relative to the includes URL. Default empty.
+ * @param string|null $scheme Optional. Scheme to give the includes URL context. Accepts
+ *                            'http', 'https', or 'relative'. Default null.
  * @return string Includes URL link with optional path appended.
  */
 function includes_url( $path = '', $scheme = null ) {
@@ -3262,19 +3576,22 @@ function includes_url( $path = '', $scheme = null ) {
 	/**
 	 * Filters the URL to the includes directory.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
+	 * @since 5.8.0 The `$scheme` parameter was added.
 	 *
-	 * @param string $url  The complete URL to the includes directory including scheme and path.
-	 * @param string $path Path relative to the URL to the wp-includes directory. Blank string
-	 *                     if no path is specified.
+	 * @param string      $url    The complete URL to the includes directory including scheme and path.
+	 * @param string      $path   Path relative to the URL to the wp-includes directory. Blank string
+	 *                            if no path is specified.
+	 * @param string|null $scheme Scheme to give the includes URL context. Accepts
+	 *                            'http', 'https', 'relative', or null. Default null.
 	 */
-	return apply_filters( 'includes_url', $url, $path );
+	return apply_filters( 'includes_url', $url, $path, $scheme );
 }
 
 /**
  * Retrieves the URL to the content directory.
  *
- * @since WP-2.6.0
+ * @since 2.6.0
  *
  * @param string $path Optional. Path relative to the content URL. Default empty.
  * @return string Content URL link with optional path appended.
@@ -3289,7 +3606,7 @@ function content_url( $path = '' ) {
 	/**
 	 * Filters the URL to the content directory.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param string $url  The complete URL to the content directory including scheme and path.
 	 * @param string $path Path relative to the URL to the content directory. Blank string
@@ -3303,13 +3620,13 @@ function content_url( $path = '' ) {
  *
  * Defaults to the plugins directory URL if no arguments are supplied.
  *
- * @since WP-2.6.0
+ * @since 2.6.0
  *
- * @param  string $path   Optional. Extra path appended to the end of the URL, including
- *                        the relative directory if $plugin is supplied. Default empty.
- * @param  string $plugin Optional. A full path to a file inside a plugin or mu-plugin.
- *                        The URL will be relative to its directory. Default empty.
- *                        Typically this is done by passing `__FILE__` as the argument.
+ * @param string $path   Optional. Extra path appended to the end of the URL, including
+ *                       the relative directory if $plugin is supplied. Default empty.
+ * @param string $plugin Optional. A full path to a file inside a plugin or mu-plugin.
+ *                       The URL will be relative to its directory. Default empty.
+ *                       Typically this is done by passing `__FILE__` as the argument.
  * @return string Plugins URL link with optional paths appended.
  */
 function plugins_url( $path = '', $plugin = '' ) {
@@ -3318,7 +3635,7 @@ function plugins_url( $path = '', $plugin = '' ) {
 	$plugin        = wp_normalize_path( $plugin );
 	$mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
 
-	if ( ! empty( $plugin ) && 0 === strpos( $plugin, $mu_plugin_dir ) ) {
+	if ( ! empty( $plugin ) && str_starts_with( $plugin, $mu_plugin_dir ) ) {
 		$url = WPMU_PLUGIN_URL;
 	} else {
 		$url = WP_PLUGIN_URL;
@@ -3340,7 +3657,7 @@ function plugins_url( $path = '', $plugin = '' ) {
 	/**
 	 * Filters the URL to the plugins directory.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @param string $url    The complete URL to the plugins directory including scheme and path.
 	 * @param string $path   Path relative to the URL to the plugins directory. Blank string
@@ -3358,13 +3675,13 @@ function plugins_url( $path = '', $plugin = '' ) {
  * is_ssl() and 'http' otherwise. If $scheme is 'http' or 'https', is_ssl() is
  * overridden.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
  * @see set_url_scheme()
  *
- * @param string $path   Optional. Path relative to the site URL. Default empty.
- * @param string $scheme Optional. Scheme to give the site URL context. Accepts
- *                       'http', 'https', or 'relative'. Default null.
+ * @param string      $path   Optional. Path relative to the site URL. Default empty.
+ * @param string|null $scheme Optional. Scheme to give the site URL context. Accepts
+ *                            'http', 'https', or 'relative'. Default null.
  * @return string Site URL link with optional path appended.
  */
 function network_site_url( $path = '', $scheme = null ) {
@@ -3387,7 +3704,7 @@ function network_site_url( $path = '', $scheme = null ) {
 	/**
 	 * Filters the network site URL.
 	 *
-	 * @since WP-3.0.0
+	 * @since 3.0.0
 	 *
 	 * @param string      $url    The complete network site URL including scheme and path.
 	 * @param string      $path   Path relative to the network site URL. Blank string if
@@ -3405,11 +3722,11 @@ function network_site_url( $path = '', $scheme = null ) {
  * and 'http' otherwise. If `$scheme` is 'http' or 'https', `is_ssl()` is
  * overridden.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
- * @param  string $path   Optional. Path relative to the home URL. Default empty.
- * @param  string $scheme Optional. Scheme to give the home URL context. Accepts
- *                        'http', 'https', or 'relative'. Default null.
+ * @param string      $path   Optional. Path relative to the home URL. Default empty.
+ * @param string|null $scheme Optional. Scheme to give the home URL context. Accepts
+ *                            'http', 'https', or 'relative'. Default null.
  * @return string Home URL link with optional path appended.
  */
 function network_home_url( $path = '', $scheme = null ) {
@@ -3421,7 +3738,7 @@ function network_home_url( $path = '', $scheme = null ) {
 	$orig_scheme     = $scheme;
 
 	if ( ! in_array( $scheme, array( 'http', 'https', 'relative' ), true ) ) {
-		$scheme = is_ssl() && ! is_admin() ? 'https' : 'http';
+		$scheme = is_ssl() ? 'https' : 'http';
 	}
 
 	if ( 'relative' === $scheme ) {
@@ -3437,7 +3754,7 @@ function network_home_url( $path = '', $scheme = null ) {
 	/**
 	 * Filters the network home URL.
 	 *
-	 * @since WP-3.0.0
+	 * @since 3.0.0
 	 *
 	 * @param string      $url         The complete network home URL including scheme and path.
 	 * @param string      $path        Path relative to the network home URL. Blank string
@@ -3451,7 +3768,7 @@ function network_home_url( $path = '', $scheme = null ) {
 /**
  * Retrieves the URL to the admin area for the network.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
  * @param string $path   Optional path relative to the admin URL. Default empty.
  * @param string $scheme Optional. The scheme to use. Default is 'admin', which obeys force_ssl_admin()
@@ -3472,19 +3789,22 @@ function network_admin_url( $path = '', $scheme = 'admin' ) {
 	/**
 	 * Filters the network admin URL.
 	 *
-	 * @since WP-3.0.0
+	 * @since 3.0.0
+	 * @since 5.8.0 The `$scheme` parameter was added.
 	 *
-	 * @param string $url  The complete network admin URL including scheme and path.
-	 * @param string $path Path relative to the network admin URL. Blank string if
-	 *                     no path is specified.
+	 * @param string      $url    The complete network admin URL including scheme and path.
+	 * @param string      $path   Path relative to the network admin URL. Blank string if
+	 *                            no path is specified.
+	 * @param string|null $scheme The scheme to use. Accepts 'http', 'https',
+	 *                            'admin', or null. Default is 'admin', which obeys force_ssl_admin() and is_ssl().
 	 */
-	return apply_filters( 'network_admin_url', $url, $path );
+	return apply_filters( 'network_admin_url', $url, $path, $scheme );
 }
 
 /**
  * Retrieves the URL to the admin area for the current user.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
  * @param string $path   Optional. Path relative to the admin URL. Default empty.
  * @param string $scheme Optional. The scheme to use. Default is 'admin', which obeys force_ssl_admin()
@@ -3501,19 +3821,22 @@ function user_admin_url( $path = '', $scheme = 'admin' ) {
 	/**
 	 * Filters the user admin URL for the current user.
 	 *
-	 * @since WP-3.1.0
+	 * @since 3.1.0
+	 * @since 5.8.0 The `$scheme` parameter was added.
 	 *
-	 * @param string $url  The complete URL including scheme and path.
-	 * @param string $path Path relative to the URL. Blank string if
-	 *                     no path is specified.
+	 * @param string      $url    The complete URL including scheme and path.
+	 * @param string      $path   Path relative to the URL. Blank string if
+	 *                            no path is specified.
+	 * @param string|null $scheme The scheme to use. Accepts 'http', 'https',
+	 *                            'admin', or null. Default is 'admin', which obeys force_ssl_admin() and is_ssl().
 	 */
-	return apply_filters( 'user_admin_url', $url, $path );
+	return apply_filters( 'user_admin_url', $url, $path, $scheme );
 }
 
 /**
  * Retrieves the URL to the admin area for either the current site or the network depending on context.
  *
- * @since WP-3.1.0
+ * @since 3.1.0
  *
  * @param string $path   Optional. Path relative to the admin URL. Default empty.
  * @param string $scheme Optional. The scheme to use. Default is 'admin', which obeys force_ssl_admin()
@@ -3532,7 +3855,7 @@ function self_admin_url( $path = '', $scheme = 'admin' ) {
 	/**
 	 * Filters the admin URL for the current site or network depending on context.
 	 *
-	 * @since WP-4.9.0
+	 * @since 4.9.0
 	 *
 	 * @param string $url    The complete URL including scheme and path.
 	 * @param string $path   Path relative to the URL. Blank string if no path is specified.
@@ -3544,13 +3867,13 @@ function self_admin_url( $path = '', $scheme = 'admin' ) {
 /**
  * Sets the scheme for a URL.
  *
- * @since WP-3.4.0
- * @since WP-4.4.0 The 'rest' scheme was added.
+ * @since 3.4.0
+ * @since 4.4.0 The 'rest' scheme was added.
  *
  * @param string      $url    Absolute URL that includes a scheme
  * @param string|null $scheme Optional. Scheme to give $url. Currently 'http', 'https', 'login',
  *                            'login_post', 'admin', 'relative', 'rest', 'rpc', or null. Default null.
- * @return string $url URL with chosen scheme.
+ * @return string URL with chosen scheme.
  */
 function set_url_scheme( $url, $scheme = null ) {
 	$orig_scheme = $scheme;
@@ -3564,7 +3887,7 @@ function set_url_scheme( $url, $scheme = null ) {
 	}
 
 	$url = trim( $url );
-	if ( substr( $url, 0, 2 ) === '//' ) {
+	if ( str_starts_with( $url, '//' ) ) {
 		$url = 'http:' . $url;
 	}
 
@@ -3580,7 +3903,7 @@ function set_url_scheme( $url, $scheme = null ) {
 	/**
 	 * Filters the resulting URL after setting the scheme.
 	 *
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 *
 	 * @param string      $url         The complete URL including scheme and path.
 	 * @param string      $scheme      Scheme applied to the URL. One of 'http', 'https', or 'relative'.
@@ -3597,7 +3920,7 @@ function set_url_scheme( $url, $scheme = null ) {
  * belongs to the current site, the dashboard for the current site is returned. If the user
  * cannot edit the current site, the dashboard to the user's primary site is returned.
  *
- * @since WP-3.1.0
+ * @since 3.1.0
  *
  * @param int    $user_id Optional. User ID. Defaults to current user.
  * @param string $path    Optional path relative to the dashboard. Use only paths known to
@@ -3633,7 +3956,7 @@ function get_dashboard_url( $user_id = 0, $path = '', $scheme = 'admin' ) {
 	/**
 	 * Filters the dashboard URL for a user.
 	 *
-	 * @since WP-3.1.0
+	 * @since 3.1.0
 	 *
 	 * @param string $url     The complete URL including scheme and path.
 	 * @param int    $user_id The user ID.
@@ -3647,7 +3970,7 @@ function get_dashboard_url( $user_id = 0, $path = '', $scheme = 'admin' ) {
 /**
  * Retrieves the URL to the user's profile editor.
  *
- * @since WP-3.1.0
+ * @since 3.1.0
  *
  * @param int    $user_id Optional. User ID. Defaults to current user.
  * @param string $scheme  Optional. The scheme to use. Default is 'admin', which obeys force_ssl_admin()
@@ -3668,7 +3991,7 @@ function get_edit_profile_url( $user_id = 0, $scheme = 'admin' ) {
 	/**
 	 * Filters the URL for a user's profile editor.
 	 *
-	 * @since WP-3.1.0
+	 * @since 3.1.0
 	 *
 	 * @param string $url     The complete URL including scheme and path.
 	 * @param int    $user_id The user ID.
@@ -3684,7 +4007,7 @@ function get_edit_profile_url( $user_id = 0, $scheme = 'admin' ) {
  * When the post is the same as the current requested page the function will handle the
  * pagination arguments too.
  *
- * @since WP-4.6.0
+ * @since 4.6.0
  *
  * @param int|WP_Post $post Optional. Post ID or object. Default is global `$post`.
  * @return string|false The canonical URL. False if the post does not exist
@@ -3723,7 +4046,7 @@ function wp_get_canonical_url( $post = null ) {
 	/**
 	 * Filters the canonical URL for a post.
 	 *
-	 * @since WP-4.6.0
+	 * @since 4.6.0
 	 *
 	 * @param string  $canonical_url The post's canonical URL.
 	 * @param WP_Post $post          Post object.
@@ -3734,8 +4057,8 @@ function wp_get_canonical_url( $post = null ) {
 /**
  * Outputs rel=canonical for singular queries.
  *
- * @since WP-2.9.0
- * @since WP-4.6.0 Adjusted to use wp_get_canonical_url().
+ * @since 2.9.0
+ * @since 4.6.0 Adjusted to use `wp_get_canonical_url()`.
  */
 function rel_canonical() {
 	if ( ! is_singular() ) {
@@ -3751,7 +4074,7 @@ function rel_canonical() {
 	$url = wp_get_canonical_url( $id );
 
 	if ( ! empty( $url ) ) {
-		echo '<link rel="canonical" href="' . esc_url( $url ) . '" />' . "\n";
+		echo '<link rel="canonical" href="' . esc_url( $url ) . '">' . "\n";
 	}
 }
 
@@ -3764,12 +4087,12 @@ function rel_canonical() {
  * via the {@see 'pre_get_shortlink'} filter or filter the output via the {@see 'get_shortlink'}
  * filter.
  *
- * @since WP-3.0.0.
+ * @since 3.0.0
  *
- * @param int    $id          Optional. A post or site id. Default is 0, which means the current post or site.
- * @param string $context     Optional. Whether the id is a 'site' id, 'post' id, or 'media' id. If 'post',
+ * @param int    $id          Optional. A post or site ID. Default is 0, which means the current post or site.
+ * @param string $context     Optional. Whether the ID is a 'site' ID, 'post' ID, or 'media' ID. If 'post',
  *                            the post_type of the post is consulted. If 'query', the current query is consulted
- *                            to determine the id and context. Default 'post'.
+ *                            to determine the ID and context. Default 'post'.
  * @param bool   $allow_slugs Optional. Whether to allow post slugs in the shortlink. It is up to the plugin how
  *                            and whether to honor this. Default true.
  * @return string A shortlink or an empty string if no shortlink exists for the requested resource or if shortlinks
@@ -3779,15 +4102,15 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 	/**
 	 * Filters whether to preempt generating a shortlink for the given post.
 	 *
-	 * Passing a truthy value to the filter will effectively short-circuit the
-	 * shortlink-generation process, returning that value instead.
+	 * Returning a value other than false from the filter will short-circuit
+	 * the shortlink generation process, returning that value instead.
 	 *
-	 * @since WP-3.0.0
+	 * @since 3.0.0
 	 *
-	 * @param bool|string $return      Short-circuit return value. Either false or a URL string.
-	 * @param int         $id          Post ID, or 0 for the current post.
-	 * @param string      $context     The context for the link. One of 'post' or 'query',
-	 * @param bool        $allow_slugs Whether to allow post slugs in the shortlink.
+	 * @param false|string $return      Short-circuit return value. Either false or a URL string.
+	 * @param int          $id          Post ID, or 0 for the current post.
+	 * @param string       $context     The context for the link. One of 'post' or 'query',
+	 * @param bool         $allow_slugs Whether to allow post slugs in the shortlink.
 	 */
 	$shortlink = apply_filters( 'pre_get_shortlink', false, $id, $context, $allow_slugs );
 
@@ -3808,13 +4131,13 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 
 	$shortlink = '';
 
-	// Return p= link for all public post types.
+	// Return `?p=` link for all public post types.
 	if ( ! empty( $post_id ) ) {
 		$post_type = get_post_type_object( $post->post_type );
 
 		if ( 'page' === $post->post_type && get_option( 'page_on_front' ) == $post->ID && 'page' === get_option( 'show_on_front' ) ) {
 			$shortlink = home_url( '/' );
-		} elseif ( $post_type->public ) {
+		} elseif ( $post_type && $post_type->public ) {
 			$shortlink = home_url( '?p=' . $post_id );
 		}
 	}
@@ -3822,7 +4145,7 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 	/**
 	 * Filters the shortlink for a post.
 	 *
-	 * @since WP-3.0.0
+	 * @since 3.0.0
 	 *
 	 * @param string $shortlink   Shortlink URL.
 	 * @param int    $id          Post ID, or 0 for the current post.
@@ -3837,7 +4160,7 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
  *
  * Attached to the {@see 'wp_head'} action.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  */
 function wp_shortlink_wp_head() {
 	$shortlink = wp_get_shortlink( 0, 'query' );
@@ -3846,7 +4169,7 @@ function wp_shortlink_wp_head() {
 		return;
 	}
 
-	echo "<link rel='shortlink' href='" . esc_url( $shortlink ) . "' />\n";
+	echo "<link rel='shortlink' href='" . esc_url( $shortlink ) . "'>\n";
 }
 
 /**
@@ -3854,7 +4177,7 @@ function wp_shortlink_wp_head() {
  *
  * Attached to the {@see 'wp'} action.
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  */
 function wp_shortlink_header() {
 	if ( headers_sent() ) {
@@ -3877,7 +4200,7 @@ function wp_shortlink_header() {
  *
  * Call like the_shortlink( __( 'Shortlinkage FTW' ) )
  *
- * @since WP-3.0.0
+ * @since 3.0.0
  *
  * @param string $text   Optional The link text or HTML to be displayed. Defaults to 'This is the short link.'
  * @param string $title  Optional The tooltip for the link. Must be sanitized. Defaults to the sanitized post title.
@@ -3903,7 +4226,7 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
 		/**
 		 * Filters the short link anchor tag for a post.
 		 *
-		 * @since WP-3.0.0
+		 * @since 3.0.0
 		 *
 		 * @param string $link      Shortlink anchor tag.
 		 * @param string $shortlink Shortlink URL.
@@ -3919,19 +4242,19 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
 /**
  * Retrieves the avatar URL.
  *
- * @since WP-4.2.0
+ * @since 4.2.0
  *
  * @param mixed $id_or_email The Gravatar to retrieve a URL for. Accepts a user_id, gravatar md5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
  * @param array $args {
- *     Optional. Arguments to return instead of the default arguments.
+ *     Optional. Arguments to use instead of the default arguments.
  *
  *     @type int    $size           Height and width of the avatar in pixels. Default 96.
  *     @type string $default        URL for the default image or a default type. Accepts '404' (return
- *                                  a 404 instead of a default image), 'retro' (8bit), 'monsterid' (monster),
- *                                  'wavatar' (cartoon face), 'indenticon' (the "quilt"), 'mystery', 'mm',
- *                                  or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF), or
- *                                  'gravatar_default' (the Gravatar logo). Default is the value of the
+ *                                  a 404 instead of a default image), 'retro' (8bit), 'RoboHash' (robohash),
+ *                                  'monsterid' (monster), 'wavatar' (cartoon face), 'indenticon' (the "quilt"),
+ *                                  'mystery', 'mm', or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF),
+ *                                  or 'gravatar_default' (the Gravatar logo). Default is the value of the
  *                                  'avatar_default' option, with a fallback of 'mystery'.
  *     @type bool   $force_default  Whether to always show the default image, never the Gravatar. Default false.
  *     @type string $rating         What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are
@@ -3941,22 +4264,45 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
  *     @type array  $processed_args When the function returns, the value will be the processed/sanitized $args
  *                                  plus a "found_avatar" guess. Pass as a reference. Default null.
  * }
- * @return false|string The URL of the avatar we found, or false if we couldn't find an avatar.
+ * @return string|false The URL of the avatar on success, false on failure.
  */
 function get_avatar_url( $id_or_email, $args = null ) {
 	$args = get_avatar_data( $id_or_email, $args );
 	return $args['url'];
 }
 
+
+/**
+ * Check if this comment type allows avatars to be retrieved.
+ *
+ * @since 5.1.0
+ *
+ * @param string $comment_type Comment type to check.
+ * @return bool Whether the comment type is allowed for retrieving avatars.
+ */
+function is_avatar_comment_type( $comment_type ) {
+	/**
+	 * Filters the list of allowed comment types for retrieving avatars.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param array $types An array of content types. Default only contains 'comment'.
+	 */
+	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment' ) );
+
+	return in_array( $comment_type, (array) $allowed_comment_types, true );
+}
+
+
 /**
  * Retrieves default data about the avatar.
  *
- * @since WP-4.2.0
+ * @since 4.2.0
  *
- * @param mixed $id_or_email The Gravatar to retrieve. Accepts a user_id, gravatar md5 hash,
- *                            user email, WP_User object, WP_Post object, or WP_Comment object.
+ * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+ *                           user email, WP_User object, WP_Post object, or WP_Comment object.
  * @param array $args {
- *     Optional. Arguments to return instead of the default arguments.
+ *     Optional. Arguments to use instead of the default arguments.
  *
  *     @type int    $size           Height and width of the avatar image file in pixels. Default 96.
  *     @type int    $height         Display height of the avatar in pixels. Defaults to $size.
@@ -3976,12 +4322,12 @@ function get_avatar_url( $id_or_email, $args = null ) {
  *                                  plus a "found_avatar" guess. Pass as a reference. Default null.
  *     @type string $extra_attr     HTML attributes to insert in the IMG element. Is not sanitized. Default empty.
  * }
- * @return array $processed_args {
+ * @return array {
  *     Along with the arguments passed in `$args`, this will contain a couple of extra arguments.
  *
- *     @type bool   $found_avatar True if we were able to find an avatar for this user,
- *                                false or not set if we couldn't.
- *     @type string $url          The URL of the avatar we found.
+ *     @type bool         $found_avatar True if an avatar was found for this user,
+ *                                      false or not set if none was found.
+ *     @type string|false $url          The URL of the avatar that was found, or false.
  * }
  */
 function get_avatar_data( $id_or_email, $args = null ) {
@@ -3995,7 +4341,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 			'force_default'  => false,
 			'rating'         => get_option( 'avatar_rating' ),
 			'scheme'         => null,
-			'processed_args' => null, // if used, should be a reference
+			'processed_args' => null, // If used, should be a reference.
 			'extra_attr'     => '',
 		)
 	);
@@ -4055,15 +4401,15 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	 * effectively short circuit get_avatar_data(), passing the value through
 	 * the {@see 'get_avatar_data'} filter and returning early.
 	 *
-	 * @since WP-4.2.0
+	 * @since 4.2.0
 	 *
-	 * @param array  $args        Arguments passed to get_avatar_data(), after processing.
-	 * @param mixed  $id_or_email The Gravatar to retrieve. Accepts a user_id, gravatar md5 hash,
-	 *                            user email, WP_User object, WP_Post object, or WP_Comment object.
+	 * @param array $args        Arguments passed to get_avatar_data(), after processing.
+	 * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+	 *                           user email, WP_User object, WP_Post object, or WP_Comment object.
 	 */
 	$args = apply_filters( 'pre_get_avatar_data', $args, $id_or_email );
 
-	if ( isset( $args['url'] ) && ! is_null( $args['url'] ) ) {
+	if ( isset( $args['url'] ) ) {
 		/** This filter is documented in wp-includes/link-template.php */
 		return apply_filters( 'get_avatar_data', $args, $id_or_email );
 	}
@@ -4080,29 +4426,21 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	if ( is_numeric( $id_or_email ) ) {
 		$user = get_user_by( 'id', absint( $id_or_email ) );
 	} elseif ( is_string( $id_or_email ) ) {
-		if ( strpos( $id_or_email, '@md5.gravatar.com' ) ) {
-			// md5 hash
+		if ( str_contains( $id_or_email, '@md5.gravatar.com' ) ) {
+			// MD5 hash.
 			list( $email_hash ) = explode( '@', $id_or_email );
 		} else {
-			// email address
+			// Email address.
 			$email = $id_or_email;
 		}
 	} elseif ( $id_or_email instanceof WP_User ) {
-		// User Object
+		// User object.
 		$user = $id_or_email;
 	} elseif ( $id_or_email instanceof WP_Post ) {
-		// Post Object
+		// Post object.
 		$user = get_user_by( 'id', (int) $id_or_email->post_author );
 	} elseif ( $id_or_email instanceof WP_Comment ) {
-		/**
-		 * Filters the list of allowed comment types for retrieving avatars.
-		 *
-		 * @since WP-3.0.0
-		 *
-		 * @param array $types An array of content types. Default only contains 'comment'.
-		 */
-		$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment' ) );
-		if ( ! empty( $id_or_email->comment_type ) && ! in_array( $id_or_email->comment_type, (array) $allowed_comment_types ) ) {
+		if ( ! is_avatar_comment_type( get_comment_type( $id_or_email ) ) ) {
 			$args['url'] = false;
 			/** This filter is documented in wp-includes/link-template.php */
 			return apply_filters( 'get_avatar_data', $args, $id_or_email );
@@ -4154,10 +4492,10 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	/**
 	 * Filters the avatar URL.
 	 *
-	 * @since WP-4.2.0
+	 * @since 4.2.0
 	 *
 	 * @param string $url         The URL of the avatar.
-	 * @param mixed  $id_or_email The Gravatar to retrieve. Accepts a user_id, gravatar md5 hash,
+	 * @param mixed  $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
 	 *                            user email, WP_User object, WP_Post object, or WP_Comment object.
 	 * @param array  $args        Arguments passed to get_avatar_data(), after processing.
 	 */
@@ -4166,11 +4504,11 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	/**
 	 * Filters the avatar data.
 	 *
-	 * @since WP-4.2.0
+	 * @since 4.2.0
 	 *
-	 * @param array  $args        Arguments passed to get_avatar_data(), after processing.
-	 * @param mixed  $id_or_email The Gravatar to retrieve. Accepts a user_id, gravatar md5 hash,
-	 *                            user email, WP_User object, WP_Post object, or WP_Comment object.
+	 * @param array $args        Arguments passed to get_avatar_data(), after processing.
+	 * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+	 *                           user email, WP_User object, WP_Post object, or WP_Comment object.
 	 */
 	return apply_filters( 'get_avatar_data', $args, $id_or_email );
 }
@@ -4181,7 +4519,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
  * Searches in the stylesheet directory before the template directory so themes
  * which inherit from a parent theme can just override one file.
  *
- * @since WP-4.7.0
+ * @since 4.7.0
  *
  * @param string $file Optional. File to search for in the stylesheet directory.
  * @return string The URL of the file.
@@ -4200,7 +4538,7 @@ function get_theme_file_uri( $file = '' ) {
 	/**
 	 * Filters the URL to a file in the theme.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 *
 	 * @param string $url  The file URL.
 	 * @param string $file The requested file to search for.
@@ -4211,7 +4549,7 @@ function get_theme_file_uri( $file = '' ) {
 /**
  * Retrieves the URL of a file in the parent theme.
  *
- * @since WP-4.7.0
+ * @since 4.7.0
  *
  * @param string $file Optional. File to return the URL for in the template directory.
  * @return string The URL of the file.
@@ -4228,7 +4566,7 @@ function get_parent_theme_file_uri( $file = '' ) {
 	/**
 	 * Filters the URL to a file in the parent theme.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 *
 	 * @param string $url  The file URL.
 	 * @param string $file The requested file to search for.
@@ -4242,7 +4580,7 @@ function get_parent_theme_file_uri( $file = '' ) {
  * Searches in the stylesheet directory before the template directory so themes
  * which inherit from a parent theme can just override one file.
  *
- * @since WP-4.7.0
+ * @since 4.7.0
  *
  * @param string $file Optional. File to search for in the stylesheet directory.
  * @return string The path of the file.
@@ -4261,7 +4599,7 @@ function get_theme_file_path( $file = '' ) {
 	/**
 	 * Filters the path to a file in the theme.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 *
 	 * @param string $path The file path.
 	 * @param string $file The requested file to search for.
@@ -4272,7 +4610,7 @@ function get_theme_file_path( $file = '' ) {
 /**
  * Retrieves the path of a file in the parent theme.
  *
- * @since WP-4.7.0
+ * @since 4.7.0
  *
  * @param string $file Optional. File to return the path for in the template directory.
  * @return string The path of the file.
@@ -4289,7 +4627,7 @@ function get_parent_theme_file_path( $file = '' ) {
 	/**
 	 * Filters the path to a file in the parent theme.
 	 *
-	 * @since WP-4.7.0
+	 * @since 4.7.0
 	 *
 	 * @param string $path The file path.
 	 * @param string $file The requested file to search for.
@@ -4300,7 +4638,7 @@ function get_parent_theme_file_path( $file = '' ) {
 /**
  * Retrieves the URL to the privacy policy page.
  *
- * @since WP-4.9.6
+ * @since 4.9.6
  *
  * @return string The URL to the privacy policy page. Empty string if it doesn't exist.
  */
@@ -4315,7 +4653,7 @@ function get_privacy_policy_url() {
 	/**
 	 * Filters the URL of the privacy policy page.
 	 *
-	 * @since WP-4.9.6
+	 * @since 4.9.6
 	 *
 	 * @param string $url            The URL to the privacy policy page. Empty string
 	 *                               if it doesn't exist.
@@ -4327,7 +4665,7 @@ function get_privacy_policy_url() {
 /**
  * Displays the privacy policy link with formatting, when applicable.
  *
- * @since WP-4.9.6
+ * @since 4.9.6
  *
  * @param string $before Optional. Display before privacy policy link. Default empty.
  * @param string $after  Optional. Display after privacy policy link. Default empty.
@@ -4339,11 +4677,11 @@ function the_privacy_policy_link( $before = '', $after = '' ) {
 /**
  * Returns the privacy policy link with formatting, when applicable.
  *
- * @since WP-4.9.6
+ * @since 4.9.6
+ * @since 6.2.0 Added 'privacy-policy' rel attribute.
  *
  * @param string $before Optional. Display before privacy policy link. Default empty.
  * @param string $after  Optional. Display after privacy policy link. Default empty.
- *
  * @return string Markup for the link and surrounding elements. Empty string if it
  *                doesn't exist.
  */
@@ -4355,7 +4693,7 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 
 	if ( $privacy_policy_url && $page_title ) {
 		$link = sprintf(
-			'<a class="privacy-policy-link" href="%s">%s</a>',
+			'<a class="privacy-policy-link" href="%s" rel="privacy-policy">%s</a>',
 			esc_url( $privacy_policy_url ),
 			esc_html( $page_title )
 		);
@@ -4364,7 +4702,7 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 	/**
 	 * Filters the privacy policy link.
 	 *
-	 * @since WP-4.9.6
+	 * @since 4.9.6
 	 *
 	 * @param string $link               The privacy policy link. Empty string if it
 	 *                                   doesn't exist.
@@ -4378,4 +4716,64 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 	}
 
 	return '';
+}
+
+/**
+ * Returns an array of URL hosts which are considered to be internal hosts.
+ *
+ * By default the list of internal hosts is comproside of the PHP_URL_HOST of
+ * the site's home_url() (as parsed by wp_parse_url()).
+ *
+ * This list is used when determining if a specificed URL is a link to a page on
+ * the site itself or a link offsite (to an external host). This is used, for
+ * example, when determining if the "nofollow" attribute should be applied to a
+ * link.
+ *
+ * @see wp_is_internal_link
+ *
+ * @since 6.2.0
+ *
+ * @return string[] An array of URL hosts.
+ */
+function wp_internal_hosts() {
+	static $internal_hosts;
+
+	if ( empty( $internal_hosts ) ) {
+		/**
+		 * Filters the array of URL hosts which are considered internal.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param array $internal_hosts An array of internal URL hostnames.
+		 */
+		$internal_hosts = apply_filters(
+			'wp_internal_hosts',
+			array(
+				wp_parse_url( home_url(), PHP_URL_HOST ),
+			)
+		);
+		$internal_hosts = array_unique(
+			array_map( 'strtolower', (array) $internal_hosts )
+		);
+	}
+
+	return $internal_hosts;
+}
+
+/**
+ * Determines whether or not the specified URL is of a host included in the internal hosts list.
+ *
+ * @see wp_internal_hosts()
+ *
+ * @since 6.2.0
+ *
+ * @param string $link The URL to test.
+ * @return bool Returns true for internal URLs and false for all other URLs.
+ */
+function wp_is_internal_link( $link ) {
+	$link = strtolower( $link );
+	if ( in_array( wp_parse_url( $link, PHP_URL_SCHEME ), wp_allowed_protocols(), true ) ) {
+		return in_array( wp_parse_url( $link, PHP_URL_HOST ), wp_internal_hosts(), true );
+	}
+	return false;
 }
