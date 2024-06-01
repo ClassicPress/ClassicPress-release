@@ -4,23 +4,30 @@
  *
  * @package ClassicPress
  * @subpackage Customize
- * @since WP-4.4.0
+ * @since 4.4.0
  */
 
 /**
  * Customizer Background Image Setting class.
  *
- * @since WP-3.4.0
+ * @since 3.4.0
  *
  * @see WP_Customize_Setting
  */
 final class WP_Customize_Background_Image_Setting extends WP_Customize_Setting {
+
+	/**
+	 * Unique string identifier for the setting.
+	 *
+	 * @since 3.4.0
+	 * @var string
+	 */
 	public $id = 'background_image_thumb';
 
 	/**
-	 * @since WP-3.4.0
+	 * @since 3.4.0
 	 *
-	 * @param $value
+	 * @param mixed $value The value to update. Not used.
 	 */
 	public function update( $value ) {
 		remove_theme_mod( 'background_image_thumb' );

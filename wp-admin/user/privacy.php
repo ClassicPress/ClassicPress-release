@@ -4,10 +4,10 @@
  *
  * @package ClassicPress
  * @subpackage Administration
- * @since WP-4.9.0
+ * @since 4.9.0
  */
 
 /** Load ClassicPress Administration Bootstrap */
-require_once dirname( __FILE__ ) . '/admin.php';
+require_once __DIR__ . '/admin.php';
 
 require ABSPATH . 'wp-admin/privacy.php';

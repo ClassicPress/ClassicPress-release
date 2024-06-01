@@ -4,20 +4,19 @@
  *
  * @package ClassicPress
  * @subpackage Administration
- * @since WP-3.6.0
+ * @since 3.6.0
  */
 
 /**
  * Get the revision UI diff.
  *
- * @since WP-3.6.0
+ * @since 3.6.0
  *
- * @param object|int $post         The post object. Also accepts a post ID.
- * @param int        $compare_from The revision ID to compare from.
- * @param int        $compare_to   The revision ID to come to.
- *
- * @return array|bool Associative array of a post's revisioned fields and their diffs.
- *                    Or, false on failure.
+ * @param WP_Post|int $post         The post object or post ID.
+ * @param int         $compare_from The revision ID to compare from.
+ * @param int         $compare_to   The revision ID to come to.
+ * @return array|false Associative array of a post's revisioned fields and their diffs.
+ *                     Or, false on failure.
  */
 function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 	$post = get_post( $post );
@@ -55,7 +54,7 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		$compare_to   = $temp;
 	}
 
-	// Add default title if title field is empty
+	// Add default title if title field is empty.
 	if ( $compare_from && empty( $compare_from->post_title ) ) {
 		$compare_from->post_title = __( '(no title)' );
 	}
@@ -69,16 +68,22 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		/**
 		 * Contextually filter a post revision field.
 		 *
-		 * The dynamic portion of the hook name, `$field`, corresponds to each of the post
-		 * fields of the revision object being iterated over in a foreach statement.
+		 * The dynamic portion of the hook name, `$field`, corresponds to a name of a
+		 * field of the revision object.
 		 *
-		 * @since WP-3.6.0
+		 * Possible hook names include:
 		 *
-		 * @param string  $compare_from->$field The current revision field to compare to or from.
-		 * @param string  $field                The current revision field.
-		 * @param WP_Post $compare_from         The revision post object to compare to or from.
-		 * @param string  null                  The context of whether the current revision is the old
-		 *                                      or the new one. Values are 'to' or 'from'.
+		 *  - `_wp_post_revision_field_post_title`
+		 *  - `_wp_post_revision_field_post_content`
+		 *  - `_wp_post_revision_field_post_excerpt`
+		 *
+		 * @since 3.6.0
+		 *
+		 * @param string  $revision_field The current revision field to compare to or from.
+		 * @param string  $field          The current revision field.
+		 * @param WP_Post $compare_from   The revision post object to compare to or from.
+		 * @param string  $context        The context of whether the current revision is the old
+		 *                                or the new one. Values are 'to' or 'from'.
 		 */
 		$content_from = $compare_from ? apply_filters( "_wp_post_revision_field_{$field}", $compare_from->$field, $field, $compare_from, 'from' ) : '';
 
@@ -87,6 +92,8 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 
 		$args = array(
 			'show_split_view' => true,
+			'title_left'      => __( 'Removed' ),
+			'title_right'     => __( 'Added' ),
 		);
 
 		/**
@@ -94,7 +101,7 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		 *
 		 * Filters the options passed to wp_text_diff() when viewing a post revision.
 		 *
-		 * @since WP-4.1.0
+		 * @since 4.1.0
 		 *
 		 * @param array   $args {
 		 *     Associative array of options to pass to wp_text_diff().
@@ -113,8 +120,20 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		if ( ! $diff && 'post_title' === $field ) {
 			// It's a better user experience to still show the Title, even if it didn't change.
 			// No, you didn't see this.
-			$diff  = '<table class="diff"><colgroup><col class="content diffsplit left"><col class="content diffsplit middle"><col class="content diffsplit right"></colgroup><tbody><tr>';
-			$diff .= '<td>' . esc_html( $compare_from->post_title ) . '</td><td></td><td>' . esc_html( $compare_to->post_title ) . '</td>';
+			$diff = '<table class="diff"><colgroup><col class="content diffsplit left"><col class="content diffsplit middle"><col class="content diffsplit right"></colgroup><tbody><tr>';
+
+			// In split screen mode, show the title before/after side by side.
+			if ( true === $args['show_split_view'] ) {
+				$diff .= '<td>' . esc_html( $compare_from->post_title ) . '</td><td></td><td>' . esc_html( $compare_to->post_title ) . '</td>';
+			} else {
+				$diff .= '<td>' . esc_html( $compare_from->post_title ) . '</td>';
+
+				// In single column mode, only show the title once if unchanged.
+				if ( $compare_from->post_title !== $compare_to->post_title ) {
+					$diff .= '</tr><tr><td>' . esc_html( $compare_to->post_title ) . '</td>';
+				}
+			}
+
 			$diff .= '</tr></tbody>';
 			$diff .= '</table>';
 		}
@@ -131,25 +150,23 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 	/**
 	 * Filters the fields displayed in the post revision diff UI.
 	 *
-	 * @since WP-4.1.0
+	 * @since 4.1.0
 	 *
-	 * @param array   $return       Revision UI fields. Each item is an array of id, name and diff.
+	 * @param array[] $return       Array of revision UI fields. Each item is an array of id, name, and diff.
 	 * @param WP_Post $compare_from The revision post to compare from.
 	 * @param WP_Post $compare_to   The revision post to compare to.
 	 */
 	return apply_filters( 'wp_get_revision_ui_diff', $return, $compare_from, $compare_to );
-
 }
 
 /**
  * Prepare revisions for JavaScript.
  *
- * @since WP-3.6.0
+ * @since 3.6.0
  *
- * @param object|int $post                 The post object. Also accepts a post ID.
- * @param int        $selected_revision_id The selected revision ID.
- * @param int        $from                 Optional. The revision ID to compare from.
- *
+ * @param WP_Post|int $post                 The post object or post ID.
+ * @param int         $selected_revision_id The selected revision ID.
+ * @param int         $from                 Optional. The revision ID to compare from.
  * @return array An associative array of revision data and related settings.
  */
 function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null ) {
@@ -176,7 +193,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 
 	$show_avatars = get_option( 'show_avatars' );
 
-	cache_users( wp_list_pluck( $revisions, 'post_author' ) );
+	update_post_author_caches( $revisions );
 
 	$can_restore = current_user_can( 'edit_post', $post->ID );
 	$current_id  = false;
@@ -229,6 +246,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 			'author'     => $authors[ $revision->post_author ],
 			'date'       => date_i18n( __( 'M j, Y @ H:i' ), $modified ),
 			'dateShort'  => date_i18n( _x( 'j M @ H:i', 'revision date short format' ), $modified ),
+			/* translators: %s: Human-readable time difference. */
 			'timeAgo'    => sprintf( __( '%s ago' ), human_time_diff( $modified_gmt, $now_gmt ) ),
 			'autosave'   => $autosave,
 			'current'    => $current,
@@ -238,7 +256,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 		/**
 		 * Filters the array of revisions used on the revisions screen.
 		 *
-		 * @since WP-4.4.0
+		 * @since 4.4.0
 		 *
 		 * @param array   $revisions_data {
 		 *     The bootstrapped data for the revisions screen.
@@ -260,17 +278,18 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 		$revisions[ $revision->ID ] = apply_filters( 'wp_prepare_revision_for_js', $revisions_data, $revision, $post );
 	}
 
-	/**
-	 * If we only have one revision, the initial revision is missing; This happens
-	 * when we have an autsosave and the user has clicked 'View the Autosave'
+	/*
+	 * If we only have one revision, the initial revision is missing. This happens
+	 * when we have an autosave and the user has clicked 'View the Autosave'.
 	 */
-	if ( 1 === sizeof( $revisions ) ) {
+	if ( 1 === count( $revisions ) ) {
 		$revisions[ $post->ID ] = array(
 			'id'         => $post->ID,
 			'title'      => get_the_title( $post->ID ),
-			'author'     => $authors[ $post->post_author ],
+			'author'     => $authors[ $revision->post_author ],
 			'date'       => date_i18n( __( 'M j, Y @ H:i' ), strtotime( $post->post_modified ) ),
 			'dateShort'  => date_i18n( _x( 'j M @ H:i', 'revision date short format' ), strtotime( $post->post_modified ) ),
+			/* translators: %s: Human-readable time difference. */
 			'timeAgo'    => sprintf( __( '%s ago' ), human_time_diff( strtotime( $post->post_modified_gmt ), $now_gmt ) ),
 			'autosave'   => false,
 			'current'    => true,
@@ -280,7 +299,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 	}
 
 	/*
-	 * If a post has been saved since the last revision (no revisioned fields
+	 * If a post has been saved since the latest revision (no revisioned fields
 	 * were changed), we may not have a "current" revision. Mark the latest
 	 * revision as "current".
 	 */
@@ -326,7 +345,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 		'from'           => $from,
 		'diffData'       => $diffs,
 		'baseUrl'        => parse_url( admin_url( 'revision.php' ), PHP_URL_PATH ),
-		'compareTwoMode' => absint( $compare_two_mode ), // Apparently booleans are not allowed
+		'compareTwoMode' => absint( $compare_two_mode ), // Apparently booleans are not allowed.
 		'revisionIds'    => array_keys( $revisions ),
 	);
 }
@@ -334,9 +353,9 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 /**
  * Print JavaScript templates required for the revisions experience.
  *
- * @since WP-4.1.0
+ * @since 4.1.0
  *
- * @global WP_Post $post The global `$post` object.
+ * @global WP_Post $post Global post object.
  */
 function wp_print_revision_templates() {
 	global $post;
@@ -347,11 +366,11 @@ function wp_print_revision_templates() {
 
 	<script id="tmpl-revisions-buttons" type="text/html">
 		<div class="revisions-previous">
-			<input class="button" type="button" value="<?php echo esc_attr_x( 'Previous', 'Button label for a previous revision' ); ?>" />
+			<input class="button" type="button" value="<?php echo esc_attr_x( 'Previous', 'Button label for a previous revision' ); ?>">
 		</div>
 
 		<div class="revisions-next">
-			<input class="button" type="button" value="<?php echo esc_attr_x( 'Next', 'Button label for a next revision' ); ?>" />
+			<input class="button" type="button" value="<?php echo esc_attr_x( 'Next', 'Button label for a next revision' ); ?>">
 		</div>
 	</script>
 
@@ -361,10 +380,10 @@ function wp_print_revision_templates() {
 				<input type="checkbox" class="compare-two-revisions"
 				<#
 				if ( 'undefined' !== typeof data && data.model.attributes.compareTwoMode ) {
-					#> checked="checked"<#
+					#> checked<#
 				}
 				#>
-				/>
+				>
 				<?php esc_html_e( 'Compare any two revisions' ); ?>
 			</label>
 		</div>
@@ -385,6 +404,7 @@ function wp_print_revision_templates() {
 						<span class="byline">
 						<?php
 						printf(
+							/* translators: %s: User's display name. */
 							__( 'Autosave by %s' ),
 							'<span class="author-name">{{ data.attributes.author.name }}</span>'
 						);
@@ -394,6 +414,7 @@ function wp_print_revision_templates() {
 						<span class="byline">
 						<?php
 						printf(
+							/* translators: %s: User's display name. */
 							__( 'Current Revision by %s' ),
 							'<span class="author-name">{{ data.attributes.author.name }}</span>'
 						);
@@ -403,6 +424,7 @@ function wp_print_revision_templates() {
 						<span class="byline">
 						<?php
 						printf(
+							/* translators: %s: User's display name. */
 							__( 'Revision by %s' ),
 							'<span class="author-name">{{ data.attributes.author.name }}</span>'
 						);
@@ -414,16 +436,16 @@ function wp_print_revision_templates() {
 					</div>
 				<# if ( 'to' === data.type && data.attributes.restoreUrl ) { #>
 					<input  <?php if ( wp_check_post_lock( $post->ID ) ) { ?>
-						disabled="disabled"
+						disabled
 					<?php } else { ?>
 						<# if ( data.attributes.current ) { #>
-							disabled="disabled"
+							disabled
 						<# } #>
 					<?php } ?>
 					<# if ( data.attributes.autosave ) { #>
-						type="button" class="restore-revision button button-primary" value="<?php esc_attr_e( 'Restore This Autosave' ); ?>" />
+						type="button" class="restore-revision button button-primary" value="<?php esc_attr_e( 'Restore This Autosave' ); ?>">
 					<# } else { #>
-						type="button" class="restore-revision button button-primary" value="<?php esc_attr_e( 'Restore This Revision' ); ?>" />
+						type="button" class="restore-revision button button-primary" value="<?php esc_attr_e( 'Restore This Revision' ); ?>">
 					<# } #>
 				<# } #>
 			</div>
