@@ -4,21 +4,22 @@
  *
  * @package ClassicPress
  * @subpackage Widgets
- * @since WP-4.4.0
+ * @since 4.4.0
  */
 
 /**
  * Singleton that registers and instantiates WP_Widget classes.
  *
- * @since WP-2.8.0
- * @since WP-4.4.0 Moved to its own file from wp-includes/widgets.php
+ * @since 2.8.0
+ * @since 4.4.0 Moved to its own file from wp-includes/widgets.php
  */
+#[AllowDynamicProperties]
 class WP_Widget_Factory {
 
 	/**
 	 * Widgets array.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 * @var array
 	 */
 	public $widgets = array();
@@ -26,7 +27,7 @@ class WP_Widget_Factory {
 	/**
 	 * PHP5 constructor.
 	 *
-	 * @since WP-4.3.0
+	 * @since 4.3.0
 	 */
 	public function __construct() {
 		add_action( 'widgets_init', array( $this, '_register_widgets' ), 100 );
@@ -35,67 +36,28 @@ class WP_Widget_Factory {
 	/**
 	 * PHP4 constructor.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
+	 * @deprecated 4.3.0 Use __construct() instead.
+	 *
+	 * @see WP_Widget_Factory::__construct()
 	 */
 	public function WP_Widget_Factory() {
-		_deprecated_constructor( 'WP_Widget_Factory', 'WP-4.2.0' );
+		_deprecated_constructor( 'WP_Widget_Factory', '4.3.0' );
 		self::__construct();
-	}
-
-	/**
-	 * Memory for the number of times unique class instances have been hashed.
-	 *
-	 * This can be eliminated in favor of straight spl_object_hash() when 5.3
-	 * is the minimum requirement for PHP.
-	 *
-	 * @since WP-4.6.0
-	 * @var array
-	 *
-	 * @see WP_Widget_Factory::hash_object()
-	 */
-	private $hashed_class_counts = array();
-
-	/**
-	 * Hashes an object, doing fallback of `spl_object_hash()` if not available.
-	 *
-	 * This can be eliminated in favor of straight spl_object_hash() when 5.3
-	 * is the minimum requirement for PHP.
-	 *
-	 * @since WP-4.6.0
-	 *
-	 * @param WP_Widget $widget Widget.
-	 * @return string Object hash.
-	 */
-	private function hash_object( $widget ) {
-		if ( function_exists( 'spl_object_hash' ) ) {
-			return spl_object_hash( $widget );
-		} else {
-			$class_name = get_class( $widget );
-			$hash       = $class_name;
-			if ( ! isset( $widget->_wp_widget_factory_hash_id ) ) {
-				if ( ! isset( $this->hashed_class_counts[ $class_name ] ) ) {
-					$this->hashed_class_counts[ $class_name ] = 0;
-				}
-				$this->hashed_class_counts[ $class_name ] += 1;
-				$widget->_wp_widget_factory_hash_id        = $this->hashed_class_counts[ $class_name ];
-			}
-			$hash .= ':' . $widget->_wp_widget_factory_hash_id;
-			return $hash;
-		}
 	}
 
 	/**
 	 * Registers a widget subclass.
 	 *
-	 * @since WP-2.8.0
-	 * @since WP-4.6.0 Updated the `$widget` parameter to also accept a WP_Widget instance object
+	 * @since 2.8.0
+	 * @since 4.6.0 Updated the `$widget` parameter to also accept a WP_Widget instance object
 	 *              instead of simply a `WP_Widget` subclass name.
 	 *
 	 * @param string|WP_Widget $widget Either the name of a `WP_Widget` subclass or an instance of a `WP_Widget` subclass.
 	 */
 	public function register( $widget ) {
 		if ( $widget instanceof WP_Widget ) {
-			$this->widgets[ $this->hash_object( $widget ) ] = $widget;
+			$this->widgets[ spl_object_hash( $widget ) ] = $widget;
 		} else {
 			$this->widgets[ $widget ] = new $widget();
 		}
@@ -104,15 +66,15 @@ class WP_Widget_Factory {
 	/**
 	 * Un-registers a widget subclass.
 	 *
-	 * @since WP-2.8.0
-	 * @since WP-4.6.0 Updated the `$widget` parameter to also accept a WP_Widget instance object
+	 * @since 2.8.0
+	 * @since 4.6.0 Updated the `$widget` parameter to also accept a WP_Widget instance object
 	 *              instead of simply a `WP_Widget` subclass name.
 	 *
 	 * @param string|WP_Widget $widget Either the name of a `WP_Widget` subclass or an instance of a `WP_Widget` subclass.
 	 */
 	public function unregister( $widget ) {
 		if ( $widget instanceof WP_Widget ) {
-			unset( $this->widgets[ $this->hash_object( $widget ) ] );
+			unset( $this->widgets[ spl_object_hash( $widget ) ] );
 		} else {
 			unset( $this->widgets[ $widget ] );
 		}
@@ -121,7 +83,7 @@ class WP_Widget_Factory {
 	/**
 	 * Serves as a utility method for adding widgets to the registered widgets global.
 	 *
-	 * @since WP-2.8.0
+	 * @since 2.8.0
 	 *
 	 * @global array $wp_registered_widgets
 	 */
@@ -132,7 +94,7 @@ class WP_Widget_Factory {
 		$registered = array_map( '_get_widget_id_base', $registered );
 
 		foreach ( $keys as $key ) {
-			// don't register new widget if old widget with the same id is already registered
+			// Don't register new widget if old widget with the same id is already registered.
 			if ( in_array( $this->widgets[ $key ]->id_base, $registered, true ) ) {
 				unset( $this->widgets[ $key ] );
 				continue;
@@ -140,5 +102,40 @@ class WP_Widget_Factory {
 
 			$this->widgets[ $key ]->_register();
 		}
+	}
+
+	/**
+	 * Returns the registered WP_Widget object for the given widget type.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $id_base Widget type ID.
+	 * @return WP_Widget|null
+	 */
+	public function get_widget_object( $id_base ) {
+		$key = $this->get_widget_key( $id_base );
+		if ( '' === $key ) {
+			return null;
+		}
+
+		return $this->widgets[ $key ];
+	}
+
+	/**
+	 * Returns the registered key for the given widget type.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $id_base Widget type ID.
+	 * @return string
+	 */
+	public function get_widget_key( $id_base ) {
+		foreach ( $this->widgets as $key => $widget_object ) {
+			if ( $widget_object->id_base === $id_base ) {
+				return $key;
+			}
+		}
+
+		return '';
 	}
 }

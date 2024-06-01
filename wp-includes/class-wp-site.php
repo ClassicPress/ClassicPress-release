@@ -4,7 +4,7 @@
  *
  * @package ClassicPress
  * @subpackage Multisite
- * @since WP-4.5.0
+ * @since 4.5.0
  */
 
 /**
@@ -13,7 +13,7 @@
  * This class is used during load to populate the `$current_blog` global and
  * setup the current site.
  *
- * @since WP-4.5.0
+ * @since 4.5.0
  *
  * @property int    $id
  * @property int    $network_id
@@ -22,14 +22,17 @@
  * @property int    $post_count
  * @property string $home
  */
+#[AllowDynamicProperties]
 final class WP_Site {
 
 	/**
 	 * Site ID.
 	 *
+	 * Named "blog" vs. "site" for legacy reasons.
+	 *
 	 * A numeric string, for compatibility reasons.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string
 	 */
 	public $blog_id;
@@ -37,7 +40,7 @@ final class WP_Site {
 	/**
 	 * Domain of the site.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string
 	 */
 	public $domain = '';
@@ -45,7 +48,7 @@ final class WP_Site {
 	/**
 	 * Path of the site.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string
 	 */
 	public $path = '';
@@ -58,15 +61,15 @@ final class WP_Site {
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string
 	 */
 	public $site_id = '0';
 
 	/**
-	 * The date on which the site was created or registered.
+	 * The date and time on which the site was created or registered.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string Date in MySQL's datetime format.
 	 */
 	public $registered = '0000-00-00 00:00:00';
@@ -74,7 +77,7 @@ final class WP_Site {
 	/**
 	 * The date and time on which site settings were last updated.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string Date in MySQL's datetime format.
 	 */
 	public $last_updated = '0000-00-00 00:00:00';
@@ -84,7 +87,7 @@ final class WP_Site {
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string
 	 */
 	public $public = '1';
@@ -94,7 +97,7 @@ final class WP_Site {
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string
 	 */
 	public $archived = '0';
@@ -102,12 +105,12 @@ final class WP_Site {
 	/**
 	 * Whether the site should be treated as mature.
 	 *
-	 * Handling for this does not exist throughout ClassicPress core, but custom
+	 * Handling for this does not exist throughout WordPress core, but custom
 	 * implementations exist that require the property to be present.
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string
 	 */
 	public $mature = '0';
@@ -117,7 +120,7 @@ final class WP_Site {
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string
 	 */
 	public $spam = '0';
@@ -127,7 +130,7 @@ final class WP_Site {
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string
 	 */
 	public $deleted = '0';
@@ -137,7 +140,7 @@ final class WP_Site {
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 * @var string
 	 */
 	public $lang_id = '0';
@@ -145,10 +148,9 @@ final class WP_Site {
 	/**
 	 * Retrieves a site from the database by its ID.
 	 *
-	 * @static
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 *
-	 * @global wpdb $wpdb ClassicPress database abstraction object.
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int $site_id The ID of the site to retrieve.
 	 * @return WP_Site|false The site's object if found. False if not.
@@ -163,14 +165,18 @@ final class WP_Site {
 
 		$_site = wp_cache_get( $site_id, 'sites' );
 
-		if ( ! $_site ) {
+		if ( false === $_site ) {
 			$_site = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->blogs} WHERE blog_id = %d LIMIT 1", $site_id ) );
 
 			if ( empty( $_site ) || is_wp_error( $_site ) ) {
-				return false;
+				$_site = -1;
 			}
 
 			wp_cache_add( $site_id, $_site, 'sites' );
+		}
+
+		if ( is_numeric( $_site ) ) {
+			return false;
 		}
 
 		return new WP_Site( $_site );
@@ -182,7 +188,7 @@ final class WP_Site {
 	 * Will populate object properties from the object provided and assign other
 	 * default properties based on that information.
 	 *
-	 * @since WP-4.5.0
+	 * @since 4.5.0
 	 *
 	 * @param WP_Site|object $site A site object.
 	 */
@@ -195,7 +201,7 @@ final class WP_Site {
 	/**
 	 * Converts an object to array.
 	 *
-	 * @since WP-4.6.0
+	 * @since 4.6.0
 	 *
 	 * @return array Object as array.
 	 */
@@ -209,7 +215,7 @@ final class WP_Site {
 	 * Allows current multisite naming conventions when getting properties.
 	 * Allows access to extended site properties.
 	 *
-	 * @since WP-4.6.0
+	 * @since 4.6.0
 	 *
 	 * @param string $key Property to get.
 	 * @return mixed Value of the property. Null if not available.
@@ -244,7 +250,7 @@ final class WP_Site {
 	 * Allows current multisite naming conventions when checking for properties.
 	 * Checks for extended site properties.
 	 *
-	 * @since WP-4.6.0
+	 * @since 4.6.0
 	 *
 	 * @param string $key Property to check if set.
 	 * @return bool Whether the property is set.
@@ -281,7 +287,7 @@ final class WP_Site {
 	 *
 	 * Allows current multisite naming conventions while setting properties.
 	 *
-	 * @since WP-4.6.0
+	 * @since 4.6.0
 	 *
 	 * @param string $key   Property to set.
 	 * @param mixed  $value Value to assign to the property.
@@ -304,7 +310,7 @@ final class WP_Site {
 	 *
 	 * This method is used internally to lazy-load the extended properties of a site.
 	 *
-	 * @since WP-4.6.0
+	 * @since 4.6.0
 	 *
 	 * @see WP_Site::__get()
 	 *
@@ -316,7 +322,7 @@ final class WP_Site {
 		if ( false === $details ) {
 
 			switch_to_blog( $this->blog_id );
-			// Create a raw copy of the object for backwards compatibility with the filter below.
+			// Create a raw copy of the object for backward compatibility with the filter below.
 			$details = new stdClass();
 			foreach ( get_object_vars( $this ) as $key => $value ) {
 				$details->$key = $value;
@@ -331,12 +337,12 @@ final class WP_Site {
 		}
 
 		/** This filter is documented in wp-includes/ms-blogs.php */
-		$details = apply_filters_deprecated( 'blog_details', array( $details ), 'WP-4.7.0', 'site_details' );
+		$details = apply_filters_deprecated( 'blog_details', array( $details ), '4.7.0', 'site_details' );
 
 		/**
 		 * Filters a site's extended properties.
 		 *
-		 * @since WP-4.6.0
+		 * @since 4.6.0
 		 *
 		 * @param stdClass $details The site details.
 		 */
